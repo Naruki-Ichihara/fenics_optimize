@@ -1,4 +1,4 @@
-# morphogenesis _Under constraction_
+# morphogenesis (**Under constraction**)
 
 <!-- # Short Description -->
 
@@ -49,7 +49,7 @@ docker-compose up
 This container will survive until when you stop the container.
 
 # Solve elasticity problem using _smoothed aggregation algerbaric multigrid method_
-This repository include following solvers for the _large scale _elasticity problem.
+This repository includes following solvers for the _large scale_ elasticity problem.
 
 * Smoothed Aggregation Algerbaric Multigrid method (SAAM)
 * Super LU (TO DO)

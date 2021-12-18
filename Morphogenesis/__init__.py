@@ -9,3 +9,4 @@
 
 from .Solvers import *
 from .Utils import *
+from .Optimizer import *
