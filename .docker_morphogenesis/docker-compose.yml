@@ -2,7 +2,7 @@ version: '3.9'
 services:
   morphogenesis:
     restart: always
-    image: ichiharanaruki/fenicsx:latest
+    image: bhaveshshrimali/dolfin_superlu:latest
     container_name: 'morpho'
     working_dir: '/root/'
     tty: true
@@ -15,7 +15,7 @@ services:
     #      devices:
     #      - driver: nvidia
     #        capabilities: [gpu]
-    shm_size: 64gb
+    shm_size: 4gb
     ulimits:
       memlock: -1
       stack: 67108864
