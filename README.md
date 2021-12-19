@@ -1,9 +1,6 @@
-<p align="center">
-  <img src="https://user-images.githubusercontent.com/70839257/146679821-86686362-c6a0-4b04-a52a-ad4d04dbbff4.png" />
-</p>
+<div align="center"><img src="https://user-images.githubusercontent.com/70839257/146679821-86686362-c6a0-4b04-a52a-ad4d04dbbff4.png" width="400"/></div>
+
 # morphogenesis
-
-
 <!-- # Short Description -->
 
 morphogenesis is the high-resolution topology optimization toolkit using the FEniCS.
