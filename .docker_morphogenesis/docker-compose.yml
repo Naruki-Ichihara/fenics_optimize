@@ -2,7 +2,7 @@ version: '3.9'
 services:
   morphogenesis:
     restart: always
-    image: bhaveshshrimali/dolfin_superlu:latest
+    image: ichiharanaruki/fenicsx:latest
     container_name: 'morpho'
     working_dir: '/root/'
     tty: true

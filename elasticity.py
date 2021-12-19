@@ -1,12 +1,14 @@
 from dolfin import *
 from dolfin_adjoint import *
-from Morphogenesis.Solvers.AMGsolver import AMGsolver
-from Morphogenesis.Solvers.SLUDsolver import SLUDsolver
-from Morphogenesis.Utils.file_io import export_result
+from morphogenesis.Solvers.AMGsolver import AMG2Dsolver
+from morphogenesis.Solvers.SLUDsolver import SLUDsolver
+from morphogenesis.Utils.file_io import export_result
 
-mesh = BoxMesh(
-    MPI.comm_world, Point(0.0, 0.0, 0.0),
-                     Point(100.0, 10.0, 10.0), 100, 10, 10)
+#mesh = BoxMesh(
+#    MPI.comm_world, Point(0.0, 0.0, 0.0),
+#                    Point(20.0, 10.0, 10.0), 40, 20, 20)
+
+mesh = RectangleMesh(MPI.comm_world, Point(0, 0), Point(20, 10), 200, 100)
 
 # Elasticity parameters
 E = 1.0e9
@@ -22,7 +24,7 @@ def sigma(v):
 V = VectorFunctionSpace(mesh, "Lagrange", 1)
 
 # Define variational problem
-f = Constant((0, 0, -1e3))
+f = Constant((0, -1e3))
 u = TrialFunction(V)
 v = TestFunction(V)
 a = inner(sigma(u), grad(v))*dx
@@ -32,10 +34,10 @@ L = inner(f, v)*dx
 def clamped_boundary(x, on_boundary):
     return on_boundary and x[0] < 1e-10
 
-bc = DirichletBC(V, Constant((0, 0, 0)), clamped_boundary)
+bc = DirichletBC(V, Constant((0, 0)), clamped_boundary)
 u = Function(V)
 
-problem = SLUDsolver(a, L, [bc])
-u = problem.forwardSolve(u, V, False)
+problem = AMG2Dsolver(a, L, [bc])
+u = problem.forwardSolve(u, V, True)
 
 export_result(u, 'result/test.xdmf')
