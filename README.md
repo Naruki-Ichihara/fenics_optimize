@@ -1,7 +1,8 @@
 <p align="center">
-  <img src="https://github.com/Naruki-Ichihara/morphogenesis/tree/main/static/images/bridge.png" />
-# morphogenesis
+  ![head](/static/images/bridge.png)
 </p>
+# morphogenesis
+
 
 <!-- # Short Description -->
 
