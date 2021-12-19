@@ -15,7 +15,7 @@ services:
     #      devices:
     #      - driver: nvidia
     #        capabilities: [gpu]
-    shm_size: 4gb
+    shm_size: 64gb
     ulimits:
       memlock: -1
       stack: 67108864

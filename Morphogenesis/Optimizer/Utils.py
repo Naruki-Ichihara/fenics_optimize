@@ -26,15 +26,16 @@ class ElasticityProblem():
         Return:
             v (fenics.function): filtered function
         """
+        
         v = TrialFunction(U)
         dv = TestFunction(U)
         vh = Function(U)
         a = R*inner(grad(v), grad(dv))*dx + dot(v, dv)*dx
         L = inner(u, dv)*dx
-        solve(a==L, vh)
-        return project(vh, U)
+        solve(a==L, vh, solver_parameters={'linear_solver': "mumps"})
+        return vh
 
-    def heviside_filter(self, u, U, a=50):
+    def hevisideFilter(self, u, U, a=50, offset=0.01):
         """# heviside_filter
 
         Apply the heviside function (approximate with sigmoid function)
@@ -45,9 +46,8 @@ class ElasticityProblem():
         Returns:
             v (fenics.function): filterd function
         Note:
-
         """
-        return project(1 / (1 + exp(-a*u)), U)
+        return (1 / (1 + exp(-a*u)))*(1-offset) + offset
 
     def sigma(self, v):
         return 2.0*self.mu*sym(grad(v)) + self.lmbda*tr(sym(grad(v)))*Identity(len(v))
