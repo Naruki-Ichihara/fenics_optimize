@@ -85,7 +85,7 @@ Here, we select the AMG solver to solve the 2-D elastic topology optimization pr
 ```python
 from dolfin import *
 from dolfin_adjoint import *
-import Morphogenesis as m
+import morphogenesis as m
 import numpy as np
 
 E = 1.0e9
