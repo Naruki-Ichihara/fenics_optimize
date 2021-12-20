@@ -72,6 +72,13 @@ docker-compose up
 ```
 This container will survive until when you stop the container.
 
+### Manually installation
+Run `pip` after installation all dependecies.
+```
+git clone https://github.com/Naruki-Ichihara/morphogenesis.git
+pip install .
+```
+
 ## Example
 Here, we select the AMG solver to solve the 2-D elastic topology optimization problem.
 
