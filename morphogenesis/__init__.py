@@ -9,10 +9,10 @@
 
 __version__ = "0.0.1"
 
-from Morphogenesis.Chain.Chain import *
-from Morphogenesis.Filters.Filters import *
-from Morphogenesis.Helpers.Elasticity import *
-from Morphogenesis.Optimizer.MMAoptimizer import *
-from Morphogenesis.Solvers.AMGsolver import *
-from Morphogenesis.Solvers.SLUDsolver import *
-from Morphogenesis.Utils.FileIO import *
+from morphogenesis.Chain.Chain import *
+from morphogenesis.Filters.Filters import *
+from morphogenesis.Helpers.Elasticity import *
+from morphogenesis.Optimizer.MMAoptimizer import *
+from morphogenesis.Solvers.AMGsolver import *
+from morphogenesis.Solvers.SLUDsolver import *
+from morphogenesis.Utils.FileIO import *
