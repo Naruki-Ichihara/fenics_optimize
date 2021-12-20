@@ -2,8 +2,8 @@
 
 # morphogenesis
 <!-- # Short Description -->
-
-> *Langage for Topology Optimization*
+---
+*Language for Topology Optimization*
 ---
 The **morphogenesis** is the domain-specific language for topology optimization researches. This repository depends on the [FEniCS computing platform](https://fenicsproject.org/).
 <!-- # Badges -->
