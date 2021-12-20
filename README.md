@@ -3,7 +3,9 @@
 # morphogenesis
 <!-- # Short Description -->
 
-The **morphogenesis** is the domain-specific language for topology optimization researches. This repository depends on the [FEniCS computing platform](https://fenicsproject.org/)
+> *Langage for Topology Optimization*
+---
+The **morphogenesis** is the domain-specific language for topology optimization researches. This repository depends on the [FEniCS computing platform](https://fenicsproject.org/).
 <!-- # Badges -->
 
 [![Github issues](https://img.shields.io/github/issues/Naruki-Ichihara/morphogenesis?style=for-the-badge&logo=appveyor)](https://github.com/Naruki-Ichihara/morphogenesis/issues)
