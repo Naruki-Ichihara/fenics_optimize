@@ -3,8 +3,7 @@
 # morphogenesis
 <!-- # Short Description -->
 
-morphogenesis is the high-resolution topology optimization toolkit using the FEniCS.
-
+The **morphogenesis** is the domain-specific language for topology optimization researches. This repository depends on the [FEniCS computing platform](https://fenicsproject.org/)
 <!-- # Badges -->
 
 [![Github issues](https://img.shields.io/github/issues/Naruki-Ichihara/morphogenesis?style=for-the-badge&logo=appveyor)](https://github.com/Naruki-Ichihara/morphogenesis/issues)
@@ -15,13 +14,39 @@ morphogenesis is the high-resolution topology optimization toolkit using the FEn
 
 # Advantages
 
-Morphogenesis allows the high-level design of mechanical parts.
+## Automatic sensitivity analysis
+Sensitivities that need to optimization will be derived automatically from the UFL form. `evalGradient` method receive the assemble of the UFL form as the cost function and compute the Jacobian sequence with [pyadjoint](https://github.com/dolfin-adjoint/pyadjoint) backend.
+
+## Filters
+**morphogenesis** has built-in filters for topology optimizations
+
+* Heviside Filter
+* Helmholtz Filter
+* Isoparametric Filter (TODO)
+
+## Built-in solvers
+**morphogenesis** contains the tune-up LU solvers and Krylov solvers for large-scale partial differential equation (PDE) using the [PETSc](https://petsc.org/release/) backend, including:
+
+* Smoothed Aggregation Algebaric Multigrid method (AMG)
+* SuperLU_dist
+* Mumps
+* GMRES (TODO)
+
+## Optimizer
+**morphogenesis** supports some optimizers based on NLopt or IPOPT. Currently supported
+
+* Method of Moving Asymptotes (MMA)
+* ipopt-HSL that supported MPI (TODO)
+
+## Parallelization (Partially)
+**morphogenesis** supports the message passing interface (MPI) partially. 
 
 # Installation
 
-This repository depends following library;
+This repository depends following libraries;
 
-* FEniCS
+* FEniCS project
+* pyadjoint
 * NLopt
 * Numpy
 * fecr
@@ -47,12 +72,6 @@ docker-compose up
 This container will survive until when you stop the container.
 
 # Example
-This repository includes following solvers for the _large scale_ elasticity problem.
-
-* Smoothed Aggregation Algerbaric Multigrid method (AMG)
-* SuperLU_dist
-* Mumps
-
 Here, we select the AMG solver to solve the 2-D elastic topology optimization problem.
 
 ```python
@@ -77,7 +96,7 @@ N = mesh.num_vertices()
 x0 = np.zeros(N)
 
 X = FunctionSpace(mesh, "CG", 1)
-V = VectorFunctionSpace(mesh, "Lagrange", 1)
+V = VectorFunctionSpace(mesh, "CG", 1)
 
 class Bottom(SubDomain):
     def inside(self, x, on_boundary):
