@@ -7,7 +7,12 @@
 # SPDX-License-Identifier:    MIT
 """Main module for Morphogenesis"""
 
-from .Solvers import *
-from .Utils import *
-from .Optimizer import *
-from .Filters import *
+__version__ = "0.0.1"
+
+from Morphogenesis.Chain.Chain import *
+from Morphogenesis.Filters.Filters import *
+from Morphogenesis.Helpers.Elasticity import *
+from Morphogenesis.Optimizer.MMAoptimizer import *
+from Morphogenesis.Solvers.AMGsolver import *
+from Morphogenesis.Solvers.SLUDsolver import *
+from Morphogenesis.Utils.FileIO import *
