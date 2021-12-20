@@ -2,9 +2,8 @@
 
 # morphogenesis
 <!-- # Short Description -->
----
-*Language for Topology Optimization*
----
+## *Language for Topology Optimization*
+
 The **morphogenesis** is the domain-specific language for topology optimization researches. This repository depends on the [FEniCS computing platform](https://fenicsproject.org/).
 <!-- # Badges -->
 
@@ -14,19 +13,19 @@ The **morphogenesis** is the domain-specific language for topology optimization 
 [![Github top language](https://img.shields.io/github/languages/top/Naruki-Ichihara/morphogenesis?style=for-the-badge&logo=appveyor)](https://github.com/Naruki-Ichihara/morphogenesis/)
 [![Github license](https://img.shields.io/github/license/Naruki-Ichihara/morphogenesis?style=for-the-badge&logo=appveyor)](https://github.com/Naruki-Ichihara/morphogenesis/)
 
-# Advantages
+## Advantages
 
-## Automatic sensitivity analysis
+### Automatic sensitivity analysis
 Sensitivities that need to optimization will be derived automatically from the UFL form. `evalGradient` method receive the assemble of the UFL form as the cost function and compute the Jacobian sequence with [pyadjoint](https://github.com/dolfin-adjoint/pyadjoint) backend.
 
-## Filters
+### Filters
 **morphogenesis** has built-in filters for topology optimizations
 
 * Heviside Filter
 * Helmholtz Filter
 * Isoparametric Filter (TODO)
 
-## Built-in solvers
+### Built-in solvers
 **morphogenesis** contains the tune-up LU solvers and Krylov solvers for large-scale partial differential equation (PDE) using the [PETSc](https://petsc.org/release/) backend, including:
 
 * Smoothed Aggregation Algebaric Multigrid method (AMG)
@@ -34,16 +33,16 @@ Sensitivities that need to optimization will be derived automatically from the U
 * Mumps
 * GMRES (TODO)
 
-## Optimizer
+### Optimizer
 **morphogenesis** supports some optimizers based on NLopt or IPOPT. Currently supported
 
 * Method of Moving Asymptotes (MMA)
 * ipopt-HSL that supported MPI (TODO)
 
-## Parallelization (Partially)
+### Parallelization (Partially)
 **morphogenesis** supports the message passing interface (MPI) partially. 
 
-# Installation
+## Installation
 
 This repository depends following libraries;
 
@@ -54,7 +53,7 @@ This repository depends following libraries;
 * fecr
 
 We highly recommend you use our docker image.
-## Docker
+### Docker
 Docker enables to build and ship the environment for **morphogenesis** for almost any platform, e.g., Linux, macOS, or windows.
 
 First, please install Docker. Linux users should follow the [instraction](https://docs.docker.com/get-started/). Mac or Windows users should install the [Docker Desktop](https://www.docker.com/products/docker-desktop), which suits your platform.
@@ -73,7 +72,7 @@ docker-compose up
 ```
 This container will survive until when you stop the container.
 
-# Example
+## Example
 Here, we select the AMG solver to solve the 2-D elastic topology optimization problem.
 
 ```python
@@ -146,9 +145,9 @@ def volumeResponce(x, grad):
 MMAoptimize(N, x0, evaluator, volumeResponce)
 ```
 
-# Contributors
+## Contributors
 
 - [Naruki-Ichihara](https://github.com/Naruki-Ichihara)
 
-# References
-# Cite
+## References
+## Cite
