@@ -1,6 +1,7 @@
 from dolfin import *
 from dolfin_adjoint import *
-import Morphogenesis as m
+from morphogenesis.Chain import numpy2fenics
+from morphogenesis.Solvers import SLUDsolver
 import numpy as np
 
 E = 1.0e9
@@ -24,7 +25,7 @@ def clamped_boundary(x, on_boundary):
     return on_boundary and x[0] < 1e-10 or x[0] > 19.999
 
 def evaluator(x, grad):
-    x_ = m.numpy2fenics(x, X)
+    x_ = numpy2fenics(x, X)
     rho = m.hevisideFilter(m.helmholtzFilter(x_, X))
     m.export_result(project(rho, FunctionSpace(mesh, 'DG', 0)), 'result/test.xdmf')
     facets = MeshFunction('size_t', mesh, 1)
