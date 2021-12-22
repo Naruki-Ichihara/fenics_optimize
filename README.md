@@ -85,7 +85,12 @@ Here, we select the AMG solver to solve the 2-D elastic topology optimization pr
 ```python
 from dolfin import *
 from dolfin_adjoint import *
-import morphogenesis as m
+from morphogenesis.Chain import numpy2fenics, evalGradient
+from morphogenesis.Solvers import AMG2Dsolver
+from morphogenesis.Filters import helmholtzFilter, hevisideFilter
+from morphogenesis.FileIO import export_result
+from morphogenesis.Elasticity import reducedSigma, epsilon
+from morphogenesis.Optimizer import MMAoptimize
 import numpy as np
 
 E = 1.0e9
@@ -109,9 +114,9 @@ def clamped_boundary(x, on_boundary):
     return on_boundary and x[0] < 1e-10 or x[0] > 19.999
 
 def evaluator(x, grad):
-    x_ = m.numpy2fenics(x, X)
-    rho = m.hevisideFilter(m.helmholtzFilter(x_, X))
-    m.export_result(project(rho, FunctionSpace(mesh, 'DG', 0)), 'result/test.xdmf')
+    x_ = numpy2fenics(x, X)
+    rho = hevisideFilter(helmholtzFilter(x_, X))
+    export_result(project(rho, FunctionSpace(mesh, 'DG', 0)), 'result/test.xdmf')
     facets = MeshFunction('size_t', mesh, 1)
     facets.set_all(0)
     bottom = Bottom()
@@ -120,31 +125,31 @@ def evaluator(x, grad):
     f = Constant((0, -1e3))
     u = TrialFunction(V)
     v = TestFunction(V)
-    a = inner(m.reducedSigma(rho, u, E, nu, p), m.epsilon(v))*dx
+    a = inner(reducedSigma(rho, u, E, nu, p), epsilon(v))*dx
     L = inner(f, v)*ds(1)
     bc = DirichletBC(V, Constant((0, 0)), clamped_boundary)
     u_ = Function(V)
-    solver = m.AMG2Dsolver(a, L, [bc])
+    solver = AMG2Dsolver(a, L, [bc])
     uh = solver.forwardSolve(u_, V, False)
-    J = assemble(inner(m.reducedSigma(rho, uh, E, nu, p), m.epsilon(uh))*dx)
-    dJdx = m.evalGradient(J, x_)
+    J = assemble(inner(reducedSigma(rho, uh, E, nu, p), epsilon(uh))*dx)
+    dJdx = evalGradient(J, x_)
     grad[:] = dJdx
     print('Cost : {}'.format(J))
     return J
 
 def volumeResponce(x, grad):
-    x_ = m.numpy2fenics(x, X)
+    x_ = numpy2fenics(x, X)
     rho_bulk = project(Constant(1.0), FunctionSpace(mesh, 'CG', 1))
     rho_0 = assemble(rho_bulk*dx)
-    rho_f = assemble(m.hevisideFilter(m.helmholtzFilter(x_, X))*dx)
+    rho_f = assemble(hevisideFilter(helmholtzFilter(x_, X))*dx)
     rel = rho_f/rho_0
     val = rel - target
-    dreldx = m.evalGradient(val, x_)
+    dreldx = evalGradient(val, x_)
     grad[:] = dreldx
     print('Constraint : {}'.format(val))
     return val
 
-m.MMAoptimize(N, x0, evaluator, volumeResponce)
+MMAoptimize(N, x0, evaluator, volumeResponce)
 ```
 
 ## Contributors
