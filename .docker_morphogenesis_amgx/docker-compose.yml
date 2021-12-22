@@ -1,0 +1,25 @@
+version: '3.9'
+services:
+  morphogenesis:
+    restart: always
+    image: ichiharanaruki/morphogenesis_docker:latest
+    container_name: 'morpho'
+    working_dir: '/root/'
+    tty: true
+    volumes:
+    - ../:/workspace
+    #- /tmp/.X11-unix:/tmp/.X11-unix
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            capabilities: [gpu]
+    shm_size: 8gb
+    ulimits:
+      memlock: -1
+      stack: 67108864
+    environment:
+       - DISPLAY=host.docker.internal:0.0
+    environment:
+      TZ: 'Asia/Tokyo'
