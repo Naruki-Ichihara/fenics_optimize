@@ -16,7 +16,7 @@ The **morphogenesis** is the domain-specific language for topology optimization 
 ## Advantages
 
 ### Automatic sensitivity analysis
-Sensitivities that need to optimization will be derived automatically from the UFL form. `evalGradient` method receive the assemble of the UFL form as the cost function and compute the Jacobian sequence with [pyadjoint](https://github.com/dolfin-adjoint/pyadjoint) backend.
+Sensitivities that need to optimization will be derived automatically from the UFL form. `evalGradient` method receive the assemble of the [UFL](https://github.com/FEniCS/ufl) form as the cost function and compute the Jacobian sequence with [pyadjoint](https://github.com/dolfin-adjoint/pyadjoint) backend.
 
 ### Filters
 **morphogenesis** has built-in filters for topology optimizations
@@ -31,7 +31,7 @@ Sensitivities that need to optimization will be derived automatically from the U
 * Smoothed Aggregation Algebaric Multigrid method (AMG)
 * SuperLU_dist
 * Mumps
-* GMRES (TODO)
+* AmgX (Limited)
 
 ### Optimizer
 **morphogenesis** supports some optimizers based on NLopt or IPOPT. Currently supported
@@ -42,6 +42,9 @@ Sensitivities that need to optimization will be derived automatically from the U
 ### Parallelization (Partially)
 **morphogenesis** supports the message passing interface (MPI) partially. 
 
+### CUDA-based solver (Very limited)
+**morphogenesis** supports cuda-based AMG solver, [AmgX](https://github.com/NVIDIA/AMGX). 
+
 ## Installation
 
 This repository depends following libraries;
@@ -51,6 +54,7 @@ This repository depends following libraries;
 * NLopt
 * Numpy
 * fecr
+* AmgX
 
 We highly recommend you use our docker image.
 ### Docker

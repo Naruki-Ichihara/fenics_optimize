@@ -1,0 +1,12 @@
+AMGX_LOG	RUNTIME_VERSION=11.2
+AMGX_LOG	Devicetype=device
+AMGX_LOG	Devicetype=host
+AMGX_LOG	Number of Levels=16
+AMGX_LOG	Initial Residual=282.821
+AMGX_LOG	Final Residual=2.10069e-10
+AMGX_LOG	Avg. Conv. Rate=0.921141
+AMGX_LOG	Total Iterations=340
+AMGX_LOG	Total Time=21.4396
+AMGX_LOG	Setup=11.0605
+AMGX_LOG	Solve=10.3791
+AMGX_LOG	Max Mem. Usage=4.69818
