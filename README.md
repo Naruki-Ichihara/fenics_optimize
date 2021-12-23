@@ -46,17 +46,6 @@ Sensitivities that need to optimization will be derived automatically from the U
 **morphogenesis** supports cuda-based AMG solver, [AmgX](https://github.com/NVIDIA/AMGX). 
 
 ## Installation
-
-This repository depends following libraries;
-
-* FEniCS project
-* pyadjoint
-* NLopt
-* Numpy
-* fecr
-* AmgX
-
-We highly recommend you use our docker image.
 ### Docker
 Docker enables to build and ship the environment for **morphogenesis** for almost any platform, e.g., Linux, macOS, or windows.
 
@@ -70,17 +59,27 @@ and move to the docker-compose directory
 ```
 cd morphogenesis/.docker_morphogenesis
 ```
+or, you will use the AmgX solver with cuda, move to the 
+```
+cd morphogenesis/.docker_morphogenesis_amgx
+```
+instead of `.docker_morphogenesis`.
+
 Then, launch the docker-compose and pull the image from our docker hub.
 ```
 docker-compose up
 ```
 This container will survive until when you stop the container.
 
-### Manually installation
-Run `pip` after installation all dependecies.
+### Bulding with AmgX
+AmgX is a cuda-based algebraic Multigrid Solver produced by NVIDIA.
+If you want to use the AmgX with UFL, please build the AmgX from source.
 ```
-git clone https://github.com/Naruki-Ichihara/morphogenesis.git
-pip install .
+git clone https://github.com/NVIDIA/AMGX.git AMGX
+cd AMGX
+mkdir build && cd build
+cmake ../
+make -j4 all
 ```
 
 ## Example

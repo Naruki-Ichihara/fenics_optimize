@@ -62,7 +62,7 @@ import pyamgx
 
 
 
-configPath = "/workspace/AMGX/core/configs/elast.json"
+configPath = "/workspace/AMGX/build/configs/core/CG_DILU.json"
 
 pyamgx.initialize()
 cfg = pyamgx.Config().create_from_file(configPath)
