@@ -71,7 +71,7 @@ docker-compose up
 ```
 This container will survive until when you stop the container.
 
-### Bulding with AmgX
+### Building with AmgX
 AmgX is a cuda-based algebraic Multigrid Solver produced by NVIDIA.
 If you want to use the AmgX with UFL, please build the AmgX from source.
 ```
