@@ -1,6 +1,7 @@
 /result/
 /petsc/
 /AMGX/
+/mesh/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -29,7 +29,7 @@ def helmholtzFilter(u, U, R=0.025):
     solve(a==L, vh, solver_parameters={'linear_solver': "superlu_dist"})
     return vh
 
-def hevisideFilter(u, a=10, offset=0.01):
+def hevisideFilter(u, a=10, offset=0.001):
     """# hevisideFilter
 
     Apply the heviside function (approximate with sigmoid function)
@@ -41,7 +41,7 @@ def hevisideFilter(u, a=10, offset=0.01):
         v (fenics.function): filterd function
     Note:
     """
-    return (1 / (1 + exp(-a*u)))*(1-offset) + offset
+    return (1-offset)*u/2 + (1+offset)/2
 
 def isoparametric2Dfilter(z, e):
     """# isoparametric2Dfilter

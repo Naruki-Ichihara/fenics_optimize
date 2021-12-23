@@ -83,10 +83,9 @@ class AMG3Dsolver():
     ### Note:
 
     """
-    def __init__(self, A, b, bcs):
+    def __init__(self, A, b):
         self.A = A
         self.b = b
-        self.bcs = bcs
 
     def forwardSolve(self, u, V, monitor_convergence=True):
         """# AMGsolver
@@ -104,9 +103,6 @@ class AMG3Dsolver():
         ### Note:
 
         """
-        for bc in self.bcs:
-            bc.apply(self.A)
-            bc.apply(self.b)
         null_space = build_nullspace_3D(V, u.vector())
         as_backend_type(self.A).set_near_nullspace(null_space)
 
@@ -186,10 +182,9 @@ class SLUDsolver():
     ### Note:
 
     """
-    def __init__(self, A, b, bcs):
+    def __init__(self, A, b):
         self.A = A
         self.b = b
-        self.bcs = bcs
 
     def forwardSolve(self, u, V, monitor_convergence=True):
         """# AMGsolver
@@ -207,9 +202,6 @@ class SLUDsolver():
         ### Note:
 
         """
-        for bc in self.bcs:
-            bc.apply(self.A)
-            bc.apply(self.b)
         PETSC_solver = PETScLUSolver("superlu_dist")
         PETSC_solver.set_operator(self.A)
         PETSC_solver.solve(u.vector(), self.b)
@@ -231,10 +223,9 @@ class MUMPSsolver():
     ### Note:
 
     """
-    def __init__(self, A, b, bcs):
+    def __init__(self, A, b):
         self.A = A
         self.b = b
-        self.bcs = bcs
 
     def forwardSolve(self, u, V, monitor_convergence=True):
         """# AMGsolver
@@ -252,9 +243,6 @@ class MUMPSsolver():
         ### Note:
 
         """
-        for bc in self.bcs:
-            bc.apply(self.A)
-            bc.apply(self.b)
 
         PETSC_solver = PETScLUSolver("mumps")
         PETSC_solver.set_operator(self.A)
