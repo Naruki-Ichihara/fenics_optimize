@@ -101,7 +101,7 @@ nu = 0.3
 p = 3
 target = 0.4
 
-mesh = RectangleMesh(MPI.comm_world, Point(0, 0), Point(20, 10), 300, 200)
+mesh = RectangleMesh(MPI.comm_world, Point(0, 0), Point(20, 10), 200, 100)
 N = mesh.num_vertices()
 
 x0 = np.zeros(N)
@@ -132,7 +132,8 @@ def evaluator(x, grad):
     L = inner(f, v)*ds(1)
     bc = DirichletBC(V, Constant((0, 0)), clamped_boundary)
     u_ = Function(V)
-    solver = AMG2Dsolver(a, L, [bc])
+    A, b = assemble_system(a, L, [bc])
+    solver = AMG2Dsolver(A, b)
     uh = solver.forwardSolve(u_, V, False)
     J = assemble(inner(reducedSigma(rho, uh, E, nu, p), epsilon(uh))*dx)
     dJdx = evalGradient(J, x_)

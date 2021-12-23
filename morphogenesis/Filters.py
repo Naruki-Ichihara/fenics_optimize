@@ -9,6 +9,7 @@
 
 from dolfin import *
 from dolfin_adjoint import *
+import numpy as np
 
 def helmholtzFilter(u, U, R=0.025):
     """# helmholtzFilter
@@ -41,3 +42,30 @@ def hevisideFilter(u, a=10, offset=0.01):
     Note:
     """
     return (1 / (1 + exp(-a*u)))*(1-offset) + offset
+
+def isoparametric2Dfilter(z, e):
+    """# isoparametric2Dfilter
+
+    Apply 2D isoparametric projection onto orientation vector.
+
+    Args:
+        z: 0-component of the orientation vector (on natural setting)
+        e: 1-component of the orientation vector (on natural setting)
+
+    Returns:
+        [Nx, Ny] (fenics.vector): Orientation vector with unit circle boundary condition on real setting.
+    """
+    u = as_vector([-1/np.sqrt(2), 0, 1/np.sqrt(2), 1, 1/np.sqrt(2), 0, -1/np.sqrt(2), -1])
+    v = as_vector([-1/np.sqrt(2), -1, -1/np.sqrt(2), 0, 1/np.sqrt(2), 1, 1/np.sqrt(2), 0])
+    N1 = -(1-z)*(1-e)*(1+z+e)/4
+    N2 =  (1-z**2)*(1-e)/2
+    N3 = -(1+z)*(1-e)*(1-z+e)/4
+    N4 =  (1+z)*(1-e**2)/2
+    N5 = -(1+z)*(1+e)*(1-z-e)/4
+    N6 =  (1-z**2)*(1+e)/2
+    N7 = -(1-z)*(1+e)*(1+z-e)/4
+    N8 =  (1-z)*(1-e**2)/2
+    N = as_vector([N1, N2, N3, N4, N5, N6, N7, N8])
+    Nx = inner(u, N)
+    Ny = inner(v, N)
+    return as_vector((Nx, Ny))

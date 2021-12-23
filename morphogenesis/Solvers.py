@@ -74,8 +74,8 @@ class AMG3Dsolver():
     The solver uses smoothed aggregation algerbaric multigrig method.
 
     ### Args:
-        a : bilinear form
-        L : linear form
+        A : 
+        b : 
         bcs (list) : boundary conditions
 
     ### Examples:
@@ -83,9 +83,9 @@ class AMG3Dsolver():
     ### Note:
 
     """
-    def __init__(self, a, L, bcs):
-        self.a = a
-        self.L = L
+    def __init__(self, A, b, bcs):
+        self.A = A
+        self.b = b
         self.bcs = bcs
 
     def forwardSolve(self, u, V, monitor_convergence=True):
@@ -104,9 +104,11 @@ class AMG3Dsolver():
         ### Note:
 
         """
-        A, b = assemble_system(self.a, self.L, self.bcs)
+        for bc in self.bcs:
+            bc.apply(self.A)
+            bc.apply(self.b)
         null_space = build_nullspace_3D(V, u.vector())
-        as_backend_type(A).set_near_nullspace(null_space)
+        as_backend_type(self.A).set_near_nullspace(null_space)
 
         pc = PETScPreconditioner("petsc_amg")
         PETScOptions.set("mg_levels_ksp_type", "chebyshev")
@@ -115,8 +117,8 @@ class AMG3Dsolver():
         PETScOptions.set("mg_levels_ksp_chebyshev_esteig_steps", 50)
         PETSC_solver = PETScKrylovSolver("cg", pc)
         PETSC_solver.parameters["monitor_convergence"] = monitor_convergence
-        PETSC_solver.set_operator(A)
-        PETSC_solver.solve(u.vector(), b)
+        PETSC_solver.set_operator(self.A)
+        PETSC_solver.solve(u.vector(), self.b)
         return u
 
 class AMG2Dsolver():
@@ -126,19 +128,17 @@ class AMG2Dsolver():
     The solver uses smoothed aggregation algerbaric multigrig method.
 
     ### Args:
-        a : bilinear form
-        L : linear form
-        bcs (list) : boundary conditions
+        A :
+        b :
 
     ### Examples:
 
     ### Note:
 
     """
-    def __init__(self, a, L, bcs):
-        self.a = a
-        self.L = L
-        self.bcs = bcs
+    def __init__(self, A, b):
+        self.A = A
+        self.b = b
 
     def forwardSolve(self, u, V, monitor_convergence=True):
         """# AMGsolverS
@@ -156,9 +156,8 @@ class AMG2Dsolver():
         ### Note:
 
         """
-        A, b = assemble_system(self.a, self.L, self.bcs)
         null_space = build_nullspace_2D(V, u.vector())
-        as_backend_type(A).set_near_nullspace(null_space)
+        as_backend_type(self.A).set_near_nullspace(null_space)
 
         pc = PETScPreconditioner("petsc_amg")
         PETScOptions.set("mg_levels_ksp_type", "chebyshev")
@@ -167,8 +166,8 @@ class AMG2Dsolver():
         PETScOptions.set("mg_levels_ksp_chebyshev_esteig_steps", 50)
         PETSC_solver = PETScKrylovSolver("cg", pc)
         PETSC_solver.parameters["monitor_convergence"] = monitor_convergence
-        PETSC_solver.set_operator(A)
-        PETSC_solver.solve(u.vector(), b)
+        PETSC_solver.set_operator(self.A)
+        PETSC_solver.solve(u.vector(), self.b)
         return u
 
 class SLUDsolver():
@@ -178,8 +177,8 @@ class SLUDsolver():
     The solver uses Super LU dist method.
 
     ### Args:
-        a : bilinear form
-        L : linear form
+        A :
+        b :
         bcs (list) : boundary conditions
 
     ### Examples:
@@ -187,9 +186,9 @@ class SLUDsolver():
     ### Note:
 
     """
-    def __init__(self, a, L, bcs):
-        self.a = a
-        self.L = L
+    def __init__(self, A, b, bcs):
+        self.A = A
+        self.b = b
         self.bcs = bcs
 
     def forwardSolve(self, u, V, monitor_convergence=True):
@@ -208,11 +207,12 @@ class SLUDsolver():
         ### Note:
 
         """
-        A, b = assemble_system(self.a, self.L, self.bcs)
-
+        for bc in self.bcs:
+            bc.apply(self.A)
+            bc.apply(self.b)
         PETSC_solver = PETScLUSolver("superlu_dist")
-        PETSC_solver.set_operator(A)
-        PETSC_solver.solve(u.vector(), b)
+        PETSC_solver.set_operator(self.A)
+        PETSC_solver.solve(u.vector(), self.b)
         return u
     
 class MUMPSsolver():
@@ -222,8 +222,8 @@ class MUMPSsolver():
     The solver uses Super LU dist method.
 
     ### Args:
-        a : bilinear form
-        L : linear form
+        A : 
+        b : 
         bcs (list) : boundary conditions
 
     ### Examples:
@@ -231,9 +231,9 @@ class MUMPSsolver():
     ### Note:
 
     """
-    def __init__(self, a, L, bcs):
-        self.a = a
-        self.L = L
+    def __init__(self, A, b, bcs):
+        self.A = A
+        self.b = b
         self.bcs = bcs
 
     def forwardSolve(self, u, V, monitor_convergence=True):
@@ -252,9 +252,11 @@ class MUMPSsolver():
         ### Note:
 
         """
-        A, b = assemble_system(self.a, self.L, self.bcs)
+        for bc in self.bcs:
+            bc.apply(self.A)
+            bc.apply(self.b)
 
         PETSC_solver = PETScLUSolver("mumps")
-        PETSC_solver.set_operator(A)
-        PETSC_solver.solve(u.vector(), b)
+        PETSC_solver.set_operator(self.A)
+        PETSC_solver.solve(u.vector(), self.b)
         return u
