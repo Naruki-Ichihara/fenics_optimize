@@ -7,4 +7,5 @@
 # SPDX-License-Identifier:    MIT
 """Main module for Morphogenesis"""
 
-__version__ = "0.0.2.alpha"
+__version__ = "0.0.3.alpha"
+from .Sugar import morphogen

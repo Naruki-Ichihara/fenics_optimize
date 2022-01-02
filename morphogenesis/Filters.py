@@ -35,7 +35,6 @@ def helmholtzFilter(u, U, R=0.025):
     PETSC_solver = PETScKrylovSolver("cg", pc)
     PETSC_solver.parameters["monitor_convergence"] = False
     PETSC_solver.set_operator(A)
-    print('Run HelmholtzFilter ..')
     PETSC_solver.solve(vh.vector(), b)
     return vh
 
