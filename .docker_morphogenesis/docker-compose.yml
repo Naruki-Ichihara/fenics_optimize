@@ -2,7 +2,7 @@ version: '3.9'
 services:
   morphogenesis:
     restart: always
-    image: ichiharanaruki/fenicsx:latest
+    image: ichiharanaruki/morphogenesis_docker:latest
     container_name: 'morpho'
     working_dir: '/root/'
     tty: true
