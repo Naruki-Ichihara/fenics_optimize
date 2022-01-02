@@ -26,7 +26,7 @@ def helmholtzFilter(u, U, R=0.025):
     vh = Function(U)
     a = R*inner(grad(v), grad(dv))*dx + dot(v, dv)*dx
     L = inner(u, dv)*dx
-    solve(a==L, vh, solver_parameters={'linear_solver': "superlu_dist"})
+    solve(a==L, vh, solver_parameters={'linear_solver': "mumps"})
     return vh
 
 def hevisideFilter(u, a=10, offset=0.001):

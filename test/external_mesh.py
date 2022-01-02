@@ -38,8 +38,9 @@ E1 = 6
 E2 = 1
 nu12 = 0.3
 G12 = 1
+p = 3
 f = Constant((0, -0.01))
-target = 0.5
+target = 0.3
 
 def stress(Q, u):
     return stress_from_voigt(Q*strain_to_voigt(sym(grad(u))))
@@ -74,7 +75,7 @@ def simulator(x, grad):
     z = numpy2fenics(z_, X)
     e = numpy2fenics(e_, X)
     r = numpy2fenics(r_, X)
-    rho = hevisideFilter(helmholtzFilter(r, X, 1.0))
+    rho = hevisideFilter(helmholtzFilter(r, X, 20.0), a=5)
     phi = helmholtzFilter(isoparametric2Dfilter(z, e), V)
     theta = atan_2(phi[1], phi[0])
     export_result(project(rho, X), 'result/dens.xdmf')
@@ -84,7 +85,7 @@ def simulator(x, grad):
     du = TestFunction(V)
     uh = Function(V)
 
-    Q = rho**3*rotated_lamina_stiffness_inplane(E1, E2, G12, nu12, theta)
+    Q = rho**p*rotated_lamina_stiffness_inplane(E1, E2, G12, nu12, theta)
     a = inner(stress(Q, u), epsilon(du))*dx
     L = inner(f, du)*ds(1)
     bc = DirichletBC(V, Constant((0, 0)), Clamp())
@@ -104,7 +105,7 @@ def simulator(x, grad):
 def constraints(x, grad):
     z_, e_, r_ = np.split(x, 3)
     r = numpy2fenics(r_, X)
-    rho = hevisideFilter(helmholtzFilter(r, X, 1.0))
+    rho = hevisideFilter(helmholtzFilter(r, X, 20), a=5)
 
     rho_bulk = project(Constant(1.0), FunctionSpace(mesh, 'CG', 1))
     rho_0 = assemble(rho_bulk*dx)
