@@ -12,6 +12,7 @@ E = 1.0e9
 nu = 0.3
 p = 3
 target = 0.4
+r = 0.1
 
 mesh = RectangleMesh(MPI.comm_world, Point(0, 0), Point(20, 10), 200, 100)
 N = mesh.num_vertices()
@@ -19,7 +20,7 @@ N = mesh.num_vertices()
 x0 = np.zeros(N)
 
 X = FunctionSpace(mesh, "CG", 1)
-V = VectorFunctionSpace(mesh, "Lagrange", 1)
+V = VectorFunctionSpace(mesh, "CG", 1)
 
 class Bottom(SubDomain):
     def inside(self, x, on_boundary):
@@ -30,8 +31,8 @@ def clamped_boundary(x, on_boundary):
 
 def evaluator(x, grad):
     x_ = numpy2fenics(x, X)
-    rho = hevisideFilter(helmholtzFilter(x_, X))
-    export_result(project(rho, FunctionSpace(mesh, 'DG', 0)), 'result/test.xdmf')
+    rho = hevisideFilter(helmholtzFilter(x_, X, r))
+    export_result(project(rho, FunctionSpace(mesh, 'CG', 1)), 'result/test.xdmf')
     facets = MeshFunction('size_t', mesh, 1)
     facets.set_all(0)
     bottom = Bottom()
@@ -57,7 +58,7 @@ def volumeResponce(x, grad):
     x_ = numpy2fenics(x, X)
     rho_bulk = project(Constant(1.0), FunctionSpace(mesh, 'CG', 1))
     rho_0 = assemble(rho_bulk*dx)
-    rho_f = assemble(hevisideFilter(helmholtzFilter(x_, X))*dx)
+    rho_f = assemble(hevisideFilter(helmholtzFilter(x_, X, r))*dx)
     rel = rho_f/rho_0
     val = rel - target
     dreldx = evalGradient(val, x_)
