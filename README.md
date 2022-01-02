@@ -2,9 +2,9 @@
 
 # morphogenesis
 <!-- # Short Description -->
-## *Language for Topology Optimization*
+## *Environment for Topology Optimization*
 
-The **morphogenesis** is the domain-specific language for topology optimization researches. This repository depends on the [FEniCS computing platform](https://fenicsproject.org/).
+The **morphogenesis** is the docker image for topology optimization researches. This repository depends on the [FEniCS computing platform](https://fenicsproject.org/).
 <!-- # Badges -->
 
 [![Github issues](https://img.shields.io/github/issues/Naruki-Ichihara/morphogenesis?style=for-the-badge&logo=appveyor)](https://github.com/Naruki-Ichihara/morphogenesis/issues)
@@ -31,19 +31,12 @@ Sensitivities that need to optimization will be derived automatically from the U
 * Smoothed Aggregation Algebaric Multigrid method (AMG)
 * SuperLU_dist
 * Mumps
-* AmgX (Limited)
 
 ### Optimizer
 **morphogenesis** supports some optimizers based on NLopt or IPOPT. Currently supported
 
 * Method of Moving Asymptotes (MMA)
-* ipopt-HSL that supported MPI (TODO)
-
-### Parallelization (Partially)
-**morphogenesis** supports the message passing interface (MPI) partially. 
-
-### CUDA-based solver (Very limited)
-**morphogenesis** supports cuda-based AMG solver, [AmgX](https://github.com/NVIDIA/AMGX). 
+* Ipopt-HSL
 
 ## Installation
 ### Docker
@@ -107,7 +100,7 @@ N = mesh.num_vertices()
 x0 = np.zeros(N)
 
 X = FunctionSpace(mesh, "CG", 1)
-V = VectorFunctionSpace(mesh, "Lagrange", 1)
+V = VectorFunctionSpace(mesh, "CG", 1)
 
 class Bottom(SubDomain):
     def inside(self, x, on_boundary):
