@@ -11,20 +11,20 @@ from dolfin_adjoint import *
 import numpy as np
 from fecr import from_numpy, to_numpy
 
-def forward(temp, wrt=None):
+def with_derivative(temp, wrt=None):
     """# Core
     ## forward
     Decorator to wrap the fenics chain. 
 
     Examples:
     ```
-    @forward([X1, X2, ..., Xn])
+    @forward([X1, X2, ..., Xn], wrt=[0, 1, ..., m])
     def function(xs):
         Processes with xs[n]
         return cost
     ```
     """
-    def _forward(func):
+    def _with_derivative(func):
         def wrapper(*args, **kwargs):
             x = np.split(args[0], len(temp))
             xs = []
@@ -49,11 +49,11 @@ def forward(temp, wrt=None):
                 J = np.concatenate(Js)
                 return res, J
         return wrapper
-    return _forward
+    return _with_derivative
 
-def forward_without_grad(temp):
+def without_derivative(temp):
     """# Core
-    ## forward
+    ## without_derivative
     Decorator to wrap the fenics chain. 
 
     Examples:
@@ -64,7 +64,7 @@ def forward_without_grad(temp):
         return cost
     ```
     """
-    def _forward_without_grad(func):
+    def _without_derivative(func):
         def wrapper(*args, **kwargs):
             x = np.split(args[0], len(temp))
             xs = []
@@ -74,4 +74,4 @@ def forward_without_grad(temp):
             res = func(xs, **kwargs)
             return res
         return wrapper
-    return _forward_without_grad
+    return _without_derivative

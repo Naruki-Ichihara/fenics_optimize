@@ -87,10 +87,10 @@ class AMG3Dsolver():
         self.A = A
         self.b = b
 
-    def forwardSolve(self, u, V, monitor_convergence=True):
+    def solve(self, u, V, monitor_convergence=True):
         """# AMGsolver
         ## solver
-        ### forwardSolve
+        ### solve
         solve the problem.
         ### Args:
             u : function
@@ -136,10 +136,10 @@ class AMG2Dsolver():
         self.A = A
         self.b = b
 
-    def forwardSolve(self, u, V, monitor_convergence=True):
+    def solve(self, u, V, monitor_convergence=True):
         """# AMGsolverS
         ## solver
-        ### forwardSolve
+        ### solve
         solve the problem.
         ### Args:
             u : function
@@ -186,10 +186,10 @@ class SLUDsolver():
         self.A = A
         self.b = b
 
-    def forwardSolve(self, u, V, monitor_convergence=True):
+    def solve(self, u, V, monitor_convergence=True):
         """# AMGsolver
         ## solver
-        ### forwardSolve
+        ### solve
         solve the problem.
         ### Args:
             u : function
@@ -227,10 +227,10 @@ class MUMPSsolver():
         self.A = A
         self.b = b
 
-    def forwardSolve(self, u, V, monitor_convergence=True):
+    def solve(self, u, V, monitor_convergence=True):
         """# AMGsolver
         ## solver
-        ### forwardSolve
+        ### solve
         solve the problem.
         ### Args:
             u : function

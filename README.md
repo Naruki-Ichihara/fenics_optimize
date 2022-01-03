@@ -1,10 +1,8 @@
-<div align="center"><img src="https://user-images.githubusercontent.com/70839257/146679821-86686362-c6a0-4b04-a52a-ad4d04dbbff4.png" width="400"/></div>
-
-# morphogenesis
+# fenics-optimize
 <!-- # Short Description -->
-## *Environment for Topology Optimization*
 
-The **morphogenesis** is the docker image for topology optimization researches. This repository depends on the [FEniCS computing platform](https://fenicsproject.org/).
+**fenics-optimize** is a module of the [FEniCS computing platform](https://fenicsproject.org/) for the multiphysical optimization problems.
+
 <!-- # Badges -->
 
 [![Github issues](https://img.shields.io/github/issues/Naruki-Ichihara/morphogenesis?style=for-the-badge&logo=appveyor)](https://github.com/Naruki-Ichihara/morphogenesis/issues)
@@ -13,34 +11,38 @@ The **morphogenesis** is the docker image for topology optimization researches. 
 [![Github top language](https://img.shields.io/github/languages/top/Naruki-Ichihara/morphogenesis?style=for-the-badge&logo=appveyor)](https://github.com/Naruki-Ichihara/morphogenesis/)
 [![Github license](https://img.shields.io/github/license/Naruki-Ichihara/morphogenesis?style=for-the-badge&logo=appveyor)](https://github.com/Naruki-Ichihara/morphogenesis/)
 
-## Advantages
+## Motivation and significance
 
-### Automatic sensitivity analysis
-Sensitivities that need to optimization will be derived automatically from the UFL form. `evalGradient` method receive the assemble of the [UFL](https://github.com/FEniCS/ufl) form as the cost function and compute the Jacobian sequence with [pyadjoint](https://github.com/dolfin-adjoint/pyadjoint) backend.
+### Automatic derivative
+Sensitivities that need to optimization will be derived automatically from the fenics chain. 
+
+```python
+Xs = [X1, X2, ..., Xn]  # Function Spaces
+@op.with_derivative(Xs)
+def forward(xs):
+    process with xs ..
+    return J(xs)
+```
 
 ### Filters
-**morphogenesis** has built-in filters for topology optimizations
+Built-in filters for topology optimizations.
 
 * Heviside Filter
 * Helmholtz Filter
-* Isoparametric Filter (TODO)
+* Isoparametric Filter
 
 ### Built-in solvers
-**morphogenesis** contains the tune-up LU solvers and Krylov solvers for large-scale partial differential equation (PDE) using the [PETSc](https://petsc.org/release/) backend, including:
-
-* Smoothed Aggregation Algebaric Multigrid method (AMG)
-* SuperLU_dist
-* Mumps
+**fenics-optimize** contains the Smoothed aggregation algebaric multigrid for large-scale partial differential equation (PDE) using the [PETSc](https://petsc.org/release/) backend.
 
 ### Optimizer
-**morphogenesis** supports some optimizers based on NLopt or IPOPT. Currently supported
+**fenics-optimize** supports some optimizers based on NLopt or IPOPT. Currently supported
 
 * Method of Moving Asymptotes (MMA)
-* Ipopt-HSL
+* Ipopt-HSL (ma27)
 
 ## Installation
 ### Docker
-Docker enables to build and ship the environment for **morphogenesis** for almost any platform, e.g., Linux, macOS, or windows.
+Docker enables to build and ship the environment for **fenics-optimize** for almost any platform, e.g., Linux, macOS, or windows.
 
 First, please install Docker. Linux users should follow the [instraction](https://docs.docker.com/get-started/). Mac or Windows users should install the [Docker Desktop](https://www.docker.com/products/docker-desktop), which suits your platform.
 
@@ -64,43 +66,29 @@ docker-compose up
 ```
 This container will survive until when you stop the container.
 
-### Building with AmgX
-AmgX is a cuda-based algebraic Multigrid Solver produced by NVIDIA.
-If you want to use the AmgX with UFL, please build the AmgX from source.
-```
-git clone https://github.com/NVIDIA/AMGX.git AMGX
-cd AMGX
-mkdir build && cd build
-cmake ../
-make -j4 all
-```
-
 ## Example
-Here, we select the AMG solver to solve the 2-D elastic topology optimization problem.
+2-D elastic topology optimization problem.
 
 ```python
 from dolfin import *
 from dolfin_adjoint import *
-from morphogenesis import morphogen
-from morphogenesis.Solvers import AMG2Dsolver
-from morphogenesis.Filters import helmholtzFilter, hevisideFilter
-from morphogenesis.FileIO import export_result
-from morphogenesis.Elasticity import reducedSigma, epsilon
-from morphogenesis.Optimizer import MMAoptimize
+import optimize as op
+from optimize.Elasticity import reducedSigma, epsilon
 import numpy as np
 
 E = 1.0e9
 nu = 0.3
+f = Constant((0, -1e3))
 p = 3
 target = 0.4
-r = 0.1
+R = 0.1
 
 mesh = RectangleMesh(Point(0, 0), Point(20, 10), 200, 100)
-N = mesh.num_vertices()
-
-x0 = np.zeros(N)
+problemSize = mesh.num_vertices()
+x0 = np.zeros(problemSize)
 
 X = FunctionSpace(mesh, "CG", 1)
+Xs = [X]
 V = VectorFunctionSpace(mesh, "CG", 1)
 
 class Bottom(SubDomain):
@@ -110,16 +98,15 @@ class Bottom(SubDomain):
 def clamped_boundary(x, on_boundary):
     return on_boundary and x[0] < 1e-10 or x[0] > 19.999
 
-@morphogen(X)
-def evaluator(x):
-    rho = hevisideFilter(helmholtzFilter(x, X, r))
-    export_result(project(rho, FunctionSpace(mesh, 'CG', 1)), 'result/test.xdmf')
+@op.with_derivative(Xs)
+def forward(xs):
+    rho = op.hevisideFilter(op.helmholtzFilter(xs[0], X, R))
+    op.export_result(project(rho, X), 'result/test.xdmf')
     facets = MeshFunction('size_t', mesh, 1)
     facets.set_all(0)
     bottom = Bottom()
     bottom.mark(facets, 1)
     ds = Measure('ds', subdomain_data=facets)
-    f = Constant((0, -1e3))
     u = TrialFunction(V)
     v = TestFunction(V)
     a = inner(reducedSigma(rho, u, E, nu, p), epsilon(v))*dx
@@ -127,23 +114,18 @@ def evaluator(x):
     bc = DirichletBC(V, Constant((0, 0)), clamped_boundary)
     u_ = Function(V)
     A, b = assemble_system(a, L, [bc])
-    solver = AMG2Dsolver(A, b)
-    uh = solver.forwardSolve(u_, V, False)
-    J = assemble(inner(reducedSigma(rho, uh, E, nu, p), epsilon(uh))*dx)
-    print('\rCost : {:.3f}'.format(J), end='|')
-    return J
+    uh = op.AMG2Dsolver(A, b).solve(u_, V, False)
+    return assemble(inner(reducedSigma(rho, uh, E, nu, p), epsilon(uh))*dx)
 
-@morphogen(X)
-def volumeResponce(x):
+@op.with_derivative(Xs)
+def constraint(xs):
     rho_bulk = project(Constant(1.0), FunctionSpace(mesh, 'CG', 1))
     rho_0 = assemble(rho_bulk*dx)
-    rho_f = assemble(hevisideFilter(helmholtzFilter(x, X, r))*dx)
+    rho_f = assemble(op.hevisideFilter(op.helmholtzFilter(xs[0], X, R))*dx)
     rel = rho_f/rho_0
-    val = rel - target
-    print('Constraint : {:.3f}'.format(val), end='')
-    return val
+    return rel - target
 
-MMAoptimize(N, x0, evaluator, volumeResponce)
+op.HSLoptimize(problemSize, x0, forward, constraint)
 ```
 
 ## Contributors
