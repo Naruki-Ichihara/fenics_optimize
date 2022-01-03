@@ -1,25 +1,26 @@
 version: '3.9'
 services:
-  morphogenesis:
+  optimize:
     restart: always
-    image: ichiharanaruki/morphogenesis_docker:latest
-    container_name: 'morpho'
+    image: ichiharanaruki/fenics-optimize:latest
+    container_name: 'optimize'
     working_dir: '/root/'
     tty: true
     volumes:
     - ../:/workspace
     #- /tmp/.X11-unix:/tmp/.X11-unix
-    deploy:
-      resources:
-        reservations:
-          devices:
-          - driver: nvidia
-            capabilities: [gpu]
-    shm_size: 8gb
+    #deploy:
+    #  resources:
+    #    reservations:
+    #      devices:
+    #      - driver: nvidia
+    #        capabilities: [gpu]
+    shm_size: 4gb
     ulimits:
       memlock: -1
       stack: 67108864
     environment:
+    #  - DISPLAY=:1
        - DISPLAY=host.docker.internal:0.0
     environment:
       TZ: 'Asia/Tokyo'

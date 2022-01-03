@@ -42,29 +42,44 @@ Built-in filters for topology optimizations.
 
 ## Installation
 ### Docker
+
+[![dockeri.co](https://dockeri.co/image/ichiharanaruki/fenics-optimize)](https://hub.docker.com/r/ichiharanaruki/fenics-optimize)
+
 Docker enables to build and ship the environment for **fenics-optimize** for almost any platform, e.g., Linux, macOS, or windows.
 
 First, please install Docker. Linux users should follow the [instraction](https://docs.docker.com/get-started/). Mac or Windows users should install the [Docker Desktop](https://www.docker.com/products/docker-desktop), which suits your platform.
 
 Second, clone this repository on your system.
 ```
-git clone https://github.com/Naruki-Ichihara/morphogenesis.git
+git clone https://github.com/Naruki-Ichihara/fenics-optimize.git
 ```
 and move to the docker-compose directory
 ```
-cd morphogenesis/.docker_morphogenesis
+cd morphogenesis/.docker_optimize
 ```
-or, you will use the AmgX solver with cuda, move to the 
-```
-cd morphogenesis/.docker_morphogenesis_amgx
-```
-instead of `.docker_morphogenesis`.
-
 Then, launch the docker-compose and pull the image from our docker hub.
 ```
 docker-compose up
 ```
 This container will survive until when you stop the container.
+
+### Manual installation
+First, make sure to install the following dependencies:
+
+* [FEniCS](https://fenicsproject.org/)
+* [pyadjoint](https://github.com/dolfin-adjoint/pyadjoint)
+* [cyipopt](https://github.com/mechmotum/cyipopt)
+* [nlopt](https://github.com/stevengj/nlopt/) with python plugin
+* [fecr](https://github.com/IvanYashchuk/fecr)
+
+Second, clone this repository on your system and move in this directory.
+```
+git clone https://github.com/Naruki-Ichihara/fenics-optimize.git && cd fenics-optimize
+```
+Then, install this repository.
+```
+pip install .
+```
 
 ## Example
 2-D elastic topology optimization problem.
