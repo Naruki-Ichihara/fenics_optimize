@@ -8,4 +8,4 @@
 """Main module for Morphogenesis"""
 
 __version__ = "0.0.3.alpha"
-from .Sugar import morphogen
+from .Core import forward

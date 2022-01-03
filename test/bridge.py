@@ -1,11 +1,11 @@
 from dolfin import *
 from dolfin_adjoint import *
-from morphogenesis import morphogen
+from morphogenesis import forward
 from morphogenesis.Solvers import AMG2Dsolver
 from morphogenesis.Filters import helmholtzFilter, hevisideFilter
 from morphogenesis.FileIO import export_result
 from morphogenesis.Elasticity import reducedSigma, epsilon
-from morphogenesis.Optimizer import MMAoptimize
+from morphogenesis.Optimizer import MMAoptimize, HSLoptimize
 import numpy as np
 
 E = 1.0e9
@@ -29,9 +29,9 @@ class Bottom(SubDomain):
 def clamped_boundary(x, on_boundary):
     return on_boundary and x[0] < 1e-10 or x[0] > 19.999
 
-@morphogen(X)
+@forward([X])
 def evaluator(x):
-    rho = hevisideFilter(helmholtzFilter(x, X, r))
+    rho = hevisideFilter(helmholtzFilter(x[0], X, r))
     export_result(project(rho, FunctionSpace(mesh, 'CG', 1)), 'result/test.xdmf')
     facets = MeshFunction('size_t', mesh, 1)
     facets.set_all(0)
@@ -49,17 +49,17 @@ def evaluator(x):
     solver = AMG2Dsolver(A, b)
     uh = solver.forwardSolve(u_, V, False)
     J = assemble(inner(reducedSigma(rho, uh, E, nu, p), epsilon(uh))*dx)
-    print('\rCost : {:.3f}'.format(J), end='|')
+    #print('\rCost : {:.3f}'.format(J), end='|')
     return J
 
-@morphogen(X)
+@forward([X])
 def volumeResponce(x):
     rho_bulk = project(Constant(1.0), FunctionSpace(mesh, 'CG', 1))
     rho_0 = assemble(rho_bulk*dx)
-    rho_f = assemble(hevisideFilter(helmholtzFilter(x, X, r))*dx)
+    rho_f = assemble(hevisideFilter(helmholtzFilter(x[0], X, r))*dx)
     rel = rho_f/rho_0
     val = rel - target
-    print('Constraint : {:.3f}'.format(val), end='')
+    #print('Constraint : {:.3f}'.format(val), end='')
     return val
 
-MMAoptimize(N, x0, evaluator, volumeResponce)
+HSLoptimize(N, x0, evaluator, volumeResponce)

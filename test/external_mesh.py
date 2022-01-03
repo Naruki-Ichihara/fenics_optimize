@@ -1,12 +1,13 @@
 from dolfin import *
 from dolfin_adjoint import *
 from ufl.operators import atan_2, transpose
-from morphogenesis.Chain import numpy2fenics, evalGradient
+from morphogenesis import forward
+from morphogenesis.Core import forward
 from morphogenesis.Solvers import AMG2Dsolver
 from morphogenesis.Filters import helmholtzFilter, hevisideFilter, isoparametric2Dfilter
 from morphogenesis.FileIO import export_result
 from morphogenesis.Elasticity import epsilon
-from morphogenesis.Optimizer import MMAoptimize
+from morphogenesis.Optimizer import MMAoptimize, HSLoptimize
 import numpy as np
 
 def stress_from_voigt(sigma_voigt):
@@ -70,11 +71,11 @@ x0 = np.concatenate([z0, e0, r0])
 X = FunctionSpace(mesh, 'CG', 1)
 V = VectorFunctionSpace(mesh, "CG", 1)
 
-def simulator(x, grad):
-    z_, e_, r_ = np.split(x, 3)
-    z = numpy2fenics(z_, X)
-    e = numpy2fenics(e_, X)
-    r = numpy2fenics(r_, X)
+@forward([X, X, X])
+def simulator(xs):
+    z = xs[0]
+    e = xs[1]
+    r = xs[2]
     rho = hevisideFilter(helmholtzFilter(r, X, 20.0), a=5)
     phi = helmholtzFilter(isoparametric2Dfilter(z, e), V)
     theta = atan_2(phi[1], phi[0])
@@ -93,31 +94,18 @@ def simulator(x, grad):
     solver = AMG2Dsolver(A, b)
     uh = solver.forwardSolve(uh, V, False)
     J = assemble(inner(stress(Q, uh), epsilon(uh))*dx)
-    dJdz = evalGradient(J, z)
-    dJde = evalGradient(J, e)
-    dJdr = evalGradient(J, r)
-    dJdx = np.concatenate([dJdz, dJde, dJdr])
-    grad[:] = dJdx
-    print('Cost : {}'.format(J))
     export_result(uh, 'result/disp.xdmf')
     return J
 
-def constraints(x, grad):
-    z_, e_, r_ = np.split(x, 3)
-    r = numpy2fenics(r_, X)
+@forward([X, X, X], wrt=[2])
+def constraints(x):
+    r = x[2]
     rho = hevisideFilter(helmholtzFilter(r, X, 20), a=5)
-
     rho_bulk = project(Constant(1.0), FunctionSpace(mesh, 'CG', 1))
     rho_0 = assemble(rho_bulk*dx)
     rho_f = assemble(rho*dx)
     rel = rho_f/rho_0
     val = rel - target
-    dJdz = z_*0
-    dJde = e_*0
-    dJdr = evalGradient(val, r)
-    dJdx = np.concatenate([dJdz, dJde, dJdr])
-    grad[:] = dJdx
-    print('Constraint : {}'.format(val))
     return val
 
-MMAoptimize(N*3, x0, simulator, constraints)
+HSLoptimize(N*3, x0, simulator, constraints)
