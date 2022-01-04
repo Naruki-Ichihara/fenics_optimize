@@ -33,6 +33,7 @@ def with_derivative(temp, wrt=None):
                 xs.append(from_numpy(x, Function(X)))
             res = func(xs, **kwargs)
             Js = []
+            Hs = []
             if wrt is None:
                 for x_ in xs:
                     control = Control(x_)

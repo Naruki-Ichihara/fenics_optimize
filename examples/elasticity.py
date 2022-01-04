@@ -1,19 +1,23 @@
 from dolfin import *
 from dolfin_adjoint import *
 import optimize as op
-from optimize.Elasticity import reducedSigma, epsilon
+from optimize.Elasticity import sigma, epsilon
 import numpy as np
 
 E = 1.0e9
 nu = 0.3
 f = Constant((0, -1e3))
 p = 3
+eps = 1.0e-3
 target = 0.4
 R = 0.1
 
+def k(rho):
+    return eps + (1 - eps) * rho ** p
+
 mesh = RectangleMesh(Point(0, 0), Point(20, 10), 200, 100)
 problemSize = mesh.num_vertices()
-x0 = np.zeros(problemSize)
+x0 = np.ones(problemSize)*target
 
 X = FunctionSpace(mesh, "CG", 1)
 Xs = [X]
@@ -26,10 +30,12 @@ class Bottom(SubDomain):
 def clamped_boundary(x, on_boundary):
     return on_boundary and x[0] < 1e-10 or x[0] > 19.999
 
+file = File('result/elasticity/material.pvd')
+
 @op.with_derivative(Xs)
 def forward(xs):
-    rho = op.hevisideFilter(op.helmholtzFilter(xs[0], X, R))
-    op.export_result(project(rho, X), 'result/test.xdmf')
+    rho = op.helmholtzFilter(xs[0], X, R)
+    rho.rename('label', 'material')
     facets = MeshFunction('size_t', mesh, 1)
     facets.set_all(0)
     bottom = Bottom()
@@ -37,20 +43,21 @@ def forward(xs):
     ds = Measure('ds', subdomain_data=facets)
     u = TrialFunction(V)
     v = TestFunction(V)
-    a = inner(reducedSigma(rho, u, E, nu, p), epsilon(v))*dx
+    a = inner(k(rho)*sigma(u, E, nu), epsilon(v))*dx
     L = inner(f, v)*ds(1)
     bc = DirichletBC(V, Constant((0, 0)), clamped_boundary)
-    u_ = Function(V)
+    uh = Function(V)
     A, b = assemble_system(a, L, [bc])
-    uh = op.AMG2Dsolver(A, b).solve(u_, V, False)
-    return assemble(inner(reducedSigma(rho, uh, E, nu, p), epsilon(uh))*dx)
+    uh = op.AMG2Dsolver(A, b).solve(uh, V, False)
+    file << rho
+    return assemble(inner(k(rho)*sigma(uh, E, nu), epsilon(uh))*dx)
 
 @op.with_derivative(Xs)
 def constraint(xs):
-    rho_bulk = project(Constant(1.0), FunctionSpace(mesh, 'CG', 1))
+    rho_bulk = project(Constant(1.0), X)
     rho_0 = assemble(rho_bulk*dx)
-    rho_f = assemble(op.hevisideFilter(op.helmholtzFilter(xs[0], X, R))*dx)
+    rho_f = assemble(xs[0]*dx)
     rel = rho_f/rho_0
     return rel - target
 
-op.HSLoptimize(problemSize, x0, forward, constraint)
+op.MMAoptimize(problemSize, x0, forward, constraint, maxeval=1000, bounds=[0, 1], rel=1e-20)

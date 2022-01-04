@@ -166,6 +166,53 @@ class AMG2Dsolver():
         PETSC_solver.solve(u.vector(), self.b)
         return u
 
+class AMGsolver():
+    """# AMGsolver
+    ## AMGsolver
+    Class of the solver for the large static linear elasticity problem.
+    The solver uses smoothed aggregation algerbaric multigrig method.
+
+    ### Args:
+        A :
+        b :
+
+    ### Examples:
+
+    ### Note:
+
+    """
+    def __init__(self, A, b):
+        self.A = A
+        self.b = b
+
+    def solve(self, u, V, monitor_convergence=True):
+        """# AMGsolverS
+        ## solver
+        ### solve
+        solve the problem.
+        ### Args:
+            u : function
+            V : function space
+            monitor_convergence (bool) :
+        ### Returns:
+
+        ### Examples:
+
+        ### Note:
+
+        """
+
+        pc = PETScPreconditioner("petsc_amg")
+        PETScOptions.set("mg_levels_ksp_type", "chebyshev")
+        PETScOptions.set("mg_levels_pc_type", "jacobi")
+        PETScOptions.set("mg_levels_esteig_ksp_type", "cg")
+        PETScOptions.set("mg_levels_ksp_chebyshev_esteig_steps", 50)
+        PETSC_solver = PETScKrylovSolver("cg", pc)
+        PETSC_solver.parameters["monitor_convergence"] = monitor_convergence
+        PETSC_solver.set_operator(self.A)
+        PETSC_solver.solve(u.vector(), self.b)
+        return u
+
 class SLUDsolver():
     """# SLUDsolver
     ## SLUDsolver

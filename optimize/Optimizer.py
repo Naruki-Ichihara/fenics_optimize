@@ -5,7 +5,10 @@
 # This file is part of Morphogenesis
 #
 # SPDX-License-Identifier:    MIT
-"""Optimizer"""
+"""Optimizer
+TODO: constraint -> constraints
+
+"""
 from dolfin import *
 from dolfin_adjoint import *
 import nlopt as nl
@@ -33,7 +36,8 @@ def MMAoptimize(problemSize, initial, forward, constraint, maxeval=100, bounds=[
 def HSLoptimize(problemSize, initial, forward, constraint, maxeval=100, bounds=[-1, 1], rel=1e-8, verbosity=5):
     options = {'print_level': verbosity,
                'max_iter': maxeval,
-               'tol': rel}
+               'tol': rel,
+               'hessian_constant': 'yes'}
     constraints = [{
             'type': 'ineq',
             'fun': lambda x: -constraint(x)[0],

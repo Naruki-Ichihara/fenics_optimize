@@ -82,65 +82,62 @@ pip install .
 ```
 
 ## Example
-2-D elastic topology optimization problem.
+2-D Poisson topology optimization problem.
 
 ```python
 from dolfin import *
 from dolfin_adjoint import *
 import optimize as op
-from optimize.Elasticity import reducedSigma, epsilon
 import numpy as np
 
-E = 1.0e9
-nu = 0.3
-f = Constant((0, -1e3))
-p = 3
-target = 0.4
-R = 0.1
+V = 0.3  # volume bound on the control
+p = 5  # power used in the solid isotropic material
+eps = Constant(1.0e-3)  # epsilon used in the solid isotropic material
+r = 0.01
 
-mesh = RectangleMesh(Point(0, 0), Point(20, 10), 200, 100)
+def k(rho):
+    return eps + (1 - eps) * rho ** p
+
+n = 256
+mesh = UnitSquareMesh(n, n)
 problemSize = mesh.num_vertices()
-x0 = np.zeros(problemSize)
+x0 = np.ones(problemSize)*V
 
-X = FunctionSpace(mesh, "CG", 1)
-Xs = [X]
-V = VectorFunctionSpace(mesh, "CG", 1)
+X = FunctionSpace(mesh, 'CG', 1)
 
-class Bottom(SubDomain):
+class Left(SubDomain):
     def inside(self, x, on_boundary):
-        return on_boundary and x[1] < 1e-10
+        gamma = 1/250 + 1e-5
+        return x[0] == 0.0 and 0.5 - gamma < x[1] < 0.5 + gamma and on_boundary
 
-def clamped_boundary(x, on_boundary):
-    return on_boundary and x[0] < 1e-10 or x[0] > 19.999
+bcs = [DirichletBC(X, Constant(0.0), Left())]
+f = interpolate(Constant(1e-2), X)
+file = File('result/poisson/material.pvd')
 
-@op.with_derivative(Xs)
+@op.with_derivative([X])
 def forward(xs):
-    rho = op.hevisideFilter(op.helmholtzFilter(xs[0], X, R))
-    op.export_result(project(rho, X), 'result/test.xdmf')
-    facets = MeshFunction('size_t', mesh, 1)
-    facets.set_all(0)
-    bottom = Bottom()
-    bottom.mark(facets, 1)
-    ds = Measure('ds', subdomain_data=facets)
-    u = TrialFunction(V)
-    v = TestFunction(V)
-    a = inner(reducedSigma(rho, u, E, nu, p), epsilon(v))*dx
-    L = inner(f, v)*ds(1)
-    bc = DirichletBC(V, Constant((0, 0)), clamped_boundary)
-    u_ = Function(V)
-    A, b = assemble_system(a, L, [bc])
-    uh = op.AMG2Dsolver(A, b).solve(u_, V, False)
-    return assemble(inner(reducedSigma(rho, uh, E, nu, p), epsilon(uh))*dx)
+    rho = op.helmholtzFilter(xs[0], X, R=r)
+    rho.rename('label', 'material')
+    Th = Function(X, name='Temperature')
+    u = TrialFunction(X)
+    v = TestFunction(X)
+    a = inner(grad(u), k(rho)*grad(v))*dx
+    L = f*v*dx
+    A, b = assemble_system(a, L, bcs)
+    Th = op.AMGsolver(A, b).solve(Th, X, False)
+    J = assemble(inner(grad(Th), k(rho)*grad(Th))*dx)
+    file << rho
+    return J
 
-@op.with_derivative(Xs)
+@op.with_derivative([X])
 def constraint(xs):
-    rho_bulk = project(Constant(1.0), FunctionSpace(mesh, 'CG', 1))
+    rho_bulk = project(Constant(1.0), X)
     rho_0 = assemble(rho_bulk*dx)
-    rho_f = assemble(op.hevisideFilter(op.helmholtzFilter(xs[0], X, R))*dx)
+    rho_f = assemble(xs[0]*dx)
     rel = rho_f/rho_0
-    return rel - target
+    return rel - V
 
-op.HSLoptimize(problemSize, x0, forward, constraint)
+op.MMAoptimize(problemSize, x0, forward, constraint, maxeval=1000, bounds=[0, 1], rel=1e-20)
 ```
 
 ## Contributors
