@@ -1,7 +1,7 @@
 # fenics-optimize
 <!-- # Short Description -->
 
-**fenics-optimize** is a module of the [FEniCS computing platform](https://fenicsproject.org/) for the multiphysical optimization problems.
+**fenics-optimize** is a module of the [FEniCS computing platform](https://fenicsproject.org/) for multiphysics optimization problems.
 
 <!-- # Badges -->
 
