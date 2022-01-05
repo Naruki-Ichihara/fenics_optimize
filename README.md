@@ -14,7 +14,7 @@
 ## Motivation and significance
 
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/70839257/148197609-cd93c1cc-f20d-4e1b-a0f9-043bf430f78b.png" />
+  <img src="https://user-images.githubusercontent.com/70839257/148230717-e25da51a-3f96-461d-960f-8f22381387fc.png" />
 </p>
 
 **fenics-optimize** enables reusable and straightforward UFL coding for physical optimization problems and provides decorators that bridge easily between a fenics calculation chain and optimizers.
