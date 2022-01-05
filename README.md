@@ -19,41 +19,6 @@
 
 **fenics-optimize** enables reusable and straightforward UFL coding for physical optimization problems and provides decorators that bridge easily between a fenics calculation chain and optimizers.
 
-## Installation
-### Docker
-
-[![dockeri.co](https://dockeri.co/image/ichiharanaruki/fenics-optimize)](https://hub.docker.com/r/ichiharanaruki/fenics-optimize)
-
-Docker enables to build and ship the environment for **fenics-optimize** for almost any platform, e.g., Linux, macOS, or windows.
-
-First, please install Docker. Linux users should follow the [instraction](https://docs.docker.com/get-started/). Mac or Windows users should install the [Docker Desktop](https://www.docker.com/products/docker-desktop), which suits your platform.
-
-Second, clone this repository on your system.
-```
-git clone https://github.com/Naruki-Ichihara/fenics-optimize.git
-```
-and move to the docker-compose directory
-```
-cd morphogenesis/.docker_optimize
-```
-Then, launch the docker-compose and pull the image from our docker hub.
-```
-docker-compose up
-```
-This container will survive until when you stop the container.
-
-### install on your host
-First, make sure to install the following dependencies:
-
-* [FEniCS](https://fenicsproject.org/) + [pyadjoint](https://github.com/dolfin-adjoint/pyadjoint)
-* [cyipopt](https://github.com/mechmotum/cyipopt)
-* [nlopt](https://github.com/stevengj/nlopt/)
-
-Second, install using pip.
-```
-pip install git+https://github.com/Naruki-Ichihara/fenics-optimize.git@master
-```
-
 ## Example
 2-D Poisson topology optimization problem.
 
@@ -96,6 +61,41 @@ Finally, optimize the cost function with inequality constraints.
 
 ```python
 op.MMAoptimize(problemSize, x0, forward, constraint, maxeval=1000, bounds=[0, 1], rel=1e-20)
+```
+
+## Installation
+### Docker
+
+[![dockeri.co](https://dockeri.co/image/ichiharanaruki/fenics-optimize)](https://hub.docker.com/r/ichiharanaruki/fenics-optimize)
+
+Docker enables to build and ship the environment for **fenics-optimize** for almost any platform, e.g., Linux, macOS, or windows.
+
+First, please install Docker. Linux users should follow the [instraction](https://docs.docker.com/get-started/). Mac or Windows users should install the [Docker Desktop](https://www.docker.com/products/docker-desktop), which suits your platform.
+
+Second, clone this repository on your system.
+```
+git clone https://github.com/Naruki-Ichihara/fenics-optimize.git
+```
+and move to the docker-compose directory
+```
+cd morphogenesis/.docker_optimize
+```
+Then, launch the docker-compose and pull the image from our docker hub.
+```
+docker-compose up
+```
+This container will survive until when you stop the container.
+
+### install on your local host
+First, make sure to install the following dependencies:
+
+* [FEniCS](https://fenicsproject.org/) + [pyadjoint](https://github.com/dolfin-adjoint/pyadjoint)
+* [cyipopt](https://github.com/mechmotum/cyipopt)
+* [nlopt](https://github.com/stevengj/nlopt/)
+
+Second, install using pip.
+```
+pip install git+https://github.com/Naruki-Ichihara/fenics-optimize.git@master
 ```
 
 ## Contributors
