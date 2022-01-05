@@ -9,7 +9,7 @@
 
 from dolfin import *
 from dolfin_adjoint import *
-from fecr import from_numpy, to_numpy
+from .fecr import from_numpy, to_numpy
 
 def evalGradient(target, control):
     """# Utilities

@@ -9,7 +9,7 @@
 from dolfin import *
 from dolfin_adjoint import *
 import numpy as np
-from fecr import from_numpy, to_numpy
+from .fecr import from_numpy, to_numpy
 
 def with_derivative(temp, wrt=None):
     """# Core

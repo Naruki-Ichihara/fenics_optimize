@@ -20,7 +20,6 @@ if not has_linear_algebra_backend("PETSc"):
 parameters["linear_algebra_backend"] = "PETSc"
 
 def build_nullspace_3D(V, x):
-    """Function to build null space for 3D elasticity"""
 
     # Create list of vectors for null space
     nullspace_basis = [x.copy() for i in range(6)]

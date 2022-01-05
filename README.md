@@ -47,16 +47,11 @@ First, make sure to install the following dependencies:
 
 * [FEniCS](https://fenicsproject.org/) + [pyadjoint](https://github.com/dolfin-adjoint/pyadjoint)
 * [cyipopt](https://github.com/mechmotum/cyipopt)
-* [nlopt](https://github.com/stevengj/nlopt/) with python plugin
-* [fecr](https://github.com/IvanYashchuk/fecr)
+* [nlopt](https://github.com/stevengj/nlopt/)
 
-Second, clone this repository on your system and move in this directory.
+Second, install using pip.
 ```
-git clone https://github.com/Naruki-Ichihara/fenics-optimize.git && cd fenics-optimize
-```
-Then, install this repository.
-```
-pip install .
+pip install git+https://github.com/Naruki-Ichihara/fenics-optimize.git@master
 ```
 
 ## Example
