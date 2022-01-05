@@ -11,22 +11,13 @@
 [![Github top language](https://img.shields.io/github/languages/top/Naruki-Ichihara/morphogenesis?style=for-the-badge&logo=appveyor)](https://github.com/Naruki-Ichihara/morphogenesis/)
 [![Github license](https://img.shields.io/github/license/Naruki-Ichihara/morphogenesis?style=for-the-badge&logo=appveyor)](https://github.com/Naruki-Ichihara/morphogenesis/)
 
-## What is physical optimization
-<p align="center">
-  <img src="https://user-images.githubusercontent.com/70839257/148197493-159109d2-56df-46af-887a-742920a725b8.png" />
-</p>
-
 ## Motivation and significance
-**fenics-optimize** enables reusable and straightforward UFL coding for physical optimization problems and provides decorators that bridge easily between a fenics calculation chain and optimizers.
+
 <p align="center">
   <img src="https://user-images.githubusercontent.com/70839257/148197609-cd93c1cc-f20d-4e1b-a0f9-043bf430f78b.png" />
 </p>
 
-### Built-in optimizers
-**fenics-optimize** supports some optimizers based on NLopt or IPOPT. Currently supported
-
-* Method of Moving Asymptotes (MMA)
-* Ipopt-HSL
+**fenics-optimize** enables reusable and straightforward UFL coding for physical optimization problems and provides decorators that bridge easily between a fenics calculation chain and optimizers.
 
 ## Installation
 ### Docker
@@ -51,7 +42,7 @@ docker-compose up
 ```
 This container will survive until when you stop the container.
 
-### Manual installation
+### install on your host
 First, make sure to install the following dependencies:
 
 * [FEniCS](https://fenicsproject.org/) + [pyadjoint](https://github.com/dolfin-adjoint/pyadjoint)
@@ -71,40 +62,22 @@ pip install .
 ## Example
 2-D Poisson topology optimization problem.
 
+First, import `optimize` with `dolfin`, `dolfin-adjoint` and `numpy`.
 ```python
 from dolfin import *
 from dolfin_adjoint import *
 import optimize as op
 import numpy as np
+```
 
-V = 0.3  # volume bound on the control
-p = 5  # power used in the solid isotropic material
-eps = Constant(1.0e-3)  # epsilon used in the solid isotropic material
-r = 0.01
+Then define the pysical model using the FEniCS with decorator `with_derivative`.
 
-def k(rho):
-    return eps + (1 - eps) * rho ** p
+`with_derivative` will wrrap the fenics function to the numpy function and compute Jacobian automatically.
 
-n = 256
-mesh = UnitSquareMesh(n, n)
-problemSize = mesh.num_vertices()
-x0 = np.ones(problemSize)*V
-
-X = FunctionSpace(mesh, 'CG', 1)
-
-class Left(SubDomain):
-    def inside(self, x, on_boundary):
-        gamma = 1/250 + 1e-5
-        return x[0] == 0.0 and 0.5 - gamma < x[1] < 0.5 + gamma and on_boundary
-
-bcs = [DirichletBC(X, Constant(0.0), Left())]
-f = interpolate(Constant(1e-2), X)
-file = File('result/poisson/material.pvd')
-
+```python
 @op.with_derivative([X])
 def forward(xs):
     rho = op.helmholtzFilter(xs[0], X, R=r)
-    rho.rename('label', 'material')
     Th = Function(X, name='Temperature')
     u = TrialFunction(X)
     v = TestFunction(X)
@@ -112,9 +85,8 @@ def forward(xs):
     L = f*v*dx
     A, b = assemble_system(a, L, bcs)
     Th = op.AMGsolver(A, b).solve(Th, X, False)
-    J = assemble(inner(grad(Th), k(rho)*grad(Th))*dx)
-    file << rho
-    return J
+    cost = assemble(inner(grad(Th), k(rho)*grad(Th))*dx)
+    return cost
 
 @op.with_derivative([X])
 def constraint(xs):
@@ -123,7 +95,11 @@ def constraint(xs):
     rho_f = assemble(xs[0]*dx)
     rel = rho_f/rho_0
     return rel - V
+```
 
+Finally, optimize the cost function with inequality constraints.
+
+```python
 op.MMAoptimize(problemSize, x0, forward, constraint, maxeval=1000, bounds=[0, 1], rel=1e-20)
 ```
 
