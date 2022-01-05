@@ -1,6 +1,8 @@
+#! /usr/bin/python3
+# -*- coding: utf-8 -*-
 # The backends pattern was borrowed from einops package
 # https://github.com/arogozhnikov/einops/blob/7a1bfb8738d33bdba3fa94de713814c0b2848c59/einops/_backends.py
-"""
+'''
 Backends in `numpy-fem-adjoint` are organized to meet the following requirements
 - backends are not imported unless those are actually needed, because
     - backends may not be installed
@@ -10,8 +12,7 @@ Backends in `numpy-fem-adjoint` are organized to meet the following requirements
 - backend should be either symbolic or imperative (tensorflow is for both, but that causes problems)
     - this determines which methods (from_numpy/to_numpy or create_symbol/eval_symbol) should be defined
 - if backend can't (temporarily) provide symbols for shape dimensions, UnknownSize objects are used
-"""
-
+'''
 import sys
 from typing import Collection
 from dataclasses import dataclass

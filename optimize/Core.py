@@ -1,29 +1,26 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021 Naruki Ichihara
-#
-# This file is part of Morphogenesis
-#
-# SPDX-License-Identifier:    MIT
-"""Core"""
+''' Core source file for fenics-optimize.
+
+This source contains some decorators that wrrap the fenics function to the numpy function
+and calculate the Jacobian vector using the dolfin-adjoint.
+'''
+
 from dolfin import *
 from dolfin_adjoint import *
 import numpy as np
 from .fecr import from_numpy, to_numpy
 
 def with_derivative(temp, wrt=None):
-    """# Core
-    ## forward
-    Decorator to wrap the fenics chain. 
+    '''
+    Decorator to wrap the fenics chain.
 
-    Examples:
-    ```
-    @forward([X1, X2, ..., Xn], wrt=[0, 1, ..., m])
-    def function(xs):
-        Processes with xs[n]
-        return cost
-    ```
-    """
+    Args:
+        temp (list[dolfin_adjoint.FunctionSpace]): Function spaces that contain each control variables.
+        wrt (list[int], optional): Automatic derivative of cost w.r.t. wrt index. Defaults to None.
+
+    Returns:
+    '''
     def _with_derivative(func):
         def wrapper(*args, **kwargs):
             x = np.split(args[0], len(temp))
@@ -53,18 +50,14 @@ def with_derivative(temp, wrt=None):
     return _with_derivative
 
 def without_derivative(temp):
-    """# Core
-    ## without_derivative
-    Decorator to wrap the fenics chain. 
+    '''
+    Decorator to wrap the fenics chain without derivative.
 
-    Examples:
-    ```
-    @forward([X1, X2, ..., Xn])
-    def function(xs):
-        Processes with xs[n]
-        return cost
-    ```
-    """
+    Args:
+        temp (list[dolfin_adjoint.FunctionSpace]): Function spaces that contain each control variables.
+
+    Returns:
+    '''
     def _without_derivative(func):
         def wrapper(*args, **kwargs):
             x = np.split(args[0], len(temp))

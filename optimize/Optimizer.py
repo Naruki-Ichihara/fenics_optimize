@@ -1,14 +1,10 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021 Naruki Ichihara
-#
-# This file is part of Morphogenesis
-#
-# SPDX-License-Identifier:    MIT
-"""Optimizer
-TODO: constraint -> constraints
+''' Optimizers.
 
-"""
+Todo:
+    * Changed interface: constraint to constraints
+'''
 from dolfin import *
 from dolfin_adjoint import *
 import nlopt as nl

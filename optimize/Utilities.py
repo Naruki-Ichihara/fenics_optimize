@@ -1,11 +1,8 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
-# Copyright (C) 2021 Naruki Ichihara
-#
-# This file is part of Morphogenesis
-#
-# SPDX-License-Identifier:    MIT
-"""Utilities"""
+''' Solvers.
+[detail]
+'''
 
 from dolfin import *
 from dolfin_adjoint import *
