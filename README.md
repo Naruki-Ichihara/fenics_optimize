@@ -11,16 +11,16 @@
 [![Github top language](https://img.shields.io/github/languages/top/Naruki-Ichihara/morphogenesis?style=for-the-badge&logo=appveyor)](https://github.com/Naruki-Ichihara/morphogenesis/)
 [![Github license](https://img.shields.io/github/license/Naruki-Ichihara/morphogenesis?style=for-the-badge&logo=appveyor)](https://github.com/Naruki-Ichihara/morphogenesis/)
 
+## What is physical optimization
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/70839257/148197493-159109d2-56df-46af-887a-742920a725b8.png" />
+</p>
+
 ## Motivation and significance
-
 **fenics-optimize** enables reusable and straightforward UFL coding for physical optimization problems and provides decorators that bridge easily between a fenics calculation chain and optimizers.
-
-```python
-@op.with_derivative([X1, X2, ..., Xn])
-def forward(xs):
-    process with xs ..
-    return J(xs)
-```
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/70839257/148197609-cd93c1cc-f20d-4e1b-a0f9-043bf430f78b.png" />
+</p>
 
 ### Built-in optimizers
 **fenics-optimize** supports some optimizers based on NLopt or IPOPT. Currently supported
