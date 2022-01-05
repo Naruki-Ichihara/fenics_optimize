@@ -1,7 +1,7 @@
 # fenics-optimize
 <!-- # Short Description -->
 
-**fenics-optimize** is a module of the [FEniCS computing platform](https://fenicsproject.org/) for multiphysics optimization problems.
+**fenics-optimize** is an add-on module of the [FEniCS computing platform](https://fenicsproject.org/) for multiphysics optimization problems. 
 
 <!-- # Badges -->
 
@@ -13,32 +13,20 @@
 
 ## Motivation and significance
 
-### Automatic derivative
-Sensitivities that need to optimization will be derived automatically from the fenics chain. 
+**fenics-optimize** enables reusable and straightforward UFL coding for physical optimization problems and provides decorators that bridge easily between a fenics calculation chain and optimizers.
 
 ```python
-Xs = [X1, X2, ..., Xn]  # Function Spaces
-@op.with_derivative(Xs)
+@op.with_derivative([X1, X2, ..., Xn])
 def forward(xs):
     process with xs ..
     return J(xs)
 ```
 
-### Filters
-Built-in filters for topology optimizations.
-
-* Heviside Filter
-* Helmholtz Filter
-* Isoparametric Filter
-
-### Built-in solvers
-**fenics-optimize** contains the Smoothed aggregation algebaric multigrid for large-scale partial differential equation (PDE) using the [PETSc](https://petsc.org/release/) backend.
-
-### Optimizer
+### Built-in optimizers
 **fenics-optimize** supports some optimizers based on NLopt or IPOPT. Currently supported
 
 * Method of Moving Asymptotes (MMA)
-* Ipopt-HSL (ma27)
+* Ipopt-HSL
 
 ## Installation
 ### Docker
@@ -66,8 +54,7 @@ This container will survive until when you stop the container.
 ### Manual installation
 First, make sure to install the following dependencies:
 
-* [FEniCS](https://fenicsproject.org/)
-* [pyadjoint](https://github.com/dolfin-adjoint/pyadjoint)
+* [FEniCS](https://fenicsproject.org/) + [pyadjoint](https://github.com/dolfin-adjoint/pyadjoint)
 * [cyipopt](https://github.com/mechmotum/cyipopt)
 * [nlopt](https://github.com/stevengj/nlopt/) with python plugin
 * [fecr](https://github.com/IvanYashchuk/fecr)
