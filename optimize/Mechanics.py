@@ -1,12 +1,13 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
-''' Helper module for elasticity problems.
+''' Helper module for machanical engineering problems.
 
 This source contains useful methods for the elasticity problem.
 '''
 
 from dolfin import *
 from dolfin_adjoint import *
+from .shells import *
 
 def sigma(v, E, nu):
     '''

@@ -1,7 +1,7 @@
 from dolfin import *
 from dolfin_adjoint import *
 import optimize as op
-from optimize.Elasticity import sigma, epsilon
+from optimize.Mechanics import sigma, epsilon
 import numpy as np
 
 E = 1.0e9
@@ -10,14 +10,16 @@ f = Constant((0, -1e3))
 p = 3
 eps = 1.0e-3
 target = 0.4
-R = 0.1
+R = 0.001
 
 def k(rho):
     return eps + (1 - eps) * rho ** p
 
+rec = op.Recorder('result/elasticity', 'material')
+log = op.Logger('result/elasticity', 'cost')
+
 mesh = RectangleMesh(Point(0, 0), Point(20, 10), 200, 100)
 problemSize = mesh.num_vertices()
-x0 = np.ones(problemSize)*target
 
 X = FunctionSpace(mesh, "CG", 1)
 Xs = [X]
@@ -30,12 +32,9 @@ class Bottom(SubDomain):
 def clamped_boundary(x, on_boundary):
     return on_boundary and x[0] < 1e-10 or x[0] > 19.999
 
-file = File('result/elasticity/material.pvd')
-
 @op.with_derivative(Xs)
 def forward(xs):
     rho = op.helmholtzFilter(xs[0], X, R)
-    rho.rename('label', 'material')
     facets = MeshFunction('size_t', mesh, 1)
     facets.set_all(0)
     bottom = Bottom()
@@ -49,8 +48,10 @@ def forward(xs):
     uh = Function(V)
     A, b = assemble_system(a, L, [bc])
     uh = op.AMG2Dsolver(A, b).solve(uh, V, False)
-    file << rho
-    return assemble(inner(k(rho)*sigma(uh, E, nu), epsilon(uh))*dx)
+    cost = assemble(inner(k(rho)*sigma(uh, E, nu), epsilon(uh))*dx)
+    rec.rec(project(rho, X))
+    log.rec(cost)
+    return cost
 
 @op.with_derivative(Xs)
 def constraint(xs):
@@ -60,4 +61,8 @@ def constraint(xs):
     rel = rho_f/rho_0
     return rel - target
 
-op.MMAoptimize(problemSize, x0, forward, constraint, maxeval=1000, bounds=[0, 1], rel=1e-20)
+x0 = np.ones(problemSize)*target
+x_min = np.zeros(problemSize)
+x_max = np.ones(problemSize)
+
+op.HSLoptimize(problemSize, x0, forward, [constraint], maxeval=1000, bounds=[x_min, x_max], rel=1e-20, verbosity=5)

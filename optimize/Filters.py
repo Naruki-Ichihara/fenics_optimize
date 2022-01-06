@@ -10,15 +10,17 @@ from dolfin_adjoint import *
 import numpy as np
 
 def helmholtzFilter(u, U, R=0.025):
-    """# helmholtzFilter
+    '''
     Apply the helmholtz filter.
+
     Args:
-        u (fenics.function): target function
-        U (fenics.FunctionSpace): Functionspace of target function
-        r (float): filter radius
-    Return:
-        v (fenics.function): filtered function
-    """
+        u (dolfin_adjoint.Function): Target function
+        U (dolfin_adjoint.FunctionSpace): Functionspace of target function
+        R (float, optional): Filter radius. Defaults to 0.025.
+
+    Returns:
+        (dolfin_adjoint.Function): Filtered function
+    '''
     v = TrialFunction(U)
     dv = TestFunction(U)
     vh = Function(U)
@@ -36,32 +38,32 @@ def helmholtzFilter(u, U, R=0.025):
     PETSC_solver.solve(vh.vector(), b)
     return vh
 
-def hevisideFilter(u, a=10, offset=0.001):
-    """# hevisideFilter
+def hevisideFilter(u, V, a=10.0, offset=0.001):
+    '''
+    Apply the heviside function (approximate with sigmoid function).
 
-    Apply the heviside function (approximate with sigmoid function)
     Args:
-        u (fenics.function): target function
-        U (fenics.FunctionSpace): Functionspace of target function
-        a (float): coefficient. a>50 -> Step. a=3 -> S-shape
+        u (dolfin_adjoint.Function): Target function.
+        V (dolfin_adjoint.FunctionSpace): Function space for function.
+        a (float, optional): Coefficient for the smoothness. Defaults to 50.
+        offset (float, optional): Minimize bias. Defaults to 0.001.
+
     Returns:
-        v (fenics.function): filterd function
-    Note:
-    """
-    return (1-offset)*u/2 + (1+offset)/2
+        dolfin_adjoint.Form: Filtered function form.
+    '''
+    return project((1 + offset*exp(-a*u))/(1 + exp(-a*u)), V)
 
 def isoparametric2Dfilter(z, e):
-    """# isoparametric2Dfilter
-
+    '''
     Apply 2D isoparametric projection onto orientation vector.
 
     Args:
-        z: 0-component of the orientation vector (on natural setting)
-        e: 1-component of the orientation vector (on natural setting)
+        z (dolfin_adjoint.Function): 0-component of the orientation vector (on natural setting).
+        e (dolfin_adjoint.Function): 1-component of the orientation vector (on natural setting)
 
     Returns:
-        [Nx, Ny] (fenics.vector): Orientation vector with unit circle boundary condition on real setting.
-    """
+        dolfin_adjoint.Vector: Orientation vector with unit circle boundary condition on real setting.
+    '''    
     u = as_vector([-1/np.sqrt(2), 0, 1/np.sqrt(2), 1, 1/np.sqrt(2), 0, -1/np.sqrt(2), -1])
     v = as_vector([-1/np.sqrt(2), -1, -1/np.sqrt(2), 0, 1/np.sqrt(2), 1, 1/np.sqrt(2), 0])
     N1 = -(1-z)*(1-e)*(1+z+e)/4

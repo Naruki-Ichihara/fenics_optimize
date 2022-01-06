@@ -1,0 +1,811 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>optimize.shells.common.laminates API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>optimize.shells.common.laminates</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># Copyright (C) 2015 Corrado Maurini
+#
+# This file is part of fenics-shells.
+#
+# fenics-shells is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# fenics-shells is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with fenics-shells. If not, see &lt;http://www.gnu.org/licenses/&gt;.
+
+import numpy as np
+import math as m
+
+from dolfin import *
+from ufl import transpose
+
+
+def z_coordinates(hs):
+    r&#34;&#34;&#34;Return a list with the thickness coordinate of the top surface of each layer
+    taking the midplane as z = 0.
+
+    Args:
+        hs: a list giving the thinckesses of each layer
+            ordered from bottom (layer - 0) to top (layer n-1).
+
+    Returns:
+        z: a list of coordinate of the top surface of each layer
+           ordered from bottom (layer - 0) to top (layer n-1)
+    &#34;&#34;&#34;
+
+    z0 = sum(hs)/2.
+    #z = [(sum(hs)/2.- sum(hs for hs in hs[0:i])) for i in range(len(hs)+1)];
+    z = [(-sum(hs)/2. + sum(hs for hs in hs[0:i])) for i in range(len(hs)+1)]
+    return z
+
+
+def rotated_lamina_stiffness_inplane(E1, E2, G12, nu12, theta):
+    r&#34;&#34;&#34;Return the in-plane stiffness matrix of an orhtropic layer
+    in a reference rotated by an angle theta wrt to the material one.
+    It assumes Voigt notation and plane stress state.
+    (see Reddy 1997, eqn 1.3.71)
+
+    Args:
+        E1: The Young modulus in the material direction 1.
+        E2: The Young modulus in the material direction 2.
+        G23: The in-plane shear modulus.
+        nu12: The in-plane Poisson ratio.
+        theta: The rotation angle from the material to the desired reference system.
+
+    Returns:
+        Q_theta: a 3x3 symmetric ufl matrix giving the stiffness matrix.
+    &#34;&#34;&#34;
+    # Rotation matrix to rotate the in-plane stiffness matrix
+    # in Voigt notation of an angle theta from the material directions
+    # (See Reddy 1997 pg 91, eqn 2.3.7)
+
+    c = cos(theta)
+    s = sin(theta)
+    T = as_matrix([[c**2, s**2, -2*s*c],
+                   [s**2, c**2, 2*s*c],
+                   [c*s, -c*s, c**2 - s**2]])
+    # In-plane stiffness matrix of an orhtropic layer in material coordinates
+    nu21 = E2/E1*nu12
+    Q11 = E1/(1-nu12*nu21)
+    Q12 = nu12*E2/(1-nu12*nu21)
+    Q22 = E2/(1-nu12*nu21)
+    Q66 = G12
+    Q16 = 0.
+    Q26 = 0.
+    Q = as_matrix([[Q11, Q12, Q16],
+                   [Q12, Q22, Q26],
+                   [Q16, Q26, Q66]])
+    # Rotated matrix in the main reference
+    Q_theta = T*Q*transpose(T)
+
+    return Q_theta
+
+
+def rotated_lamina_stiffness_shear(G13, G23, theta, kappa=5./6.):
+    r&#34;&#34;&#34;Return the shear stiffness matrix of an orhtropic layer
+    in a reference rotated by an angle theta wrt to the material one.
+    It assumes Voigt notation and plane stress state
+    (see Reddy 1997, eqn 3.4.18).
+
+    Args:
+        G12: The transverse shear modulus between the material directions 1-2.
+        G13: The transverse shear modulus between the material directions 1-3.
+        kappa: The shear correction factor.
+
+    Returns:
+        Q_shear_theta: a 3x3 symmetric ufl matrix giving the stiffness matrix.
+    &#34;&#34;&#34;
+    # The rotation matrix to rotate the shear stiffness matrix
+    # in Voigt notation of an angle theta from the material directions
+    # (See Reddy 1997 pg 91, eqn 2.3.7)
+    c = m.cos(theta)
+    s = m.sin(theta)
+    T_shear = as_matrix([[c, s], [-s, c]])
+    Q_shear = kappa*as_matrix([[G23, 0.], [0., G13]])
+    Q_shear_theta = T_shear*Q_shear*transpose(T_shear)
+
+    return Q_shear_theta
+
+
+def rotated_lamina_stiffness_inplane(E1, E2, G12, nu12, theta):
+    r&#34;&#34;&#34;Return the in-plane stiffness matrix of an orhtropic layer
+    in a reference rotated by an angle theta wrt to the material one.
+    It assumes Voigt notation and plane stress state.
+    (See Reddy 1997, eqn 1.3.71)
+
+    Args:
+        E1: The Young modulus in the material direction 1.
+        E2: The Young modulus in the material direction 2.
+        G23: The in-plane shear modulus
+        nu12: The in-plane Poisson ratio
+        theta: The rotation angle from the material to the desired refence system
+
+    Returns:
+        Q_theta: a 3x3 symmetric ufl matrix giving the stiffness matrix
+
+    &#34;&#34;&#34;
+    # Rotation matrix to rotate the in-plane stiffness matrix
+    # in Voigt notation of an angle theta from the material directions
+    # (See Reddy 1997 pg 91, eqn 2.3.7)
+
+    c = cos(theta)
+    s = sin(theta)
+    T = as_matrix([[c**2, s**2, -2*s*c],
+                   [s**2, c**2, 2*s*c],
+                   [c*s, -c*s, c**2-s**2]])
+
+    # In-plane stiffness matrix of an orhtropic layer in material coordinates
+    nu21 = E2/E1*nu12
+    Q11 = E1/(1-nu12*nu21)
+    Q12 = nu12*E2/(1-nu12*nu21)
+    Q22 = E2/(1-nu12*nu21)
+    Q66 = G12
+    Q16 = 0.
+    Q26 = 0.
+    Q = as_matrix([[Q11, Q12, Q16],
+                   [Q12, Q22, Q26],
+                   [Q16, Q26, Q66]])
+    # Rotated matrix in the main reference
+    Q_theta = T*Q*transpose(T)
+
+    return Q_theta
+
+
+def ABD(E1, E2, G12, nu12, hs, thetas):
+    r&#34;&#34;&#34;Return the stiffness matrix of a kirchhoff-love model of a laminate
+    obtained by stacking n orthotropic laminae with possibly different
+    thinknesses and orientations (see Reddy 1997, eqn 1.3.71).
+
+    It assumes a plane-stress state.
+
+    Args:
+        E1 : The Young modulus in the material direction 1.
+        E2 : The Young modulus in the material direction 2.
+        G12 : The in-plane shear modulus.
+        nu12: The in-plane Poisson ratio.
+        hs: a list with length n with the thicknesses of the layers (from top to bottom).
+        theta: a list with the n orientations (in radians) of the layers (from top to bottom).
+
+    Returns:
+        A: a symmetric 3x3 ufl matrix giving the membrane stiffness in Voigt notation.
+        B: a symmetric 3x3 ufl matrix giving the membrane/bending coupling stiffness in Voigt notation.
+        D: a symmetric 3x3 ufl matrix giving the bending stiffness in Voigt notation.
+    &#34;&#34;&#34;
+    assert (len(hs) == len(thetas)), &#34;hs and thetas should have the same length !&#34;
+
+    z = z_coordinates(hs)
+    A = 0.*Identity(3)
+    B = 0.*Identity(3)
+    D = 0.*Identity(3)
+
+    for i in range(len(thetas)):
+        Qbar = rotated_lamina_stiffness_inplane(E1, E2, G12, nu12, thetas[i])
+        A += Qbar*(z[i+1]-z[i])
+        B += .5*Qbar*(z[i+1]**2-z[i]**2)
+        D += 1./3.*Qbar*(z[i+1]**3-z[i]**3)
+
+    return (A, B, D)
+
+
+def F(G13, G23, hs, thetas):
+    r&#34;&#34;&#34;Return the shear stiffness matrix of a Reissner-Midlin model of a
+    laminate obtained by stacking n orthotropic laminae with possibly different
+    thinknesses and orientations.  (See Reddy 1997, eqn 3.4.18)
+
+    It assumes a plane-stress state.
+
+    Args:
+        G13: The transverse shear modulus between the material directions 1-3.
+        G23: The transverse shear modulus between the material directions 2-3.
+        hs: a list with length n with the thicknesses of the layers (from top to bottom).
+        theta: a list with the n orientations (in radians) of the layers (from top to bottom).
+
+    Returns:
+        F: a symmetric 2x2 ufl matrix giving the shear stiffness in Voigt notation.
+    &#34;&#34;&#34;
+    assert (len(hs) == len(thetas)), &#34;hs and thetas should have the same length !&#34;
+
+    z = z_coordinates(hs)
+    F = 0.*Identity(2)
+
+    for i in range(len(thetas)):
+        Q_shear_theta = rotated_lamina_stiffness_shear(G13, G23, thetas[i])
+        F += Q_shear_theta*(z[i+1]-z[i])
+
+    return F
+
+
+def rotated_lamina_expansion_inplane(alpha11, alpha22, theta):
+    r&#34;&#34;&#34;Return the in-plane expansion matrix of an orhtropic layer
+    in a reference rotated by an angle theta wrt to the material one.
+    It assumes Voigt notation and plane stress state.
+    (See Reddy 1997, eqn 1.3.71)
+
+    Args:
+        alpha11: Expansion coefficient in the material direction 1.
+        alpha22: Expansion coefficient in the material direction 2.
+        theta: The rotation angle from the material to the desired reference system.
+
+    Returns:
+        alpha_theta: a 3x1 ufl vector giving the expansion matrix in voigt notation.
+    &#34;&#34;&#34;
+    # Rotated matrix, assuming alpha12 = 0
+    c = cos(theta)
+    s = sin(theta)
+    alpha_xx = alpha11*c**2 + alpha22*s**2
+    alpha_yy = alpha11*s**2 + alpha22*c**2
+    alpha_xy = 2*(alpha11-alpha22)*s*c
+    alpha_theta = as_vector([alpha_xx, alpha_yy, alpha_xy])
+
+    return alpha_theta
+
+
+def NM_T(E1, E2, G12, nu12, hs, thetas, DeltaT_0, DeltaT_1=0., alpha1=1., alpha2=1.):
+    r&#34;&#34;&#34;Return the thermal stress and moment resultant of a Kirchhoff-Love model
+    of a laminate obtained by stacking n orthotropic laminae with possibly
+    different thinknesses and orientations.
+
+    It assumes a plane-stress states and a temperature distribution in the from
+
+    Delta(z) = DeltaT_0 + z * DeltaT_1
+
+    Args:
+        E1: The Young modulus in the material direction 1.
+        E2: The Young modulus in the material direction 2.
+        G12: The in-plane shear modulus.
+        nu12: The in-plane Poisson ratio.
+        hs: a list with length n with the thicknesses of the layers (from top to bottom).
+        theta: a list with the n orientations (in radians) of the layers (from top to bottom).
+        alpha1: Expansion coefficient in the material direction 1.
+        alpha2: Expansion coefficient in the material direction 2.
+        DeltaT_0: Average temperature field.
+        DeltaT_1: Gradient of the temperature field.
+
+    Returns:
+        N_T: a 3x1 ufl vector giving the membrane inelastic stress.
+        M_T: a 3x1 ufl vector giving the bending inelastic stress.
+    &#34;&#34;&#34;
+    assert (len(hs) == len(thetas)), &#34;hs and thetas should have the same length !&#34;
+    # Coordinates of the interfaces
+    z = z_coordinates(hs)
+
+    # Initialize to zero the voigt (ufl) vectors
+    N_T = as_vector((0., 0., 0.))
+    M_T = as_vector((0., 0., 0.))
+
+    T0 = DeltaT_0
+    T1 = DeltaT_1
+
+    # loop over the layers to add the different contributions
+    for i in range(len(thetas)):
+        # Rotated stiffness
+        Q_theta = rotated_lamina_stiffness_inplane(
+            E1, E2, G12, nu12, thetas[i])
+        alpha_theta = rotated_lamina_expansion_inplane(
+            alpha1, alpha2, thetas[i])
+        # numerical integration in the i-th layer
+        z0i = (z[i+1] + z[i])/2  # Midplane of the ith layer
+        # integral of DeltaT(z) in (z[i+1], z[i])
+        integral_DeltaT = hs[i]*(T0 + T1 * z0i)
+        # integral of DeltaT(z)*z in (z[i+1], z[i])
+        integral_DeltaT_z = T1*(hs[i]*3/12 + z0i**2*hs[i]) + hs[i]*z0i*T0
+        N_T += Q_theta*alpha_theta*integral_DeltaT
+        M_T += Q_theta*alpha_theta*integral_DeltaT_z
+
+    return (N_T, M_T)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="optimize.shells.common.laminates.ABD"><code class="name flex">
+<span>def <span class="ident">ABD</span></span>(<span>E1, E2, G12, nu12, hs, thetas)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the stiffness matrix of a kirchhoff-love model of a laminate
+obtained by stacking n orthotropic laminae with possibly different
+thinknesses and orientations (see Reddy 1997, eqn 1.3.71).</p>
+<p>It assumes a plane-stress state.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt>E1 : The Young modulus in the material direction 1.</dt>
+<dt>E2 : The Young modulus in the material direction 2.</dt>
+<dt>G12 : The in-plane shear modulus.</dt>
+<dt><strong><code>nu12</code></strong></dt>
+<dd>The in-plane Poisson ratio.</dd>
+<dt><strong><code>hs</code></strong></dt>
+<dd>a list with length n with the thicknesses of the layers (from top to bottom).</dd>
+<dt><strong><code>theta</code></strong></dt>
+<dd>a list with the n orientations (in radians) of the layers (from top to bottom).</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>A</code></dt>
+<dd>a symmetric 3x3 ufl matrix giving the membrane stiffness in Voigt notation.</dd>
+<dt><code>B</code></dt>
+<dd>a symmetric 3x3 ufl matrix giving the membrane/bending coupling stiffness in Voigt notation.</dd>
+<dt><code>D</code></dt>
+<dd>a symmetric 3x3 ufl matrix giving the bending stiffness in Voigt notation.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ABD(E1, E2, G12, nu12, hs, thetas):
+    r&#34;&#34;&#34;Return the stiffness matrix of a kirchhoff-love model of a laminate
+    obtained by stacking n orthotropic laminae with possibly different
+    thinknesses and orientations (see Reddy 1997, eqn 1.3.71).
+
+    It assumes a plane-stress state.
+
+    Args:
+        E1 : The Young modulus in the material direction 1.
+        E2 : The Young modulus in the material direction 2.
+        G12 : The in-plane shear modulus.
+        nu12: The in-plane Poisson ratio.
+        hs: a list with length n with the thicknesses of the layers (from top to bottom).
+        theta: a list with the n orientations (in radians) of the layers (from top to bottom).
+
+    Returns:
+        A: a symmetric 3x3 ufl matrix giving the membrane stiffness in Voigt notation.
+        B: a symmetric 3x3 ufl matrix giving the membrane/bending coupling stiffness in Voigt notation.
+        D: a symmetric 3x3 ufl matrix giving the bending stiffness in Voigt notation.
+    &#34;&#34;&#34;
+    assert (len(hs) == len(thetas)), &#34;hs and thetas should have the same length !&#34;
+
+    z = z_coordinates(hs)
+    A = 0.*Identity(3)
+    B = 0.*Identity(3)
+    D = 0.*Identity(3)
+
+    for i in range(len(thetas)):
+        Qbar = rotated_lamina_stiffness_inplane(E1, E2, G12, nu12, thetas[i])
+        A += Qbar*(z[i+1]-z[i])
+        B += .5*Qbar*(z[i+1]**2-z[i]**2)
+        D += 1./3.*Qbar*(z[i+1]**3-z[i]**3)
+
+    return (A, B, D)</code></pre>
+</details>
+</dd>
+<dt id="optimize.shells.common.laminates.F"><code class="name flex">
+<span>def <span class="ident">F</span></span>(<span>G13, G23, hs, thetas)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the shear stiffness matrix of a Reissner-Midlin model of a
+laminate obtained by stacking n orthotropic laminae with possibly different
+thinknesses and orientations.
+(See Reddy 1997, eqn 3.4.18)</p>
+<p>It assumes a plane-stress state.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>G13</code></strong></dt>
+<dd>The transverse shear modulus between the material directions 1-3.</dd>
+<dt><strong><code>G23</code></strong></dt>
+<dd>The transverse shear modulus between the material directions 2-3.</dd>
+<dt><strong><code>hs</code></strong></dt>
+<dd>a list with length n with the thicknesses of the layers (from top to bottom).</dd>
+<dt><strong><code>theta</code></strong></dt>
+<dd>a list with the n orientations (in radians) of the layers (from top to bottom).</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code><a title="optimize.shells.common.laminates.F" href="#optimize.shells.common.laminates.F">F()</a></code></dt>
+<dd>a symmetric 2x2 ufl matrix giving the shear stiffness in Voigt notation.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def F(G13, G23, hs, thetas):
+    r&#34;&#34;&#34;Return the shear stiffness matrix of a Reissner-Midlin model of a
+    laminate obtained by stacking n orthotropic laminae with possibly different
+    thinknesses and orientations.  (See Reddy 1997, eqn 3.4.18)
+
+    It assumes a plane-stress state.
+
+    Args:
+        G13: The transverse shear modulus between the material directions 1-3.
+        G23: The transverse shear modulus between the material directions 2-3.
+        hs: a list with length n with the thicknesses of the layers (from top to bottom).
+        theta: a list with the n orientations (in radians) of the layers (from top to bottom).
+
+    Returns:
+        F: a symmetric 2x2 ufl matrix giving the shear stiffness in Voigt notation.
+    &#34;&#34;&#34;
+    assert (len(hs) == len(thetas)), &#34;hs and thetas should have the same length !&#34;
+
+    z = z_coordinates(hs)
+    F = 0.*Identity(2)
+
+    for i in range(len(thetas)):
+        Q_shear_theta = rotated_lamina_stiffness_shear(G13, G23, thetas[i])
+        F += Q_shear_theta*(z[i+1]-z[i])
+
+    return F</code></pre>
+</details>
+</dd>
+<dt id="optimize.shells.common.laminates.NM_T"><code class="name flex">
+<span>def <span class="ident">NM_T</span></span>(<span>E1, E2, G12, nu12, hs, thetas, DeltaT_0, DeltaT_1=0.0, alpha1=1.0, alpha2=1.0)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the thermal stress and moment resultant of a Kirchhoff-Love model
+of a laminate obtained by stacking n orthotropic laminae with possibly
+different thinknesses and orientations.</p>
+<p>It assumes a plane-stress states and a temperature distribution in the from</p>
+<p>Delta(z) = DeltaT_0 + z * DeltaT_1</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>E1</code></strong></dt>
+<dd>The Young modulus in the material direction 1.</dd>
+<dt><strong><code>E2</code></strong></dt>
+<dd>The Young modulus in the material direction 2.</dd>
+<dt><strong><code>G12</code></strong></dt>
+<dd>The in-plane shear modulus.</dd>
+<dt><strong><code>nu12</code></strong></dt>
+<dd>The in-plane Poisson ratio.</dd>
+<dt><strong><code>hs</code></strong></dt>
+<dd>a list with length n with the thicknesses of the layers (from top to bottom).</dd>
+<dt><strong><code>theta</code></strong></dt>
+<dd>a list with the n orientations (in radians) of the layers (from top to bottom).</dd>
+<dt><strong><code>alpha1</code></strong></dt>
+<dd>Expansion coefficient in the material direction 1.</dd>
+<dt><strong><code>alpha2</code></strong></dt>
+<dd>Expansion coefficient in the material direction 2.</dd>
+<dt><strong><code>DeltaT_0</code></strong></dt>
+<dd>Average temperature field.</dd>
+<dt><strong><code>DeltaT_1</code></strong></dt>
+<dd>Gradient of the temperature field.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>N_T</code></dt>
+<dd>a 3x1 ufl vector giving the membrane inelastic stress.</dd>
+<dt><code>M_T</code></dt>
+<dd>a 3x1 ufl vector giving the bending inelastic stress.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def NM_T(E1, E2, G12, nu12, hs, thetas, DeltaT_0, DeltaT_1=0., alpha1=1., alpha2=1.):
+    r&#34;&#34;&#34;Return the thermal stress and moment resultant of a Kirchhoff-Love model
+    of a laminate obtained by stacking n orthotropic laminae with possibly
+    different thinknesses and orientations.
+
+    It assumes a plane-stress states and a temperature distribution in the from
+
+    Delta(z) = DeltaT_0 + z * DeltaT_1
+
+    Args:
+        E1: The Young modulus in the material direction 1.
+        E2: The Young modulus in the material direction 2.
+        G12: The in-plane shear modulus.
+        nu12: The in-plane Poisson ratio.
+        hs: a list with length n with the thicknesses of the layers (from top to bottom).
+        theta: a list with the n orientations (in radians) of the layers (from top to bottom).
+        alpha1: Expansion coefficient in the material direction 1.
+        alpha2: Expansion coefficient in the material direction 2.
+        DeltaT_0: Average temperature field.
+        DeltaT_1: Gradient of the temperature field.
+
+    Returns:
+        N_T: a 3x1 ufl vector giving the membrane inelastic stress.
+        M_T: a 3x1 ufl vector giving the bending inelastic stress.
+    &#34;&#34;&#34;
+    assert (len(hs) == len(thetas)), &#34;hs and thetas should have the same length !&#34;
+    # Coordinates of the interfaces
+    z = z_coordinates(hs)
+
+    # Initialize to zero the voigt (ufl) vectors
+    N_T = as_vector((0., 0., 0.))
+    M_T = as_vector((0., 0., 0.))
+
+    T0 = DeltaT_0
+    T1 = DeltaT_1
+
+    # loop over the layers to add the different contributions
+    for i in range(len(thetas)):
+        # Rotated stiffness
+        Q_theta = rotated_lamina_stiffness_inplane(
+            E1, E2, G12, nu12, thetas[i])
+        alpha_theta = rotated_lamina_expansion_inplane(
+            alpha1, alpha2, thetas[i])
+        # numerical integration in the i-th layer
+        z0i = (z[i+1] + z[i])/2  # Midplane of the ith layer
+        # integral of DeltaT(z) in (z[i+1], z[i])
+        integral_DeltaT = hs[i]*(T0 + T1 * z0i)
+        # integral of DeltaT(z)*z in (z[i+1], z[i])
+        integral_DeltaT_z = T1*(hs[i]*3/12 + z0i**2*hs[i]) + hs[i]*z0i*T0
+        N_T += Q_theta*alpha_theta*integral_DeltaT
+        M_T += Q_theta*alpha_theta*integral_DeltaT_z
+
+    return (N_T, M_T)</code></pre>
+</details>
+</dd>
+<dt id="optimize.shells.common.laminates.rotated_lamina_expansion_inplane"><code class="name flex">
+<span>def <span class="ident">rotated_lamina_expansion_inplane</span></span>(<span>alpha11, alpha22, theta)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the in-plane expansion matrix of an orhtropic layer
+in a reference rotated by an angle theta wrt to the material one.
+It assumes Voigt notation and plane stress state.
+(See Reddy 1997, eqn 1.3.71)</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>alpha11</code></strong></dt>
+<dd>Expansion coefficient in the material direction 1.</dd>
+<dt><strong><code>alpha22</code></strong></dt>
+<dd>Expansion coefficient in the material direction 2.</dd>
+<dt><strong><code>theta</code></strong></dt>
+<dd>The rotation angle from the material to the desired reference system.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>alpha_theta</code></dt>
+<dd>a 3x1 ufl vector giving the expansion matrix in voigt notation.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rotated_lamina_expansion_inplane(alpha11, alpha22, theta):
+    r&#34;&#34;&#34;Return the in-plane expansion matrix of an orhtropic layer
+    in a reference rotated by an angle theta wrt to the material one.
+    It assumes Voigt notation and plane stress state.
+    (See Reddy 1997, eqn 1.3.71)
+
+    Args:
+        alpha11: Expansion coefficient in the material direction 1.
+        alpha22: Expansion coefficient in the material direction 2.
+        theta: The rotation angle from the material to the desired reference system.
+
+    Returns:
+        alpha_theta: a 3x1 ufl vector giving the expansion matrix in voigt notation.
+    &#34;&#34;&#34;
+    # Rotated matrix, assuming alpha12 = 0
+    c = cos(theta)
+    s = sin(theta)
+    alpha_xx = alpha11*c**2 + alpha22*s**2
+    alpha_yy = alpha11*s**2 + alpha22*c**2
+    alpha_xy = 2*(alpha11-alpha22)*s*c
+    alpha_theta = as_vector([alpha_xx, alpha_yy, alpha_xy])
+
+    return alpha_theta</code></pre>
+</details>
+</dd>
+<dt id="optimize.shells.common.laminates.rotated_lamina_stiffness_inplane"><code class="name flex">
+<span>def <span class="ident">rotated_lamina_stiffness_inplane</span></span>(<span>E1, E2, G12, nu12, theta)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the in-plane stiffness matrix of an orhtropic layer
+in a reference rotated by an angle theta wrt to the material one.
+It assumes Voigt notation and plane stress state.
+(See Reddy 1997, eqn 1.3.71)</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>E1</code></strong></dt>
+<dd>The Young modulus in the material direction 1.</dd>
+<dt><strong><code>E2</code></strong></dt>
+<dd>The Young modulus in the material direction 2.</dd>
+<dt><strong><code>G23</code></strong></dt>
+<dd>The in-plane shear modulus</dd>
+<dt><strong><code>nu12</code></strong></dt>
+<dd>The in-plane Poisson ratio</dd>
+<dt><strong><code>theta</code></strong></dt>
+<dd>The rotation angle from the material to the desired refence system</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Q_theta</code></dt>
+<dd>a 3x3 symmetric ufl matrix giving the stiffness matrix</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rotated_lamina_stiffness_inplane(E1, E2, G12, nu12, theta):
+    r&#34;&#34;&#34;Return the in-plane stiffness matrix of an orhtropic layer
+    in a reference rotated by an angle theta wrt to the material one.
+    It assumes Voigt notation and plane stress state.
+    (See Reddy 1997, eqn 1.3.71)
+
+    Args:
+        E1: The Young modulus in the material direction 1.
+        E2: The Young modulus in the material direction 2.
+        G23: The in-plane shear modulus
+        nu12: The in-plane Poisson ratio
+        theta: The rotation angle from the material to the desired refence system
+
+    Returns:
+        Q_theta: a 3x3 symmetric ufl matrix giving the stiffness matrix
+
+    &#34;&#34;&#34;
+    # Rotation matrix to rotate the in-plane stiffness matrix
+    # in Voigt notation of an angle theta from the material directions
+    # (See Reddy 1997 pg 91, eqn 2.3.7)
+
+    c = cos(theta)
+    s = sin(theta)
+    T = as_matrix([[c**2, s**2, -2*s*c],
+                   [s**2, c**2, 2*s*c],
+                   [c*s, -c*s, c**2-s**2]])
+
+    # In-plane stiffness matrix of an orhtropic layer in material coordinates
+    nu21 = E2/E1*nu12
+    Q11 = E1/(1-nu12*nu21)
+    Q12 = nu12*E2/(1-nu12*nu21)
+    Q22 = E2/(1-nu12*nu21)
+    Q66 = G12
+    Q16 = 0.
+    Q26 = 0.
+    Q = as_matrix([[Q11, Q12, Q16],
+                   [Q12, Q22, Q26],
+                   [Q16, Q26, Q66]])
+    # Rotated matrix in the main reference
+    Q_theta = T*Q*transpose(T)
+
+    return Q_theta</code></pre>
+</details>
+</dd>
+<dt id="optimize.shells.common.laminates.rotated_lamina_stiffness_shear"><code class="name flex">
+<span>def <span class="ident">rotated_lamina_stiffness_shear</span></span>(<span>G13, G23, theta, kappa=0.8333333333333334)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the shear stiffness matrix of an orhtropic layer
+in a reference rotated by an angle theta wrt to the material one.
+It assumes Voigt notation and plane stress state
+(see Reddy 1997, eqn 3.4.18).</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>G12</code></strong></dt>
+<dd>The transverse shear modulus between the material directions 1-2.</dd>
+<dt><strong><code>G13</code></strong></dt>
+<dd>The transverse shear modulus between the material directions 1-3.</dd>
+<dt><strong><code>kappa</code></strong></dt>
+<dd>The shear correction factor.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Q_shear_theta</code></dt>
+<dd>a 3x3 symmetric ufl matrix giving the stiffness matrix.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rotated_lamina_stiffness_shear(G13, G23, theta, kappa=5./6.):
+    r&#34;&#34;&#34;Return the shear stiffness matrix of an orhtropic layer
+    in a reference rotated by an angle theta wrt to the material one.
+    It assumes Voigt notation and plane stress state
+    (see Reddy 1997, eqn 3.4.18).
+
+    Args:
+        G12: The transverse shear modulus between the material directions 1-2.
+        G13: The transverse shear modulus between the material directions 1-3.
+        kappa: The shear correction factor.
+
+    Returns:
+        Q_shear_theta: a 3x3 symmetric ufl matrix giving the stiffness matrix.
+    &#34;&#34;&#34;
+    # The rotation matrix to rotate the shear stiffness matrix
+    # in Voigt notation of an angle theta from the material directions
+    # (See Reddy 1997 pg 91, eqn 2.3.7)
+    c = m.cos(theta)
+    s = m.sin(theta)
+    T_shear = as_matrix([[c, s], [-s, c]])
+    Q_shear = kappa*as_matrix([[G23, 0.], [0., G13]])
+    Q_shear_theta = T_shear*Q_shear*transpose(T_shear)
+
+    return Q_shear_theta</code></pre>
+</details>
+</dd>
+<dt id="optimize.shells.common.laminates.z_coordinates"><code class="name flex">
+<span>def <span class="ident">z_coordinates</span></span>(<span>hs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return a list with the thickness coordinate of the top surface of each layer
+taking the midplane as z = 0.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>hs</code></strong></dt>
+<dd>a list giving the thinckesses of each layer
+ordered from bottom (layer - 0) to top (layer n-1).</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>z</code></dt>
+<dd>a list of coordinate of the top surface of each layer
+ordered from bottom (layer - 0) to top (layer n-1)</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def z_coordinates(hs):
+    r&#34;&#34;&#34;Return a list with the thickness coordinate of the top surface of each layer
+    taking the midplane as z = 0.
+
+    Args:
+        hs: a list giving the thinckesses of each layer
+            ordered from bottom (layer - 0) to top (layer n-1).
+
+    Returns:
+        z: a list of coordinate of the top surface of each layer
+           ordered from bottom (layer - 0) to top (layer n-1)
+    &#34;&#34;&#34;
+
+    z0 = sum(hs)/2.
+    #z = [(sum(hs)/2.- sum(hs for hs in hs[0:i])) for i in range(len(hs)+1)];
+    z = [(-sum(hs)/2. + sum(hs for hs in hs[0:i])) for i in range(len(hs)+1)]
+    return z</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="optimize.shells.common" href="index.html">optimize.shells.common</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="optimize.shells.common.laminates.ABD" href="#optimize.shells.common.laminates.ABD">ABD</a></code></li>
+<li><code><a title="optimize.shells.common.laminates.F" href="#optimize.shells.common.laminates.F">F</a></code></li>
+<li><code><a title="optimize.shells.common.laminates.NM_T" href="#optimize.shells.common.laminates.NM_T">NM_T</a></code></li>
+<li><code><a title="optimize.shells.common.laminates.rotated_lamina_expansion_inplane" href="#optimize.shells.common.laminates.rotated_lamina_expansion_inplane">rotated_lamina_expansion_inplane</a></code></li>
+<li><code><a title="optimize.shells.common.laminates.rotated_lamina_stiffness_inplane" href="#optimize.shells.common.laminates.rotated_lamina_stiffness_inplane">rotated_lamina_stiffness_inplane</a></code></li>
+<li><code><a title="optimize.shells.common.laminates.rotated_lamina_stiffness_shear" href="#optimize.shells.common.laminates.rotated_lamina_stiffness_shear">rotated_lamina_stiffness_shear</a></code></li>
+<li><code><a title="optimize.shells.common.laminates.z_coordinates" href="#optimize.shells.common.laminates.z_coordinates">z_coordinates</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
