@@ -1,0 +1,733 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>optimize API documentation</title>
+<meta name="description" content="&lt;div align=&#34;center&#34;&gt;&lt;img src=&#34;https://user-images.githubusercontent.com/70839257/148243588-6517e901-3c49-4dd7-9130-56e61aa94c3e.png&#34; width=&#34;400&#34;/&gt;
+…" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Package <code>optimize</code></h1>
+</header>
+<section id="section-intro">
+<div align="center"><img src="https://user-images.githubusercontent.com/70839257/148243588-6517e901-3c49-4dd7-9130-56e61aa94c3e.png" width="400"/>
+<h3><a href="https://naruki-ichihara.github.io/fenics-optimize/"> Documents </a> | Examples </h3></div>
+<h1 id="fenics-optimize">fenics-optimize</h1>
+<!-- # Short Description -->
+<p><strong>fenics-optimize</strong> is an add-on module of the <a href="https://fenicsproject.org/">FEniCS computing platform</a> for multiphysics optimization problems. </p>
+<!-- # Badges -->
+<p><a href="https://github.com/Naruki-Ichihara/fenics-optimize/issues"><img alt="Github issues" src="https://img.shields.io/github/issues/Naruki-Ichihara/fenics-optimize?style=for-the-badge&amp;logo=appveyor"></a>
+<a href="https://github.com/Naruki-Ichihara/fenics-optimize/network/members"><img alt="Github forks" src="https://img.shields.io/github/forks/Naruki-Ichihara/fenics-optimize?style=for-the-badge&amp;logo=appveyor"></a>
+<a href="https://github.com/Naruki-Ichihara/fenics-optimize/stargazers"><img alt="Github stars" src="https://img.shields.io/github/stars/Naruki-Ichihara/fenics-optimize?style=for-the-badge&amp;logo=appveyor"></a>
+<a href="https://github.com/Naruki-Ichihara/fenics-optimize/"><img alt="Github top language" src="https://img.shields.io/github/languages/top/Naruki-Ichihara/fenics-optimize?style=for-the-badge&amp;logo=appveyor"></a>
+<a href="https://github.com/Naruki-Ichihara/fenics-optimize/"><img alt="Github license" src="https://img.shields.io/github/license/Naruki-Ichihara/fenics-optimize?style=for-the-badge&amp;logo=appveyor"></a></p>
+<h2 id="motivation-and-significance">Motivation and significance</h2>
+<p align="center">
+<img src="https://user-images.githubusercontent.com/70839257/148230717-e25da51a-3f96-461d-960f-8f22381387fc.png" width="600"/>
+</p>
+<p><strong>fenics-optimize</strong> enables reusable and straightforward UFL coding for physical optimization problems and provides decorators that bridge easily between a fenics calculation chain and optimizers.</p>
+<h2 id="example">Example</h2>
+<p>2-D Poisson topology optimization problem.</p>
+<p>First, import <code><a title="optimize" href="#optimize">optimize</a></code> with <code>dolfin</code>, <code>dolfin-adjoint</code> and <code>numpy</code>.</p>
+<pre><code class="language-python">from dolfin import *
+from dolfin_adjoint import *
+import optimize as op
+import numpy as np
+</code></pre>
+<p>Then define the pysical model using the FEniCS with decorator <code><a title="optimize.with_derivative" href="#optimize.with_derivative">with_derivative()</a></code>.</p>
+<p><code><a title="optimize.with_derivative" href="#optimize.with_derivative">with_derivative()</a></code> will wrrap the fenics function to the numpy function and compute Jacobian automatically.</p>
+<pre><code class="language-python">@op.with_derivative([X])
+def forward(xs):
+    rho = op.helmholtzFilter(xs[0], X, R=r)
+    Th = Function(X, name='Temperature')
+    u = TrialFunction(X)
+    v = TestFunction(X)
+    a = inner(grad(u), k(rho)*grad(v))*dx
+    L = f*v*dx
+    A, b = assemble_system(a, L, bcs)
+    Th = op.AMGsolver(A, b).solve(Th, X, False)
+    cost = assemble(inner(grad(Th), k(rho)*grad(Th))*dx)
+    return cost
+
+@op.with_derivative([X])
+def constraint(xs):
+    rho_bulk = project(Constant(1.0), X)
+    rho_0 = assemble(rho_bulk*dx)
+    rho_f = assemble(xs[0]*dx)
+    rel = rho_f/rho_0
+    return rel - V
+</code></pre>
+<p>Finally, optimize the cost function with inequality constraints.</p>
+<pre><code class="language-python">op.MMAoptimize(problemSize, x0, forward, constraint, maxeval=1000, bounds=[0, 1], rel=1e-20)
+</code></pre>
+<h2 id="installation">Installation</h2>
+<h3 id="docker">Docker</h3>
+<p><a href="https://hub.docker.com/r/ichiharanaruki/fenics-optimize"><img alt="dockeri.co" src="https://dockeri.co/image/ichiharanaruki/fenics-optimize"></a></p>
+<p>Docker enables to build and ship the environment for <strong>fenics-optimize</strong> for almost any platform, e.g., Linux, macOS, or windows.</p>
+<p>First, please install Docker. Linux users should follow the <a href="https://docs.docker.com/get-started/">instraction</a>. Mac or Windows users should install the <a href="https://www.docker.com/products/docker-desktop">Docker Desktop</a>, which suits your platform.</p>
+<p>Second, clone this repository on your system.</p>
+<pre><code>git clone https://github.com/Naruki-Ichihara/fenics-optimize.git
+</code></pre>
+<p>and move to the docker-compose directory</p>
+<pre><code>cd morphogenesis/.docker_optimize
+</code></pre>
+<p>Then, launch the docker-compose and pull the image from our docker hub.</p>
+<pre><code>docker-compose up
+</code></pre>
+<p>This container will survive until when you stop the container.</p>
+<h3 id="install-on-your-local-host">install on your local host</h3>
+<p>First, make sure to install the following dependencies:</p>
+<ul>
+<li><a href="https://fenicsproject.org/">FEniCS</a> + <a href="https://github.com/dolfin-adjoint/pyadjoint">pyadjoint</a></li>
+<li><a href="https://github.com/mechmotum/cyipopt">cyipopt</a></li>
+<li><a href="https://github.com/stevengj/nlopt/">nlopt</a></li>
+</ul>
+<p>Second, install using pip.</p>
+<pre><code>pip install git+https://github.com/Naruki-Ichihara/fenics-optimize.git@main
+</code></pre>
+<h2 id="contributors">Contributors</h2>
+<ul>
+<li><a href="https://github.com/Naruki-Ichihara">Naruki-Ichihara</a></li>
+</ul>
+<h2 id="references">References</h2>
+<h2 id="cite">Cite</h2>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">#! /usr/bin/python3
+# -*- coding: utf-8 -*-
+&#34;&#34;&#34;
+.. include:: ../README.md
+&#34;&#34;&#34;
+
+__version__ = &#34;0.0.5.alpha&#34;
+
+from .Core import with_derivative, without_derivative
+from .Utilities import Recorder, Logger, evalGradient
+from .Solvers import AMGsolver, AMG2Dsolver, AMG3Dsolver, SLUDsolver, MUMPSsolver
+from .Optimizer import HSLoptimize, MMAoptimize
+from .Filters import helmholtzFilter, hevisideFilter, isoparametric2Dfilter
+
+__all__ = [
+    &#39;with_derivative&#39;,
+    &#39;without_derivative&#39;,
+    &#39;Recorder&#39;,
+    &#39;Logger&#39;,
+    &#39;HSLoptimize&#39;,
+    &#39;MMAoptimize&#39;,
+    &#39;helmholtzFilter&#39;,
+    &#39;isoparametric2Dfilter&#39;
+]</code></pre>
+</details>
+</section>
+<section>
+<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+<dl>
+<dt><code class="name"><a title="optimize.Core" href="Core.html">optimize.Core</a></code></dt>
+<dd>
+<div class="desc"><p>Core source file for fenics-optimize …</p></div>
+</dd>
+<dt><code class="name"><a title="optimize.Filters" href="Filters.html">optimize.Filters</a></code></dt>
+<dd>
+<div class="desc"><p>Filters for homogenization based topology optimization problems …</p></div>
+</dd>
+<dt><code class="name"><a title="optimize.Mechanics" href="Mechanics.html">optimize.Mechanics</a></code></dt>
+<dd>
+<div class="desc"><p>Helper module for machanical engineering problems …</p></div>
+</dd>
+<dt><code class="name"><a title="optimize.Optimizer" href="Optimizer.html">optimize.Optimizer</a></code></dt>
+<dd>
+<div class="desc"><p>Optimizer interfaces of the ipopt and nlopt.</p></div>
+</dd>
+<dt><code class="name"><a title="optimize.Solvers" href="Solvers.html">optimize.Solvers</a></code></dt>
+<dd>
+<div class="desc"><p>Solvers.
+[detail]</p></div>
+</dd>
+<dt><code class="name"><a title="optimize.Utilities" href="Utilities.html">optimize.Utilities</a></code></dt>
+<dd>
+<div class="desc"><p>Utilities.
+[detail]</p></div>
+</dd>
+<dt><code class="name"><a title="optimize.fecr" href="fecr.html">optimize.fecr</a></code></dt>
+<dd>
+<div class="desc"><p>Backends in <code>numpy-fem-adjoint</code> are organized to meet the following requirements
+- backends are not imported unless those are actually needed,
+…</p></div>
+</dd>
+<dt><code class="name"><a title="optimize.shells" href="shells/index.html">optimize.shells</a></code></dt>
+<dd>
+<div class="desc"><p>fenics-shells is an open-source library that provides a wide range of thin
+structural models (beams, plates and shells) expressed in the Unified Form
+…</p></div>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="optimize.HSLoptimize"><code class="name flex">
+<span>def <span class="ident">HSLoptimize</span></span>(<span>problemSize, initial, forward, constraints, bounds, maxeval=100, rel=1e-08, verbosity=5)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>HSL (ma-XX) by Ipopt optimizer. Working with Jacobians.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>problemSize</code></strong> :&ensp;<code>int</code></dt>
+<dd>Problem size.</dd>
+<dt><strong><code>initial</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>numpy vector for the initial values.</dd>
+<dt><strong><code>forward</code></strong> :&ensp;<code>function</code></dt>
+<dd>Forward calculation chain with decorator <code><a title="optimize.with_derivative" href="#optimize.with_derivative">with_derivative()</a></code>.</dd>
+<dt><strong><code>constraints</code></strong> :&ensp;<code>list</code></dt>
+<dd>Inequality constraints list <code>gs =&lt; 0</code>.</dd>
+<dt><strong><code>bounds</code></strong> :&ensp;<code>list</code></dt>
+<dd>Bounds for control variables.</dd>
+<dt><strong><code>maxeval</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>Number of maximum evaluations. Defaults to 100.</dd>
+<dt><strong><code>rel</code></strong> :&ensp;<code>float</code>, optional</dt>
+<dd>Relative tolerance. Defaults to 1e-8.</dd>
+<dt><strong><code>verbosity</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>Defaults to 0.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>optimized (np.ndarray): Optimized controls.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def HSLoptimize(problemSize, initial, forward, constraints, bounds, maxeval=100, rel=1e-8, verbosity=5):
+    &#39;&#39;&#39;
+    HSL (ma-XX) by Ipopt optimizer. Working with Jacobians.
+
+    Args:
+        problemSize (int): Problem size.
+        initial (np.ndarray): numpy vector for the initial values.
+        forward (function): Forward calculation chain with decorator `with_derivative`.
+        constraints (list): Inequality constraints list `gs =&lt; 0`.
+        bounds (list): Bounds for control variables.
+        maxeval (int, optional): Number of maximum evaluations. Defaults to 100.
+        rel (float, optional): Relative tolerance. Defaults to 1e-8.
+        verbosity (int, optional): Defaults to 0.
+
+    Returns:
+        optimized (np.ndarray): Optimized controls.
+    &#39;&#39;&#39;    
+    options = {&#39;print_level&#39;: verbosity,
+               &#39;max_iter&#39;: maxeval,
+               &#39;tol&#39;: rel}
+    constraints_dict = []
+    for constraint in constraints:
+        elem = {
+            &#39;type&#39;: &#39;ineq&#39;,
+            &#39;fun&#39;: lambda x: -constraint(x)[0],
+            &#39;jac&#39;: lambda x: -constraint(x)[1]
+        }
+        constraints_dict.append(elem)
+
+    bounds_assy = []
+    for i in range(len(bounds[0])):
+        bounds_assy.append((bounds[0][i], bounds[1][i]))
+
+    res = minimize_ipopt(forward,
+                         initial,
+                         jac=True,
+                         bounds=bounds_assy,
+                         constraints=constraints_dict,
+                         options=options)
+    return res.x</code></pre>
+</details>
+</dd>
+<dt id="optimize.MMAoptimize"><code class="name flex">
+<span>def <span class="ident">MMAoptimize</span></span>(<span>problemSize, initial, forward, constraints, bounds, maxeval=100, rel=1e-08, verbosity=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Method of Moving Asymptotes based on Nlopt. Working with Jacobians.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>problemSize</code></strong> :&ensp;<code>int</code></dt>
+<dd>Problem size.</dd>
+<dt><strong><code>initial</code></strong> :&ensp;<code>np.ndarray</code></dt>
+<dd>numpy vector for the initial values.</dd>
+<dt><strong><code>forward</code></strong> :&ensp;<code>function</code></dt>
+<dd>Forward calculation chain with decorator <code><a title="optimize.with_derivative" href="#optimize.with_derivative">with_derivative()</a></code>.</dd>
+<dt><strong><code>constraints</code></strong> :&ensp;<code>list</code></dt>
+<dd>Inequality constraints list <code>gs =&lt; 0</code>.</dd>
+<dt><strong><code>bounds</code></strong> :&ensp;<code>list</code></dt>
+<dd>Bounds for control variables.</dd>
+<dt><strong><code>maxeval</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>Number of maximum evaluations. Defaults to 100.</dd>
+<dt><strong><code>rel</code></strong> :&ensp;<code>float</code>, optional</dt>
+<dd>Relative tolerance. Defaults to 1e-8.</dd>
+<dt><strong><code>verbosity</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>Defaults to 0.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>optimized (np.ndarray): Optimized controls.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def MMAoptimize(problemSize, initial, forward, constraints, bounds, maxeval=100, rel=1e-8, verbosity=1):
+    &#39;&#39;&#39;
+    Method of Moving Asymptotes based on Nlopt. Working with Jacobians.
+
+    Args:
+        problemSize (int): Problem size.
+        initial (np.ndarray): numpy vector for the initial values.
+        forward (function): Forward calculation chain with decorator `with_derivative`.
+        constraints (list): Inequality constraints list `gs =&lt; 0`.
+        bounds (list): Bounds for control variables.
+        maxeval (int, optional): Number of maximum evaluations. Defaults to 100.
+        rel (float, optional): Relative tolerance. Defaults to 1e-8.
+        verbosity (int, optional): Defaults to 0.
+
+    Returns:
+        optimized (np.ndarray): Optimized controls.
+    &#39;&#39;&#39;    
+    opt = nl.opt(nl.LD_MMA, problemSize)
+    def eval(x, grad):
+        cost, J = forward(x)
+        grad[:] = J
+        return cost
+    for constraint in constraints:
+        def const(x, grad):
+            cost, J = constraint(x)
+            grad[:] = J
+            return cost
+        opt.add_inequality_constraint(const, 1e-8)
+    opt.set_min_objective(eval)
+    opt.add_inequality_constraint(const, 1e-8)
+    opt.set_lower_bounds(bounds[0])
+    opt.set_upper_bounds(bounds[1])
+    opt.set_xtol_rel(rel)
+    opt.set_param(&#39;verbosity&#39;, verbosity)
+    opt.set_maxeval(maxeval)
+    return opt.optimize(initial)</code></pre>
+</details>
+</dd>
+<dt id="optimize.helmholtzFilter"><code class="name flex">
+<span>def <span class="ident">helmholtzFilter</span></span>(<span>u, U, R=0.025)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Apply the helmholtz filter.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>u</code></strong> :&ensp;<code>dolfin_adjoint.Function</code></dt>
+<dd>Target function</dd>
+<dt><strong><code>U</code></strong> :&ensp;<code>dolfin_adjoint.FunctionSpace</code></dt>
+<dd>Functionspace of target function</dd>
+<dt><strong><code>R</code></strong> :&ensp;<code>float</code>, optional</dt>
+<dd>Filter radius. Defaults to 0.025.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>(dolfin_adjoint.Function): Filtered function</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def helmholtzFilter(u, U, R=0.025):
+    &#39;&#39;&#39;
+    Apply the helmholtz filter.
+
+    Args:
+        u (dolfin_adjoint.Function): Target function
+        U (dolfin_adjoint.FunctionSpace): Functionspace of target function
+        R (float, optional): Filter radius. Defaults to 0.025.
+
+    Returns:
+        (dolfin_adjoint.Function): Filtered function
+    &#39;&#39;&#39;
+    v = TrialFunction(U)
+    dv = TestFunction(U)
+    vh = Function(U)
+    a = R**2*inner(grad(v), grad(dv))*dx + dot(v, dv)*dx
+    L = inner(u, dv)*dx
+    A, b = assemble_system(a, L)
+    pc = PETScPreconditioner(&#34;petsc_amg&#34;)
+    PETScOptions.set(&#34;mg_levels_ksp_type&#34;, &#34;chebyshev&#34;)
+    PETScOptions.set(&#34;mg_levels_pc_type&#34;, &#34;jacobi&#34;)
+    PETScOptions.set(&#34;mg_levels_esteig_ksp_type&#34;, &#34;cg&#34;)
+    PETScOptions.set(&#34;mg_levels_ksp_chebyshev_esteig_steps&#34;, 50)
+    PETSC_solver = PETScKrylovSolver(&#34;cg&#34;, pc)
+    PETSC_solver.parameters[&#34;monitor_convergence&#34;] = False
+    PETSC_solver.set_operator(A)
+    PETSC_solver.solve(vh.vector(), b)
+    return vh</code></pre>
+</details>
+</dd>
+<dt id="optimize.isoparametric2Dfilter"><code class="name flex">
+<span>def <span class="ident">isoparametric2Dfilter</span></span>(<span>z, e)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Apply 2D isoparametric projection onto orientation vector.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>z</code></strong> :&ensp;<code>dolfin_adjoint.Function</code></dt>
+<dd>0-component of the orientation vector (on natural setting).</dd>
+<dt><strong><code>e</code></strong> :&ensp;<code>dolfin_adjoint.Function</code></dt>
+<dd>1-component of the orientation vector (on natural setting)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>dolfin_adjoint.Vector</code></dt>
+<dd>Orientation vector with unit circle boundary condition on real setting.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def isoparametric2Dfilter(z, e):
+    &#39;&#39;&#39;
+    Apply 2D isoparametric projection onto orientation vector.
+
+    Args:
+        z (dolfin_adjoint.Function): 0-component of the orientation vector (on natural setting).
+        e (dolfin_adjoint.Function): 1-component of the orientation vector (on natural setting)
+
+    Returns:
+        dolfin_adjoint.Vector: Orientation vector with unit circle boundary condition on real setting.
+    &#39;&#39;&#39;    
+    u = as_vector([-1/np.sqrt(2), 0, 1/np.sqrt(2), 1, 1/np.sqrt(2), 0, -1/np.sqrt(2), -1])
+    v = as_vector([-1/np.sqrt(2), -1, -1/np.sqrt(2), 0, 1/np.sqrt(2), 1, 1/np.sqrt(2), 0])
+    N1 = -(1-z)*(1-e)*(1+z+e)/4
+    N2 =  (1-z**2)*(1-e)/2
+    N3 = -(1+z)*(1-e)*(1-z+e)/4
+    N4 =  (1+z)*(1-e**2)/2
+    N5 = -(1+z)*(1+e)*(1-z-e)/4
+    N6 =  (1-z**2)*(1+e)/2
+    N7 = -(1-z)*(1+e)*(1+z-e)/4
+    N8 =  (1-z)*(1-e**2)/2
+    N = as_vector([N1, N2, N3, N4, N5, N6, N7, N8])
+    Nx = inner(u, N)
+    Ny = inner(v, N)
+    return as_vector((Nx, Ny))</code></pre>
+</details>
+</dd>
+<dt id="optimize.with_derivative"><code class="name flex">
+<span>def <span class="ident">with_derivative</span></span>(<span>temp, wrt=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Decorator to wrap the fenics chain.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>temp</code></strong> :&ensp;<code>list[dolfin_adjoint.FunctionSpace]</code></dt>
+<dd>Function spaces that contain each control variables.</dd>
+<dt><strong><code>wrt</code></strong> :&ensp;<code>list[int]</code>, optional</dt>
+<dd>Automatic derivative of cost w.r.t. wrt index. Defaults to None.</dd>
+</dl>
+<p>Returns:</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def with_derivative(temp, wrt=None):
+    &#39;&#39;&#39;
+    Decorator to wrap the fenics chain.
+
+    Args:
+        temp (list[dolfin_adjoint.FunctionSpace]): Function spaces that contain each control variables.
+        wrt (list[int], optional): Automatic derivative of cost w.r.t. wrt index. Defaults to None.
+
+    Returns:
+    &#39;&#39;&#39;
+    def _with_derivative(func):
+        def wrapper(*args, **kwargs):
+            x = np.split(args[0], len(temp))
+            xs = []
+            for pack in zip(x, temp):
+                x, X = pack
+                xs.append(from_numpy(x, Function(X)))
+            res = func(xs, **kwargs)
+            Js = []
+            Hs = []
+            if wrt is None:
+                for x_ in xs:
+                    control = Control(x_)
+                    Js.append(to_numpy(compute_gradient(res, control)))
+                J = np.concatenate(Js)
+                return res, J
+            else:
+                for i in range(len(xs)):
+                    if i not in wrt:
+                        Js.append(to_numpy(xs[i])*0)
+                    else:
+                        control = Control(xs[i])
+                        Js.append(to_numpy(compute_gradient(res, control)))
+                J = np.concatenate(Js)
+                return res, J
+        return wrapper
+    return _with_derivative</code></pre>
+</details>
+</dd>
+<dt id="optimize.without_derivative"><code class="name flex">
+<span>def <span class="ident">without_derivative</span></span>(<span>temp)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Decorator to wrap the fenics chain without derivative.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>temp</code></strong> :&ensp;<code>list[dolfin_adjoint.FunctionSpace]</code></dt>
+<dd>Function spaces that contain each control variables.</dd>
+</dl>
+<p>Returns:</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def without_derivative(temp):
+    &#39;&#39;&#39;
+    Decorator to wrap the fenics chain without derivative.
+
+    Args:
+        temp (list[dolfin_adjoint.FunctionSpace]): Function spaces that contain each control variables.
+
+    Returns:
+    &#39;&#39;&#39;
+    def _without_derivative(func):
+        def wrapper(*args, **kwargs):
+            x = np.split(args[0], len(temp))
+            xs = []
+            for pack in zip(x, temp):
+                x, X = pack
+                xs.append(from_numpy(x, Function(X)))
+            res = func(xs, **kwargs)
+            return res
+        return wrapper
+    return _without_derivative</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="optimize.Logger"><code class="flex name class">
+<span>class <span class="ident">Logger</span></span>
+<span>(</span><span>dir, name)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Logging a cost to .csv file at each iterations.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>dir</code></strong> :&ensp;<code>string</code></dt>
+<dd>Directory name</dd>
+<dt><strong><code>name</code></strong> :&ensp;<code>string</code></dt>
+<dd>File name</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Logger():
+    &#39;&#39;&#39;
+    Logging a cost to .csv file at each iterations.
+
+    Attributes:
+        dir (string): Directory name
+        name (string): File name
+    &#39;&#39;&#39;
+    def __init__(self, dir, name):  
+        self.dir = dir
+        self.name = name
+        with open(self.dir + &#39;/&#39; + self.name + &#39;.csv&#39;, &#39;w&#39;) as f:
+            f.write(&#39;fenics-optimize\n&#39;)
+            f.write(&#39;Date, {}\n&#39;.format(datetime.datetime.now()))
+            f.write(&#39;Iter.,&#39; + self.name + &#39;\n&#39;)
+        self.count = 0
+
+    def rec(self, value):
+        &#39;&#39;&#39;
+        Logging.
+
+        Args:
+            value (float): Logging Value.
+        &#39;&#39;&#39;
+        self.count += 1
+        with open(self.dir + &#39;/&#39; + self.name + &#39;.csv&#39;, &#39;a&#39;) as f:
+            f.write(&#39;{}, {}\n&#39;.format(self.count, value))</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="optimize.Logger.rec"><code class="name flex">
+<span>def <span class="ident">rec</span></span>(<span>self, value)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Logging.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>value</code></strong> :&ensp;<code>float</code></dt>
+<dd>Logging Value.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rec(self, value):
+    &#39;&#39;&#39;
+    Logging.
+
+    Args:
+        value (float): Logging Value.
+    &#39;&#39;&#39;
+    self.count += 1
+    with open(self.dir + &#39;/&#39; + self.name + &#39;.csv&#39;, &#39;a&#39;) as f:
+        f.write(&#39;{}, {}\n&#39;.format(self.count, value))</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="optimize.Recorder"><code class="flex name class">
+<span>class <span class="ident">Recorder</span></span>
+<span>(</span><span>dir, name)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Recording a field to .pvd file at each iterations.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>dir</code></strong> :&ensp;<code>string</code></dt>
+<dd>Directory name</dd>
+<dt><strong><code>name</code></strong> :&ensp;<code>string</code></dt>
+<dd>File name</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Recorder():
+    &#39;&#39;&#39;
+    Recording a field to .pvd file at each iterations.
+
+    Attributes:
+        dir (string): Directory name
+        name (string): File name
+    &#39;&#39;&#39;
+    def __init__(self, dir, name):  
+        self.dir = dir
+        self.name = name
+        self.f = File(self.dir + &#39;/&#39; + self.name + &#39;/&#39; + self.name + &#39;.pvd&#39;)
+
+    def rec(self, u):
+        &#39;&#39;&#39;
+        Recording.
+
+        Args:
+            u (dolfin_adjoin.Function): Field
+        &#39;&#39;&#39;
+        u.rename(self.name, &#39;label&#39;)    
+        self.f &lt;&lt; u</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="optimize.Recorder.rec"><code class="name flex">
+<span>def <span class="ident">rec</span></span>(<span>self, u)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Recording.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>u</code></strong> :&ensp;<code>dolfin_adjoin.Function</code></dt>
+<dd>Field</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rec(self, u):
+    &#39;&#39;&#39;
+    Recording.
+
+    Args:
+        u (dolfin_adjoin.Function): Field
+    &#39;&#39;&#39;
+    u.rename(self.name, &#39;label&#39;)    
+    self.f &lt;&lt; u</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul>
+<li><a href="#fenics-optimize">fenics-optimize</a><ul>
+<li><a href="#motivation-and-significance">Motivation and significance</a></li>
+<li><a href="#example">Example</a></li>
+<li><a href="#installation">Installation</a><ul>
+<li><a href="#docker">Docker</a></li>
+<li><a href="#install-on-your-local-host">install on your local host</a></li>
+</ul>
+</li>
+<li><a href="#contributors">Contributors</a></li>
+<li><a href="#references">References</a></li>
+<li><a href="#cite">Cite</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<ul>
+<li><code><a title="optimize.Core" href="Core.html">optimize.Core</a></code></li>
+<li><code><a title="optimize.Filters" href="Filters.html">optimize.Filters</a></code></li>
+<li><code><a title="optimize.Mechanics" href="Mechanics.html">optimize.Mechanics</a></code></li>
+<li><code><a title="optimize.Optimizer" href="Optimizer.html">optimize.Optimizer</a></code></li>
+<li><code><a title="optimize.Solvers" href="Solvers.html">optimize.Solvers</a></code></li>
+<li><code><a title="optimize.Utilities" href="Utilities.html">optimize.Utilities</a></code></li>
+<li><code><a title="optimize.fecr" href="fecr.html">optimize.fecr</a></code></li>
+<li><code><a title="optimize.shells" href="shells/index.html">optimize.shells</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="optimize.HSLoptimize" href="#optimize.HSLoptimize">HSLoptimize</a></code></li>
+<li><code><a title="optimize.MMAoptimize" href="#optimize.MMAoptimize">MMAoptimize</a></code></li>
+<li><code><a title="optimize.helmholtzFilter" href="#optimize.helmholtzFilter">helmholtzFilter</a></code></li>
+<li><code><a title="optimize.isoparametric2Dfilter" href="#optimize.isoparametric2Dfilter">isoparametric2Dfilter</a></code></li>
+<li><code><a title="optimize.with_derivative" href="#optimize.with_derivative">with_derivative</a></code></li>
+<li><code><a title="optimize.without_derivative" href="#optimize.without_derivative">without_derivative</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="optimize.Logger" href="#optimize.Logger">Logger</a></code></h4>
+<ul class="">
+<li><code><a title="optimize.Logger.rec" href="#optimize.Logger.rec">rec</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="optimize.Recorder" href="#optimize.Recorder">Recorder</a></code></h4>
+<ul class="">
+<li><code><a title="optimize.Recorder.rec" href="#optimize.Recorder.rec">rec</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
