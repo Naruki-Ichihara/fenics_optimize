@@ -140,7 +140,7 @@ def HSLoptimize(problemSize, initial, forward, constraints, bounds, maxeval=100,
     )
 
     nlp.add_option('linear_solver', solver_type)
-    nlp.add_option('mat_iter', maxeval)
+    nlp.add_option('max_iter', maxeval)
     nlp.add_option('tol', rel)
     nlp.add_option('print_level', verbosity)
 

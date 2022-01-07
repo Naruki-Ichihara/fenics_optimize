@@ -34,7 +34,7 @@ class Bottom(SubDomain):
 def clamped_boundary(x, on_boundary):
     return on_boundary and x[0] < 1e-10 or x[0] > 19.999
 
-@op.with_hessian(Xs)
+@op.with_derivative(Xs)
 def forward(xs):
     rho = op.helmholtzFilter(xs[0], X, R)
     facets = MeshFunction('size_t', mesh, 1)
@@ -55,7 +55,7 @@ def forward(xs):
     log.rec(cost)
     return cost
 
-@op.with_hessian(Xs)
+@op.with_derivative(Xs)
 def constraint(xs):
     rho_bulk = project(Constant(1.0), X)
     rho_0 = assemble(rho_bulk*dx)
