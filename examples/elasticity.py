@@ -3,6 +3,8 @@ from dolfin_adjoint import *
 import optimize as op
 from optimize.Mechanics import sigma, epsilon
 import numpy as np
+from mpi4py import MPI
+comm = MPI.COMM_WORLD
 
 E = 1.0e9
 nu = 0.3
@@ -18,7 +20,7 @@ def k(rho):
 rec = op.Recorder('result/elasticity', 'material')
 log = op.Logger('result/elasticity', 'cost')
 
-mesh = RectangleMesh(Point(0, 0), Point(20, 10), 200, 100)
+mesh = RectangleMesh(comm, Point(0, 0), Point(20, 10), 400, 200)
 problemSize = mesh.num_vertices()
 
 X = FunctionSpace(mesh, "CG", 1)
@@ -32,7 +34,7 @@ class Bottom(SubDomain):
 def clamped_boundary(x, on_boundary):
     return on_boundary and x[0] < 1e-10 or x[0] > 19.999
 
-@op.with_derivative(Xs)
+@op.with_hessian(Xs)
 def forward(xs):
     rho = op.helmholtzFilter(xs[0], X, R)
     facets = MeshFunction('size_t', mesh, 1)
@@ -53,7 +55,7 @@ def forward(xs):
     log.rec(cost)
     return cost
 
-@op.with_derivative(Xs)
+@op.with_hessian(Xs)
 def constraint(xs):
     rho_bulk = project(Constant(1.0), X)
     rho_0 = assemble(rho_bulk*dx)
@@ -65,4 +67,4 @@ x0 = np.ones(problemSize)*target
 x_min = np.zeros(problemSize)
 x_max = np.ones(problemSize)
 
-op.HSLoptimize(problemSize, x0, forward, [constraint], maxeval=1000, bounds=[x_min, x_max], rel=1e-20, verbosity=5)
+op.HSLoptimize(problemSize, x0, forward, [constraint], maxeval=1000, bounds=[x_min, x_max], rel=1e-20, verbosity=5, solver_type='ma97')

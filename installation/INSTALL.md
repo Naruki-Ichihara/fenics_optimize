@@ -41,15 +41,35 @@ Rename the directory `coinhsl-x.y.z` to `coinhsl` and run
 ```
 ./configure
 ```
-Finally, run `make` to build and run `make install`.
+Run `make` to build and run `make install`. Next, clone [Ipopt](https://github.com/coin-or/Ipopt)
+
+```
+git clone https://github.com/coin-or/Ipopt.git
+cd Ipopt
+```
+
+Then, run `./configure` and `make`.
+
+```
+./configure
+make
+make test
+make install
+```
 
 ## cyipopt installation
 
 Clone [cyipopt](https://github.com/mechmotum/cyipopt)
 
 ```
-git clone git@github.com:mechmotum/cyipopt.git
+git clone https://github.com/mechmotum/cyipopt.git
 cd cyipopt
+```
+
+The `ipopt` executble should be discoverable by `pkg-config`.
+
+```
+pkg-config --libs --cflags ipopt
 ```
 
 and run `setup.py` using python3
@@ -60,5 +80,21 @@ python3 setup.py install
 
 ## nlopt installation
 
-To be.
+NLopt is compiled and installed with the CMake build system.
+
+```
+git clone https://github.com/stevengj/nlopt.git
+cd nlopt
+mkdir build && cd build
+```
+
+run cmake with python executable option
+
+```
+cmake -DPYTHON_EXECUTABLE=/usr/bin/python3 ..
+```
+
+and run `make` and `make install`.
+
+
 

@@ -4,7 +4,7 @@
 .. include:: ../README.md
 """
 
-__version__ = "0.0.5.alpha"
+__version__ = "0.0.6.alpha"
 
 from .Core import with_derivative, without_derivative
 from .Utilities import Recorder, Logger, evalGradient
