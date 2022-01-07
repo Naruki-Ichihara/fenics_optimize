@@ -34,7 +34,9 @@
 from dolfin import *
 from dolfin_adjoint import *
 import nlopt as nl
+import cyipopt as cp
 from cyipopt import minimize_ipopt
+import numpy as np
 
 def MMAoptimize(problemSize, initial, forward, constraints, bounds, maxeval=100, rel=1e-8, verbosity=1):
     &#39;&#39;&#39;
@@ -73,7 +75,7 @@ def MMAoptimize(problemSize, initial, forward, constraints, bounds, maxeval=100,
     opt.set_maxeval(maxeval)
     return opt.optimize(initial)
 
-def HSLoptimize(problemSize, initial, forward, constraints, bounds, maxeval=100, rel=1e-8, verbosity=5):
+def _HSLoptimize(problemSize, initial, forward, constraints, bounds, maxeval=100, rel=1e-8, verbosity=5):
     &#39;&#39;&#39;
     HSL (ma-XX) by Ipopt optimizer. Working with Jacobians.
 
@@ -89,10 +91,11 @@ def HSLoptimize(problemSize, initial, forward, constraints, bounds, maxeval=100,
 
     Returns:
         optimized (np.ndarray): Optimized controls.
-    &#39;&#39;&#39;    
+    &#39;&#39;&#39;
     options = {&#39;print_level&#39;: verbosity,
                &#39;max_iter&#39;: maxeval,
-               &#39;tol&#39;: rel}
+               &#39;tol&#39;: rel,
+               &#39;linear_solver&#39;: &#39;ma97&#39;}
     constraints_dict = []
     for constraint in constraints:
         elem = {
@@ -109,10 +112,70 @@ def HSLoptimize(problemSize, initial, forward, constraints, bounds, maxeval=100,
     res = minimize_ipopt(forward,
                          initial,
                          jac=True,
+                         hess=None,
                          bounds=bounds_assy,
                          constraints=constraints_dict,
                          options=options)
-    return res.x</code></pre>
+    return res.x
+
+def HSLoptimize(problemSize, initial, forward, constraints, bounds, maxeval=100, rel=1e-8, verbosity=5, solver_type=&#39;ma27&#39;):
+    &#39;&#39;&#39;
+    HSL (ma-XX) by Ipopt optimizer. Working with Jacobians.
+
+    Args:
+        problemSize (int): Problem size.
+        initial (np.ndarray): numpy vector for the initial values.
+        forward (function): Forward calculation chain with decorator `with_derivative`.
+        constraints (list): Inequality constraints list `gs =&lt; 0`.
+        bounds (list): Bounds for control variables.
+        maxeval (int, optional): Number of maximum evaluations. Defaults to 100.
+        rel (float, optional): Relative tolerance. Defaults to 1e-8.
+        verbosity (int, optional): Defaults to 0.
+        solver_type (str, optional): HSL solver type. Default to &#39;ma27&#39;.
+
+    Returns:
+        optimized (np.ndarray): Optimized controls.
+    &#39;&#39;&#39;
+    class HS():
+        def objective(self, x):
+            return forward(x)[0]
+        
+        def gradient(self, x):
+            return forward(x)[1]
+
+        def constraints(self, x):
+            constraints_list = []
+            for constraint in constraints:
+                constraints_list.append(constraint(x)[0])
+            return np.array(constraints_list)
+
+        def jacobian(self, x):
+            constraints_list = []
+            for constraint in constraints:
+                constraints_list.append(constraint(x)[1])
+            return np.array(constraints_list)
+
+    cl = [-1e19]
+    cu = np.zeros(len(constraints))
+
+    nlp = cp.Problem(
+    n=problemSize,
+    m=len(cl),
+    problem_obj=HS(),
+    lb=bounds[0],
+    ub=bounds[1],
+    cl=cl,
+    cu=cu,
+    )
+
+    nlp.add_option(&#39;linear_solver&#39;, solver_type)
+    nlp.add_option(&#39;mat_iter&#39;, maxeval)
+    nlp.add_option(&#39;tol&#39;, rel)
+    nlp.add_option(&#39;print_level&#39;, verbosity)
+
+    x, info = nlp.solve(initial)
+    print(info)
+    return x</code></pre>
 </details>
 </section>
 <section>
@@ -123,7 +186,7 @@ def HSLoptimize(problemSize, initial, forward, constraints, bounds, maxeval=100,
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="optimize.Optimizer.HSLoptimize"><code class="name flex">
-<span>def <span class="ident">HSLoptimize</span></span>(<span>problemSize, initial, forward, constraints, bounds, maxeval=100, rel=1e-08, verbosity=5)</span>
+<span>def <span class="ident">HSLoptimize</span></span>(<span>problemSize, initial, forward, constraints, bounds, maxeval=100, rel=1e-08, verbosity=5, solver_type='ma27')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>HSL (ma-XX) by Ipopt optimizer. Working with Jacobians.</p>
@@ -145,6 +208,8 @@ def HSLoptimize(problemSize, initial, forward, constraints, bounds, maxeval=100,
 <dd>Relative tolerance. Defaults to 1e-8.</dd>
 <dt><strong><code>verbosity</code></strong> :&ensp;<code>int</code>, optional</dt>
 <dd>Defaults to 0.</dd>
+<dt><strong><code>solver_type</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>HSL solver type. Default to 'ma27'.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <p>optimized (np.ndarray): Optimized controls.</p></div>
@@ -152,7 +217,7 @@ def HSLoptimize(problemSize, initial, forward, constraints, bounds, maxeval=100,
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def HSLoptimize(problemSize, initial, forward, constraints, bounds, maxeval=100, rel=1e-8, verbosity=5):
+<pre><code class="python">def HSLoptimize(problemSize, initial, forward, constraints, bounds, maxeval=100, rel=1e-8, verbosity=5, solver_type=&#39;ma27&#39;):
     &#39;&#39;&#39;
     HSL (ma-XX) by Ipopt optimizer. Working with Jacobians.
 
@@ -165,33 +230,51 @@ def HSLoptimize(problemSize, initial, forward, constraints, bounds, maxeval=100,
         maxeval (int, optional): Number of maximum evaluations. Defaults to 100.
         rel (float, optional): Relative tolerance. Defaults to 1e-8.
         verbosity (int, optional): Defaults to 0.
+        solver_type (str, optional): HSL solver type. Default to &#39;ma27&#39;.
 
     Returns:
         optimized (np.ndarray): Optimized controls.
-    &#39;&#39;&#39;    
-    options = {&#39;print_level&#39;: verbosity,
-               &#39;max_iter&#39;: maxeval,
-               &#39;tol&#39;: rel}
-    constraints_dict = []
-    for constraint in constraints:
-        elem = {
-            &#39;type&#39;: &#39;ineq&#39;,
-            &#39;fun&#39;: lambda x: -constraint(x)[0],
-            &#39;jac&#39;: lambda x: -constraint(x)[1]
-        }
-        constraints_dict.append(elem)
+    &#39;&#39;&#39;
+    class HS():
+        def objective(self, x):
+            return forward(x)[0]
+        
+        def gradient(self, x):
+            return forward(x)[1]
 
-    bounds_assy = []
-    for i in range(len(bounds[0])):
-        bounds_assy.append((bounds[0][i], bounds[1][i]))
+        def constraints(self, x):
+            constraints_list = []
+            for constraint in constraints:
+                constraints_list.append(constraint(x)[0])
+            return np.array(constraints_list)
 
-    res = minimize_ipopt(forward,
-                         initial,
-                         jac=True,
-                         bounds=bounds_assy,
-                         constraints=constraints_dict,
-                         options=options)
-    return res.x</code></pre>
+        def jacobian(self, x):
+            constraints_list = []
+            for constraint in constraints:
+                constraints_list.append(constraint(x)[1])
+            return np.array(constraints_list)
+
+    cl = [-1e19]
+    cu = np.zeros(len(constraints))
+
+    nlp = cp.Problem(
+    n=problemSize,
+    m=len(cl),
+    problem_obj=HS(),
+    lb=bounds[0],
+    ub=bounds[1],
+    cl=cl,
+    cu=cu,
+    )
+
+    nlp.add_option(&#39;linear_solver&#39;, solver_type)
+    nlp.add_option(&#39;mat_iter&#39;, maxeval)
+    nlp.add_option(&#39;tol&#39;, rel)
+    nlp.add_option(&#39;print_level&#39;, verbosity)
+
+    x, info = nlp.solve(initial)
+    print(info)
+    return x</code></pre>
 </details>
 </dd>
 <dt id="optimize.Optimizer.MMAoptimize"><code class="name flex">
