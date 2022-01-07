@@ -101,6 +101,8 @@ Second, install using pip.
 pip install git+https://github.com/Naruki-Ichihara/fenics-optimize.git@main
 ```
 
+[Installation page](https://github.com/Naruki-Ichihara/fenics-optimize/blob/main/installation/INSTALL.md) details installation instruction on your local system.
+
 ## Contributors
 
 - [Naruki-Ichihara](https://github.com/Naruki-Ichihara)
