@@ -1,5 +1,5 @@
 <div align="center"><img src="https://user-images.githubusercontent.com/70839257/148243588-6517e901-3c49-4dd7-9130-56e61aa94c3e.png" width="400"/>
-<h3><a href="https://naruki-ichihara.github.io/fenics-optimize/"> Documents </a> | Examples </h3></div>
+<h3><a href="https://naruki-ichihara.github.io/fenics_optimize/"> Documents </a> | Examples </h3></div>
 
 # fenics-optimize
 <!-- # Short Description -->
@@ -8,11 +8,11 @@
 
 <!-- # Badges -->
 
-[![Github issues](https://img.shields.io/github/issues/Naruki-Ichihara/fenics-optimize?style=for-the-badge&logo=appveyor)](https://github.com/Naruki-Ichihara/fenics-optimize/issues)
-[![Github forks](https://img.shields.io/github/forks/Naruki-Ichihara/fenics-optimize?style=for-the-badge&logo=appveyor)](https://github.com/Naruki-Ichihara/fenics-optimize/network/members)
-[![Github stars](https://img.shields.io/github/stars/Naruki-Ichihara/fenics-optimize?style=for-the-badge&logo=appveyor)](https://github.com/Naruki-Ichihara/fenics-optimize/stargazers)
-[![Github top language](https://img.shields.io/github/languages/top/Naruki-Ichihara/fenics-optimize?style=for-the-badge&logo=appveyor)](https://github.com/Naruki-Ichihara/fenics-optimize/)
-[![Github license](https://img.shields.io/github/license/Naruki-Ichihara/fenics-optimize?style=for-the-badge&logo=appveyor)](https://github.com/Naruki-Ichihara/fenics-optimize/)
+[![Github issues](https://img.shields.io/github/issues/Naruki-Ichihara/fenics_optimize?style=for-the-badge&logo=appveyor)](https://github.com/Naruki-Ichihara/fenics-optimize/issues)
+[![Github forks](https://img.shields.io/github/forks/Naruki-Ichihara/fenics_optimize?style=for-the-badge&logo=appveyor)](https://github.com/Naruki-Ichihara/fenics-optimize/network/members)
+[![Github stars](https://img.shields.io/github/stars/Naruki-Ichihara/fenics_optimize?style=for-the-badge&logo=appveyor)](https://github.com/Naruki-Ichihara/fenics-optimize/stargazers)
+[![Github top language](https://img.shields.io/github/languages/top/Naruki-Ichihara/fenics_optimize?style=for-the-badge&logo=appveyor)](https://github.com/Naruki-Ichihara/fenics-optimize/)
+[![Github license](https://img.shields.io/github/license/Naruki-Ichihara/fenics_optimize?style=for-the-badge&logo=appveyor)](https://github.com/Naruki-Ichihara/fenics-optimize/)
 
 ## Motivation and significance
 
@@ -102,7 +102,7 @@ Second, install using pip.
 pip install git+https://github.com/Naruki-Ichihara/fenics-optimize.git@main
 ```
 
-[Installation page](https://github.com/Naruki-Ichihara/fenics-optimize/blob/main/installation/INSTALL.md) details installation instruction on your local system.
+[Installation page](https://github.com/Naruki-Ichihara/fenics_optimize/blob/main/INSTALL.md) details installation instruction on your local system.
 
 ## Contributors
 
