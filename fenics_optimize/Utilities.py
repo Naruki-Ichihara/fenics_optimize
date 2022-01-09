@@ -6,22 +6,8 @@
 
 from dolfin import *
 from dolfin_adjoint import *
-from .fecr import from_numpy, to_numpy
+from fecr import from_numpy, to_numpy
 import datetime
-
-def evalGradient(target, control):
-    '''
-    Evaluation gradient using the descrete-adjoint method.
-
-    Args:
-        target (float): Objective value.
-        control (dolfin_adjoint.Function): Control variables
-
-    Returns:
-        dJdx (np.ndarray): Jacobian vector.
-    '''
-    cont = Control(control)
-    return to_numpy(compute_gradient(target, cont))
 
 class Recorder():
     '''

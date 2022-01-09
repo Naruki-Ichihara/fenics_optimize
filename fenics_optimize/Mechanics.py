@@ -1,3 +1,5 @@
+#! /usr/bin/python3
+# -*- coding: utf-8 -*-
 # Copyright (C) 2015 Corrado Maurini
 #
 # This file is part of fenics-shells.
@@ -14,16 +16,146 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with fenics-shells. If not, see <http://www.gnu.org/licenses/>.
+''' Helper module for machanical engineering problems.
 
-import numpy as np
-import math as m
+This source based on `fenics-shells` project, from Corrado Maurini.
+'''
 
 from dolfin import *
+from dolfin_adjoint import *
 from ufl import transpose
+import numpy as np
 
+def sigma(v, E, nu):
+    '''
+    Compute stress tensor form.
+
+    Args:
+        v (dolfin_adjoint.Function): Displacement vector
+        E (float): Yound's modulus
+        nu (float): Poisson's ratio
+
+    Returns:
+        form (dolfin_adjoint.Form): Stress tensor
+    '''
+    mu = E/(2.0*(1.0 + nu))
+    lmbda = E*nu/((1.0 + nu)*(1.0 - 2.0*nu))
+    return 2.0*mu*sym(grad(v)) + lmbda*tr(sym(grad(v)))*Identity(len(v))
+
+def epsilon(v):
+    '''
+    Compute strain tensor form.
+
+    Args:
+        v (dolfin_adjoint.Function): Displacement vector
+
+    Returns:
+        form (dolfin_adjoint.Form): Strain tensor
+    '''
+    return sym(grad(v))
+
+def strain_to_voigt(e):
+    '''
+    Returns the pseudo-vector in the Voigt notation associate to a 2x2
+    symmetric strain tensor, according to the following rule (see e.g.
+    https://en.wikipedia.org/wiki/Voigt_notation),
+
+        .. math::
+         e  = \begin{bmatrix} e_{00} & e_{01}\\ e_{01} & e_{11} \end{bmatrix}\quad\to\quad
+         e_\mathrm{voigt}= \begin{bmatrix} e_{00} & e_{11}& 2e_{01} \end{bmatrix}
+
+    Args:
+        e: a symmetric 2x2 strain tensor, typically UFL form with shape (2,2)
+
+    Returns:
+        a UFL form with shape (3,1) corresponding to the input tensor in Voigt
+        notation.
+    '''
+    return as_vector((e[0, 0], e[1, 1], 2*e[0, 1]))
+
+
+def stress_to_voigt(sigma):
+    '''
+    Returns the pseudo-vector in the Voigt notation associate to a 2x2
+    symmetric stress tensor, according to the following rule (see e.g.
+    https://en.wikipedia.org/wiki/Voigt_notation),
+
+        .. math::
+         \sigma  = \begin{bmatrix} \sigma_{00} & \sigma_{01}\\ \sigma_{01} & \sigma_{11} \end{bmatrix}\quad\to\quad
+         \sigma_\mathrm{voigt}= \begin{bmatrix} \sigma_{00} & \sigma_{11}& \sigma_{01} \end{bmatrix}
+
+    Args:
+        sigma: a symmetric 2x2 stress tensor, typically UFL form with shape
+        (2,2).
+
+    Returns:
+        a UFL form with shape (3,1) corresponding to the input tensor in Voigt notation.
+    '''
+    return as_vector((sigma[0, 0], sigma[1, 1], sigma[0, 1]))
+
+
+def strain_from_voigt(e_voigt):
+    '''
+    Inverse operation of strain_to_voigt.
+
+    Args:
+        sigma_voigt: UFL form with shape (3,1) corresponding to the strain
+        pseudo-vector in Voigt format
+
+    Returns:
+        a symmetric stress tensor, typically UFL form with shape (2,2)
+    '''
+    return as_matrix(((e_voigt[0], e_voigt[2]/2.), (e_voigt[2]/2., e_voigt[1])))
+
+
+def stress_from_voigt(sigma_voigt):
+    '''
+    Inverse operation of stress_to_voigt.
+
+    Args:
+        sigma_voigt: UFL form with shape (3,1) corresponding to the stress
+        pseudo-vector in Voigt format.
+
+    Returns:
+        a symmetric stress tensor, typically UFL form with shape (2,2)
+    '''
+    return as_matrix(((sigma_voigt[0], sigma_voigt[2]), (sigma_voigt[2], sigma_voigt[1])))
+
+def membrane_energy(e, N):
+    '''
+    Return internal membrane energy for a plate model.
+
+    Args:
+        e: Membrane strains, UFL or DOLFIN Function of rank (2, 2) (tensor).
+        N: Membrane stress, UFL or DOLFIN Function of rank (2, 2) (tensor). 
+
+    Returns:
+        UFL form of internal elastic membrane energy for a plate model.
+    '''
+    psi_m = (1.0/2.0)*inner(N, e)
+    return psi_m
+
+
+def membrane_bending_energy(e, k, A, D, B):
+    '''
+    Return the coupled membrane-bending energy for a plate model.
+
+    Args:
+        e: Membrane strains, UFL or DOLFIN Function of rank (2, 2) (tensor).
+        k: Curvature, UFL or DOLFIN Function of rank (2, 2) (tensor).
+        A: Membrane stresses.
+        D: Bending stresses.
+        B: Coupled membrane-bending stresses.
+
+    '''
+    psi_mb = (1.0/2.0)*inner(A, e) + \
+             (1.0/2.0)*inner(D, k) + \
+             (1.0/2.0)*inner(B, e)
+    return psi_mb
 
 def z_coordinates(hs):
-    r"""Return a list with the thickness coordinate of the top surface of each layer
+    '''
+    Return a list with the thickness coordinate of the top surface of each layer
     taking the midplane as z = 0.
 
     Args:
@@ -33,16 +165,16 @@ def z_coordinates(hs):
     Returns:
         z: a list of coordinate of the top surface of each layer
            ordered from bottom (layer - 0) to top (layer n-1)
-    """
+    '''
 
     z0 = sum(hs)/2.
-    #z = [(sum(hs)/2.- sum(hs for hs in hs[0:i])) for i in range(len(hs)+1)];
     z = [(-sum(hs)/2. + sum(hs for hs in hs[0:i])) for i in range(len(hs)+1)]
     return z
 
 
 def rotated_lamina_stiffness_inplane(E1, E2, G12, nu12, theta):
-    r"""Return the in-plane stiffness matrix of an orhtropic layer
+    '''
+    Return the in-plane stiffness matrix of an orhtropic layer
     in a reference rotated by an angle theta wrt to the material one.
     It assumes Voigt notation and plane stress state.
     (see Reddy 1997, eqn 1.3.71)
@@ -56,7 +188,7 @@ def rotated_lamina_stiffness_inplane(E1, E2, G12, nu12, theta):
 
     Returns:
         Q_theta: a 3x3 symmetric ufl matrix giving the stiffness matrix.
-    """
+    '''
     # Rotation matrix to rotate the in-plane stiffness matrix
     # in Voigt notation of an angle theta from the material directions
     # (See Reddy 1997 pg 91, eqn 2.3.7)
@@ -84,7 +216,8 @@ def rotated_lamina_stiffness_inplane(E1, E2, G12, nu12, theta):
 
 
 def rotated_lamina_stiffness_shear(G13, G23, theta, kappa=5./6.):
-    r"""Return the shear stiffness matrix of an orhtropic layer
+    '''
+    Return the shear stiffness matrix of an orhtropic layer
     in a reference rotated by an angle theta wrt to the material one.
     It assumes Voigt notation and plane stress state
     (see Reddy 1997, eqn 3.4.18).
@@ -96,12 +229,12 @@ def rotated_lamina_stiffness_shear(G13, G23, theta, kappa=5./6.):
 
     Returns:
         Q_shear_theta: a 3x3 symmetric ufl matrix giving the stiffness matrix.
-    """
+    '''
     # The rotation matrix to rotate the shear stiffness matrix
     # in Voigt notation of an angle theta from the material directions
     # (See Reddy 1997 pg 91, eqn 2.3.7)
-    c = m.cos(theta)
-    s = m.sin(theta)
+    c = cos(theta)
+    s = sin(theta)
     T_shear = as_matrix([[c, s], [-s, c]])
     Q_shear = kappa*as_matrix([[G23, 0.], [0., G13]])
     Q_shear_theta = T_shear*Q_shear*transpose(T_shear)
@@ -110,7 +243,7 @@ def rotated_lamina_stiffness_shear(G13, G23, theta, kappa=5./6.):
 
 
 def rotated_lamina_stiffness_inplane(E1, E2, G12, nu12, theta):
-    r"""Return the in-plane stiffness matrix of an orhtropic layer
+    '''Return the in-plane stiffness matrix of an orhtropic layer
     in a reference rotated by an angle theta wrt to the material one.
     It assumes Voigt notation and plane stress state.
     (See Reddy 1997, eqn 1.3.71)
@@ -125,7 +258,7 @@ def rotated_lamina_stiffness_inplane(E1, E2, G12, nu12, theta):
     Returns:
         Q_theta: a 3x3 symmetric ufl matrix giving the stiffness matrix
 
-    """
+    '''
     # Rotation matrix to rotate the in-plane stiffness matrix
     # in Voigt notation of an angle theta from the material directions
     # (See Reddy 1997 pg 91, eqn 2.3.7)
@@ -154,7 +287,8 @@ def rotated_lamina_stiffness_inplane(E1, E2, G12, nu12, theta):
 
 
 def ABD(E1, E2, G12, nu12, hs, thetas):
-    r"""Return the stiffness matrix of a kirchhoff-love model of a laminate
+    '''
+    Return the stiffness matrix of a kirchhoff-love model of a laminate
     obtained by stacking n orthotropic laminae with possibly different
     thinknesses and orientations (see Reddy 1997, eqn 1.3.71).
 
@@ -172,7 +306,7 @@ def ABD(E1, E2, G12, nu12, hs, thetas):
         A: a symmetric 3x3 ufl matrix giving the membrane stiffness in Voigt notation.
         B: a symmetric 3x3 ufl matrix giving the membrane/bending coupling stiffness in Voigt notation.
         D: a symmetric 3x3 ufl matrix giving the bending stiffness in Voigt notation.
-    """
+    '''
     assert (len(hs) == len(thetas)), "hs and thetas should have the same length !"
 
     z = z_coordinates(hs)
@@ -190,7 +324,8 @@ def ABD(E1, E2, G12, nu12, hs, thetas):
 
 
 def F(G13, G23, hs, thetas):
-    r"""Return the shear stiffness matrix of a Reissner-Midlin model of a
+    '''
+    Return the shear stiffness matrix of a Reissner-Midlin model of a
     laminate obtained by stacking n orthotropic laminae with possibly different
     thinknesses and orientations.  (See Reddy 1997, eqn 3.4.18)
 
@@ -204,7 +339,7 @@ def F(G13, G23, hs, thetas):
 
     Returns:
         F: a symmetric 2x2 ufl matrix giving the shear stiffness in Voigt notation.
-    """
+    '''
     assert (len(hs) == len(thetas)), "hs and thetas should have the same length !"
 
     z = z_coordinates(hs)
@@ -215,83 +350,3 @@ def F(G13, G23, hs, thetas):
         F += Q_shear_theta*(z[i+1]-z[i])
 
     return F
-
-
-def rotated_lamina_expansion_inplane(alpha11, alpha22, theta):
-    r"""Return the in-plane expansion matrix of an orhtropic layer
-    in a reference rotated by an angle theta wrt to the material one.
-    It assumes Voigt notation and plane stress state.
-    (See Reddy 1997, eqn 1.3.71)
-
-    Args:
-        alpha11: Expansion coefficient in the material direction 1.
-        alpha22: Expansion coefficient in the material direction 2.
-        theta: The rotation angle from the material to the desired reference system.
-
-    Returns:
-        alpha_theta: a 3x1 ufl vector giving the expansion matrix in voigt notation.
-    """
-    # Rotated matrix, assuming alpha12 = 0
-    c = cos(theta)
-    s = sin(theta)
-    alpha_xx = alpha11*c**2 + alpha22*s**2
-    alpha_yy = alpha11*s**2 + alpha22*c**2
-    alpha_xy = 2*(alpha11-alpha22)*s*c
-    alpha_theta = as_vector([alpha_xx, alpha_yy, alpha_xy])
-
-    return alpha_theta
-
-
-def NM_T(E1, E2, G12, nu12, hs, thetas, DeltaT_0, DeltaT_1=0., alpha1=1., alpha2=1.):
-    r"""Return the thermal stress and moment resultant of a Kirchhoff-Love model
-    of a laminate obtained by stacking n orthotropic laminae with possibly
-    different thinknesses and orientations.
-
-    It assumes a plane-stress states and a temperature distribution in the from
-
-    Delta(z) = DeltaT_0 + z * DeltaT_1
-
-    Args:
-        E1: The Young modulus in the material direction 1.
-        E2: The Young modulus in the material direction 2.
-        G12: The in-plane shear modulus.
-        nu12: The in-plane Poisson ratio.
-        hs: a list with length n with the thicknesses of the layers (from top to bottom).
-        theta: a list with the n orientations (in radians) of the layers (from top to bottom).
-        alpha1: Expansion coefficient in the material direction 1.
-        alpha2: Expansion coefficient in the material direction 2.
-        DeltaT_0: Average temperature field.
-        DeltaT_1: Gradient of the temperature field.
-
-    Returns:
-        N_T: a 3x1 ufl vector giving the membrane inelastic stress.
-        M_T: a 3x1 ufl vector giving the bending inelastic stress.
-    """
-    assert (len(hs) == len(thetas)), "hs and thetas should have the same length !"
-    # Coordinates of the interfaces
-    z = z_coordinates(hs)
-
-    # Initialize to zero the voigt (ufl) vectors
-    N_T = as_vector((0., 0., 0.))
-    M_T = as_vector((0., 0., 0.))
-
-    T0 = DeltaT_0
-    T1 = DeltaT_1
-
-    # loop over the layers to add the different contributions
-    for i in range(len(thetas)):
-        # Rotated stiffness
-        Q_theta = rotated_lamina_stiffness_inplane(
-            E1, E2, G12, nu12, thetas[i])
-        alpha_theta = rotated_lamina_expansion_inplane(
-            alpha1, alpha2, thetas[i])
-        # numerical integration in the i-th layer
-        z0i = (z[i+1] + z[i])/2  # Midplane of the ith layer
-        # integral of DeltaT(z) in (z[i+1], z[i])
-        integral_DeltaT = hs[i]*(T0 + T1 * z0i)
-        # integral of DeltaT(z)*z in (z[i+1], z[i])
-        integral_DeltaT_z = T1*(hs[i]*3/12 + z0i**2*hs[i]) + hs[i]*z0i*T0
-        N_T += Q_theta*alpha_theta*integral_DeltaT
-        M_T += Q_theta*alpha_theta*integral_DeltaT_z
-
-    return (N_T, M_T)

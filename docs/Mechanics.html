@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>optimize.Mechanics API documentation</title>
+<title>fenics_optimize.Mechanics API documentation</title>
 <meta name="description" content="Helper module for machanical engineering problems …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,25 +19,42 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>optimize.Mechanics</code></h1>
+<h1 class="title">Module <code>fenics_optimize.Mechanics</code></h1>
 </header>
 <section id="section-intro">
 <p>Helper module for machanical engineering problems.</p>
-<p>This source contains useful methods for the elasticity problem.</p>
+<p>This source based on <code>fenics-shells</code> project, from Corrado Maurini.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">#! /usr/bin/python3
 # -*- coding: utf-8 -*-
+# Copyright (C) 2015 Corrado Maurini
+#
+# This file is part of fenics-shells.
+#
+# fenics-shells is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# fenics-shells is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with fenics-shells. If not, see &lt;http://www.gnu.org/licenses/&gt;.
 &#39;&#39;&#39; Helper module for machanical engineering problems.
 
-This source contains useful methods for the elasticity problem.
+This source based on `fenics-shells` project, from Corrado Maurini.
 &#39;&#39;&#39;
 
 from dolfin import *
 from dolfin_adjoint import *
-from .shells import *
+from ufl import transpose
+import numpy as np
 
 def sigma(v, E, nu):
     &#39;&#39;&#39;
@@ -65,7 +82,304 @@ def epsilon(v):
     Returns:
         form (dolfin_adjoint.Form): Strain tensor
     &#39;&#39;&#39;
-    return sym(grad(v))</code></pre>
+    return sym(grad(v))
+
+def strain_to_voigt(e):
+    &#39;&#39;&#39;
+    Returns the pseudo-vector in the Voigt notation associate to a 2x2
+    symmetric strain tensor, according to the following rule (see e.g.
+    https://en.wikipedia.org/wiki/Voigt_notation),
+
+        .. math::
+         e  = \begin{bmatrix} e_{00} &amp; e_{01}\\ e_{01} &amp; e_{11} \end{bmatrix}\quad\to\quad
+         e_\mathrm{voigt}= \begin{bmatrix} e_{00} &amp; e_{11}&amp; 2e_{01} \end{bmatrix}
+
+    Args:
+        e: a symmetric 2x2 strain tensor, typically UFL form with shape (2,2)
+
+    Returns:
+        a UFL form with shape (3,1) corresponding to the input tensor in Voigt
+        notation.
+    &#39;&#39;&#39;
+    return as_vector((e[0, 0], e[1, 1], 2*e[0, 1]))
+
+
+def stress_to_voigt(sigma):
+    &#39;&#39;&#39;
+    Returns the pseudo-vector in the Voigt notation associate to a 2x2
+    symmetric stress tensor, according to the following rule (see e.g.
+    https://en.wikipedia.org/wiki/Voigt_notation),
+
+        .. math::
+         \sigma  = \begin{bmatrix} \sigma_{00} &amp; \sigma_{01}\\ \sigma_{01} &amp; \sigma_{11} \end{bmatrix}\quad\to\quad
+         \sigma_\mathrm{voigt}= \begin{bmatrix} \sigma_{00} &amp; \sigma_{11}&amp; \sigma_{01} \end{bmatrix}
+
+    Args:
+        sigma: a symmetric 2x2 stress tensor, typically UFL form with shape
+        (2,2).
+
+    Returns:
+        a UFL form with shape (3,1) corresponding to the input tensor in Voigt notation.
+    &#39;&#39;&#39;
+    return as_vector((sigma[0, 0], sigma[1, 1], sigma[0, 1]))
+
+
+def strain_from_voigt(e_voigt):
+    &#39;&#39;&#39;
+    Inverse operation of strain_to_voigt.
+
+    Args:
+        sigma_voigt: UFL form with shape (3,1) corresponding to the strain
+        pseudo-vector in Voigt format
+
+    Returns:
+        a symmetric stress tensor, typically UFL form with shape (2,2)
+    &#39;&#39;&#39;
+    return as_matrix(((e_voigt[0], e_voigt[2]/2.), (e_voigt[2]/2., e_voigt[1])))
+
+
+def stress_from_voigt(sigma_voigt):
+    &#39;&#39;&#39;
+    Inverse operation of stress_to_voigt.
+
+    Args:
+        sigma_voigt: UFL form with shape (3,1) corresponding to the stress
+        pseudo-vector in Voigt format.
+
+    Returns:
+        a symmetric stress tensor, typically UFL form with shape (2,2)
+    &#39;&#39;&#39;
+    return as_matrix(((sigma_voigt[0], sigma_voigt[2]), (sigma_voigt[2], sigma_voigt[1])))
+
+def membrane_energy(e, N):
+    &#39;&#39;&#39;
+    Return internal membrane energy for a plate model.
+
+    Args:
+        e: Membrane strains, UFL or DOLFIN Function of rank (2, 2) (tensor).
+        N: Membrane stress, UFL or DOLFIN Function of rank (2, 2) (tensor). 
+
+    Returns:
+        UFL form of internal elastic membrane energy for a plate model.
+    &#39;&#39;&#39;
+    psi_m = (1.0/2.0)*inner(N, e)
+    return psi_m
+
+
+def membrane_bending_energy(e, k, A, D, B):
+    &#39;&#39;&#39;
+    Return the coupled membrane-bending energy for a plate model.
+
+    Args:
+        e: Membrane strains, UFL or DOLFIN Function of rank (2, 2) (tensor).
+        k: Curvature, UFL or DOLFIN Function of rank (2, 2) (tensor).
+        A: Membrane stresses.
+        D: Bending stresses.
+        B: Coupled membrane-bending stresses.
+
+    &#39;&#39;&#39;
+    psi_mb = (1.0/2.0)*inner(A, e) + \
+             (1.0/2.0)*inner(D, k) + \
+             (1.0/2.0)*inner(B, e)
+    return psi_mb
+
+def z_coordinates(hs):
+    &#39;&#39;&#39;
+    Return a list with the thickness coordinate of the top surface of each layer
+    taking the midplane as z = 0.
+
+    Args:
+        hs: a list giving the thinckesses of each layer
+            ordered from bottom (layer - 0) to top (layer n-1).
+
+    Returns:
+        z: a list of coordinate of the top surface of each layer
+           ordered from bottom (layer - 0) to top (layer n-1)
+    &#39;&#39;&#39;
+
+    z0 = sum(hs)/2.
+    z = [(-sum(hs)/2. + sum(hs for hs in hs[0:i])) for i in range(len(hs)+1)]
+    return z
+
+
+def rotated_lamina_stiffness_inplane(E1, E2, G12, nu12, theta):
+    &#39;&#39;&#39;
+    Return the in-plane stiffness matrix of an orhtropic layer
+    in a reference rotated by an angle theta wrt to the material one.
+    It assumes Voigt notation and plane stress state.
+    (see Reddy 1997, eqn 1.3.71)
+
+    Args:
+        E1: The Young modulus in the material direction 1.
+        E2: The Young modulus in the material direction 2.
+        G23: The in-plane shear modulus.
+        nu12: The in-plane Poisson ratio.
+        theta: The rotation angle from the material to the desired reference system.
+
+    Returns:
+        Q_theta: a 3x3 symmetric ufl matrix giving the stiffness matrix.
+    &#39;&#39;&#39;
+    # Rotation matrix to rotate the in-plane stiffness matrix
+    # in Voigt notation of an angle theta from the material directions
+    # (See Reddy 1997 pg 91, eqn 2.3.7)
+
+    c = cos(theta)
+    s = sin(theta)
+    T = as_matrix([[c**2, s**2, -2*s*c],
+                   [s**2, c**2, 2*s*c],
+                   [c*s, -c*s, c**2 - s**2]])
+    # In-plane stiffness matrix of an orhtropic layer in material coordinates
+    nu21 = E2/E1*nu12
+    Q11 = E1/(1-nu12*nu21)
+    Q12 = nu12*E2/(1-nu12*nu21)
+    Q22 = E2/(1-nu12*nu21)
+    Q66 = G12
+    Q16 = 0.
+    Q26 = 0.
+    Q = as_matrix([[Q11, Q12, Q16],
+                   [Q12, Q22, Q26],
+                   [Q16, Q26, Q66]])
+    # Rotated matrix in the main reference
+    Q_theta = T*Q*transpose(T)
+
+    return Q_theta
+
+
+def rotated_lamina_stiffness_shear(G13, G23, theta, kappa=5./6.):
+    &#39;&#39;&#39;
+    Return the shear stiffness matrix of an orhtropic layer
+    in a reference rotated by an angle theta wrt to the material one.
+    It assumes Voigt notation and plane stress state
+    (see Reddy 1997, eqn 3.4.18).
+
+    Args:
+        G12: The transverse shear modulus between the material directions 1-2.
+        G13: The transverse shear modulus between the material directions 1-3.
+        kappa: The shear correction factor.
+
+    Returns:
+        Q_shear_theta: a 3x3 symmetric ufl matrix giving the stiffness matrix.
+    &#39;&#39;&#39;
+    # The rotation matrix to rotate the shear stiffness matrix
+    # in Voigt notation of an angle theta from the material directions
+    # (See Reddy 1997 pg 91, eqn 2.3.7)
+    c = cos(theta)
+    s = sin(theta)
+    T_shear = as_matrix([[c, s], [-s, c]])
+    Q_shear = kappa*as_matrix([[G23, 0.], [0., G13]])
+    Q_shear_theta = T_shear*Q_shear*transpose(T_shear)
+
+    return Q_shear_theta
+
+
+def rotated_lamina_stiffness_inplane(E1, E2, G12, nu12, theta):
+    &#39;&#39;&#39;Return the in-plane stiffness matrix of an orhtropic layer
+    in a reference rotated by an angle theta wrt to the material one.
+    It assumes Voigt notation and plane stress state.
+    (See Reddy 1997, eqn 1.3.71)
+
+    Args:
+        E1: The Young modulus in the material direction 1.
+        E2: The Young modulus in the material direction 2.
+        G23: The in-plane shear modulus
+        nu12: The in-plane Poisson ratio
+        theta: The rotation angle from the material to the desired refence system
+
+    Returns:
+        Q_theta: a 3x3 symmetric ufl matrix giving the stiffness matrix
+
+    &#39;&#39;&#39;
+    # Rotation matrix to rotate the in-plane stiffness matrix
+    # in Voigt notation of an angle theta from the material directions
+    # (See Reddy 1997 pg 91, eqn 2.3.7)
+
+    c = cos(theta)
+    s = sin(theta)
+    T = as_matrix([[c**2, s**2, -2*s*c],
+                   [s**2, c**2, 2*s*c],
+                   [c*s, -c*s, c**2-s**2]])
+
+    # In-plane stiffness matrix of an orhtropic layer in material coordinates
+    nu21 = E2/E1*nu12
+    Q11 = E1/(1-nu12*nu21)
+    Q12 = nu12*E2/(1-nu12*nu21)
+    Q22 = E2/(1-nu12*nu21)
+    Q66 = G12
+    Q16 = 0.
+    Q26 = 0.
+    Q = as_matrix([[Q11, Q12, Q16],
+                   [Q12, Q22, Q26],
+                   [Q16, Q26, Q66]])
+    # Rotated matrix in the main reference
+    Q_theta = T*Q*transpose(T)
+
+    return Q_theta
+
+
+def ABD(E1, E2, G12, nu12, hs, thetas):
+    &#39;&#39;&#39;
+    Return the stiffness matrix of a kirchhoff-love model of a laminate
+    obtained by stacking n orthotropic laminae with possibly different
+    thinknesses and orientations (see Reddy 1997, eqn 1.3.71).
+
+    It assumes a plane-stress state.
+
+    Args:
+        E1 : The Young modulus in the material direction 1.
+        E2 : The Young modulus in the material direction 2.
+        G12 : The in-plane shear modulus.
+        nu12: The in-plane Poisson ratio.
+        hs: a list with length n with the thicknesses of the layers (from top to bottom).
+        theta: a list with the n orientations (in radians) of the layers (from top to bottom).
+
+    Returns:
+        A: a symmetric 3x3 ufl matrix giving the membrane stiffness in Voigt notation.
+        B: a symmetric 3x3 ufl matrix giving the membrane/bending coupling stiffness in Voigt notation.
+        D: a symmetric 3x3 ufl matrix giving the bending stiffness in Voigt notation.
+    &#39;&#39;&#39;
+    assert (len(hs) == len(thetas)), &#34;hs and thetas should have the same length !&#34;
+
+    z = z_coordinates(hs)
+    A = 0.*Identity(3)
+    B = 0.*Identity(3)
+    D = 0.*Identity(3)
+
+    for i in range(len(thetas)):
+        Qbar = rotated_lamina_stiffness_inplane(E1, E2, G12, nu12, thetas[i])
+        A += Qbar*(z[i+1]-z[i])
+        B += .5*Qbar*(z[i+1]**2-z[i]**2)
+        D += 1./3.*Qbar*(z[i+1]**3-z[i]**3)
+
+    return (A, B, D)
+
+
+def F(G13, G23, hs, thetas):
+    &#39;&#39;&#39;
+    Return the shear stiffness matrix of a Reissner-Midlin model of a
+    laminate obtained by stacking n orthotropic laminae with possibly different
+    thinknesses and orientations.  (See Reddy 1997, eqn 3.4.18)
+
+    It assumes a plane-stress state.
+
+    Args:
+        G13: The transverse shear modulus between the material directions 1-3.
+        G23: The transverse shear modulus between the material directions 2-3.
+        hs: a list with length n with the thicknesses of the layers (from top to bottom).
+        theta: a list with the n orientations (in radians) of the layers (from top to bottom).
+
+    Returns:
+        F: a symmetric 2x2 ufl matrix giving the shear stiffness in Voigt notation.
+    &#39;&#39;&#39;
+    assert (len(hs) == len(thetas)), &#34;hs and thetas should have the same length !&#34;
+
+    z = z_coordinates(hs)
+    F = 0.*Identity(2)
+
+    for i in range(len(thetas)):
+        Q_shear_theta = rotated_lamina_stiffness_shear(G13, G23, thetas[i])
+        F += Q_shear_theta*(z[i+1]-z[i])
+
+    return F</code></pre>
 </details>
 </section>
 <section>
@@ -75,7 +389,135 @@ def epsilon(v):
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="optimize.Mechanics.epsilon"><code class="name flex">
+<dt id="fenics_optimize.Mechanics.ABD"><code class="name flex">
+<span>def <span class="ident">ABD</span></span>(<span>E1, E2, G12, nu12, hs, thetas)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the stiffness matrix of a kirchhoff-love model of a laminate
+obtained by stacking n orthotropic laminae with possibly different
+thinknesses and orientations (see Reddy 1997, eqn 1.3.71).</p>
+<p>It assumes a plane-stress state.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt>E1 : The Young modulus in the material direction 1.</dt>
+<dt>E2 : The Young modulus in the material direction 2.</dt>
+<dt>G12 : The in-plane shear modulus.</dt>
+<dt><strong><code>nu12</code></strong></dt>
+<dd>The in-plane Poisson ratio.</dd>
+<dt><strong><code>hs</code></strong></dt>
+<dd>a list with length n with the thicknesses of the layers (from top to bottom).</dd>
+<dt><strong><code>theta</code></strong></dt>
+<dd>a list with the n orientations (in radians) of the layers (from top to bottom).</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>A</code></dt>
+<dd>a symmetric 3x3 ufl matrix giving the membrane stiffness in Voigt notation.</dd>
+<dt><code>B</code></dt>
+<dd>a symmetric 3x3 ufl matrix giving the membrane/bending coupling stiffness in Voigt notation.</dd>
+<dt><code>D</code></dt>
+<dd>a symmetric 3x3 ufl matrix giving the bending stiffness in Voigt notation.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ABD(E1, E2, G12, nu12, hs, thetas):
+    &#39;&#39;&#39;
+    Return the stiffness matrix of a kirchhoff-love model of a laminate
+    obtained by stacking n orthotropic laminae with possibly different
+    thinknesses and orientations (see Reddy 1997, eqn 1.3.71).
+
+    It assumes a plane-stress state.
+
+    Args:
+        E1 : The Young modulus in the material direction 1.
+        E2 : The Young modulus in the material direction 2.
+        G12 : The in-plane shear modulus.
+        nu12: The in-plane Poisson ratio.
+        hs: a list with length n with the thicknesses of the layers (from top to bottom).
+        theta: a list with the n orientations (in radians) of the layers (from top to bottom).
+
+    Returns:
+        A: a symmetric 3x3 ufl matrix giving the membrane stiffness in Voigt notation.
+        B: a symmetric 3x3 ufl matrix giving the membrane/bending coupling stiffness in Voigt notation.
+        D: a symmetric 3x3 ufl matrix giving the bending stiffness in Voigt notation.
+    &#39;&#39;&#39;
+    assert (len(hs) == len(thetas)), &#34;hs and thetas should have the same length !&#34;
+
+    z = z_coordinates(hs)
+    A = 0.*Identity(3)
+    B = 0.*Identity(3)
+    D = 0.*Identity(3)
+
+    for i in range(len(thetas)):
+        Qbar = rotated_lamina_stiffness_inplane(E1, E2, G12, nu12, thetas[i])
+        A += Qbar*(z[i+1]-z[i])
+        B += .5*Qbar*(z[i+1]**2-z[i]**2)
+        D += 1./3.*Qbar*(z[i+1]**3-z[i]**3)
+
+    return (A, B, D)</code></pre>
+</details>
+</dd>
+<dt id="fenics_optimize.Mechanics.F"><code class="name flex">
+<span>def <span class="ident">F</span></span>(<span>G13, G23, hs, thetas)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the shear stiffness matrix of a Reissner-Midlin model of a
+laminate obtained by stacking n orthotropic laminae with possibly different
+thinknesses and orientations.
+(See Reddy 1997, eqn 3.4.18)</p>
+<p>It assumes a plane-stress state.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>G13</code></strong></dt>
+<dd>The transverse shear modulus between the material directions 1-3.</dd>
+<dt><strong><code>G23</code></strong></dt>
+<dd>The transverse shear modulus between the material directions 2-3.</dd>
+<dt><strong><code>hs</code></strong></dt>
+<dd>a list with length n with the thicknesses of the layers (from top to bottom).</dd>
+<dt><strong><code>theta</code></strong></dt>
+<dd>a list with the n orientations (in radians) of the layers (from top to bottom).</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code><a title="fenics_optimize.Mechanics.F" href="#fenics_optimize.Mechanics.F">F()</a></code></dt>
+<dd>a symmetric 2x2 ufl matrix giving the shear stiffness in Voigt notation.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def F(G13, G23, hs, thetas):
+    &#39;&#39;&#39;
+    Return the shear stiffness matrix of a Reissner-Midlin model of a
+    laminate obtained by stacking n orthotropic laminae with possibly different
+    thinknesses and orientations.  (See Reddy 1997, eqn 3.4.18)
+
+    It assumes a plane-stress state.
+
+    Args:
+        G13: The transverse shear modulus between the material directions 1-3.
+        G23: The transverse shear modulus between the material directions 2-3.
+        hs: a list with length n with the thicknesses of the layers (from top to bottom).
+        theta: a list with the n orientations (in radians) of the layers (from top to bottom).
+
+    Returns:
+        F: a symmetric 2x2 ufl matrix giving the shear stiffness in Voigt notation.
+    &#39;&#39;&#39;
+    assert (len(hs) == len(thetas)), &#34;hs and thetas should have the same length !&#34;
+
+    z = z_coordinates(hs)
+    F = 0.*Identity(2)
+
+    for i in range(len(thetas)):
+        Q_shear_theta = rotated_lamina_stiffness_shear(G13, G23, thetas[i])
+        F += Q_shear_theta*(z[i+1]-z[i])
+
+    return F</code></pre>
+</details>
+</dd>
+<dt id="fenics_optimize.Mechanics.epsilon"><code class="name flex">
 <span>def <span class="ident">epsilon</span></span>(<span>v)</span>
 </code></dt>
 <dd>
@@ -104,7 +546,207 @@ def epsilon(v):
     return sym(grad(v))</code></pre>
 </details>
 </dd>
-<dt id="optimize.Mechanics.sigma"><code class="name flex">
+<dt id="fenics_optimize.Mechanics.membrane_bending_energy"><code class="name flex">
+<span>def <span class="ident">membrane_bending_energy</span></span>(<span>e, k, A, D, B)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the coupled membrane-bending energy for a plate model.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>e</code></strong></dt>
+<dd>Membrane strains, UFL or DOLFIN Function of rank (2, 2) (tensor).</dd>
+<dt><strong><code>k</code></strong></dt>
+<dd>Curvature, UFL or DOLFIN Function of rank (2, 2) (tensor).</dd>
+<dt><strong><code>A</code></strong></dt>
+<dd>Membrane stresses.</dd>
+<dt><strong><code>D</code></strong></dt>
+<dd>Bending stresses.</dd>
+<dt><strong><code>B</code></strong></dt>
+<dd>Coupled membrane-bending stresses.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def membrane_bending_energy(e, k, A, D, B):
+    &#39;&#39;&#39;
+    Return the coupled membrane-bending energy for a plate model.
+
+    Args:
+        e: Membrane strains, UFL or DOLFIN Function of rank (2, 2) (tensor).
+        k: Curvature, UFL or DOLFIN Function of rank (2, 2) (tensor).
+        A: Membrane stresses.
+        D: Bending stresses.
+        B: Coupled membrane-bending stresses.
+
+    &#39;&#39;&#39;
+    psi_mb = (1.0/2.0)*inner(A, e) + \
+             (1.0/2.0)*inner(D, k) + \
+             (1.0/2.0)*inner(B, e)
+    return psi_mb</code></pre>
+</details>
+</dd>
+<dt id="fenics_optimize.Mechanics.membrane_energy"><code class="name flex">
+<span>def <span class="ident">membrane_energy</span></span>(<span>e, N)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return internal membrane energy for a plate model.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>e</code></strong></dt>
+<dd>Membrane strains, UFL or DOLFIN Function of rank (2, 2) (tensor).</dd>
+<dt><strong><code>N</code></strong></dt>
+<dd>Membrane stress, UFL or DOLFIN Function of rank (2, 2) (tensor). </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>UFL form of internal elastic membrane energy for a plate model.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def membrane_energy(e, N):
+    &#39;&#39;&#39;
+    Return internal membrane energy for a plate model.
+
+    Args:
+        e: Membrane strains, UFL or DOLFIN Function of rank (2, 2) (tensor).
+        N: Membrane stress, UFL or DOLFIN Function of rank (2, 2) (tensor). 
+
+    Returns:
+        UFL form of internal elastic membrane energy for a plate model.
+    &#39;&#39;&#39;
+    psi_m = (1.0/2.0)*inner(N, e)
+    return psi_m</code></pre>
+</details>
+</dd>
+<dt id="fenics_optimize.Mechanics.rotated_lamina_stiffness_inplane"><code class="name flex">
+<span>def <span class="ident">rotated_lamina_stiffness_inplane</span></span>(<span>E1, E2, G12, nu12, theta)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the in-plane stiffness matrix of an orhtropic layer
+in a reference rotated by an angle theta wrt to the material one.
+It assumes Voigt notation and plane stress state.
+(See Reddy 1997, eqn 1.3.71)</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>E1</code></strong></dt>
+<dd>The Young modulus in the material direction 1.</dd>
+<dt><strong><code>E2</code></strong></dt>
+<dd>The Young modulus in the material direction 2.</dd>
+<dt><strong><code>G23</code></strong></dt>
+<dd>The in-plane shear modulus</dd>
+<dt><strong><code>nu12</code></strong></dt>
+<dd>The in-plane Poisson ratio</dd>
+<dt><strong><code>theta</code></strong></dt>
+<dd>The rotation angle from the material to the desired refence system</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Q_theta</code></dt>
+<dd>a 3x3 symmetric ufl matrix giving the stiffness matrix</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rotated_lamina_stiffness_inplane(E1, E2, G12, nu12, theta):
+    &#39;&#39;&#39;Return the in-plane stiffness matrix of an orhtropic layer
+    in a reference rotated by an angle theta wrt to the material one.
+    It assumes Voigt notation and plane stress state.
+    (See Reddy 1997, eqn 1.3.71)
+
+    Args:
+        E1: The Young modulus in the material direction 1.
+        E2: The Young modulus in the material direction 2.
+        G23: The in-plane shear modulus
+        nu12: The in-plane Poisson ratio
+        theta: The rotation angle from the material to the desired refence system
+
+    Returns:
+        Q_theta: a 3x3 symmetric ufl matrix giving the stiffness matrix
+
+    &#39;&#39;&#39;
+    # Rotation matrix to rotate the in-plane stiffness matrix
+    # in Voigt notation of an angle theta from the material directions
+    # (See Reddy 1997 pg 91, eqn 2.3.7)
+
+    c = cos(theta)
+    s = sin(theta)
+    T = as_matrix([[c**2, s**2, -2*s*c],
+                   [s**2, c**2, 2*s*c],
+                   [c*s, -c*s, c**2-s**2]])
+
+    # In-plane stiffness matrix of an orhtropic layer in material coordinates
+    nu21 = E2/E1*nu12
+    Q11 = E1/(1-nu12*nu21)
+    Q12 = nu12*E2/(1-nu12*nu21)
+    Q22 = E2/(1-nu12*nu21)
+    Q66 = G12
+    Q16 = 0.
+    Q26 = 0.
+    Q = as_matrix([[Q11, Q12, Q16],
+                   [Q12, Q22, Q26],
+                   [Q16, Q26, Q66]])
+    # Rotated matrix in the main reference
+    Q_theta = T*Q*transpose(T)
+
+    return Q_theta</code></pre>
+</details>
+</dd>
+<dt id="fenics_optimize.Mechanics.rotated_lamina_stiffness_shear"><code class="name flex">
+<span>def <span class="ident">rotated_lamina_stiffness_shear</span></span>(<span>G13, G23, theta, kappa=0.8333333333333334)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return the shear stiffness matrix of an orhtropic layer
+in a reference rotated by an angle theta wrt to the material one.
+It assumes Voigt notation and plane stress state
+(see Reddy 1997, eqn 3.4.18).</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>G12</code></strong></dt>
+<dd>The transverse shear modulus between the material directions 1-2.</dd>
+<dt><strong><code>G13</code></strong></dt>
+<dd>The transverse shear modulus between the material directions 1-3.</dd>
+<dt><strong><code>kappa</code></strong></dt>
+<dd>The shear correction factor.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Q_shear_theta</code></dt>
+<dd>a 3x3 symmetric ufl matrix giving the stiffness matrix.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rotated_lamina_stiffness_shear(G13, G23, theta, kappa=5./6.):
+    &#39;&#39;&#39;
+    Return the shear stiffness matrix of an orhtropic layer
+    in a reference rotated by an angle theta wrt to the material one.
+    It assumes Voigt notation and plane stress state
+    (see Reddy 1997, eqn 3.4.18).
+
+    Args:
+        G12: The transverse shear modulus between the material directions 1-2.
+        G13: The transverse shear modulus between the material directions 1-3.
+        kappa: The shear correction factor.
+
+    Returns:
+        Q_shear_theta: a 3x3 symmetric ufl matrix giving the stiffness matrix.
+    &#39;&#39;&#39;
+    # The rotation matrix to rotate the shear stiffness matrix
+    # in Voigt notation of an angle theta from the material directions
+    # (See Reddy 1997 pg 91, eqn 2.3.7)
+    c = cos(theta)
+    s = sin(theta)
+    T_shear = as_matrix([[c, s], [-s, c]])
+    Q_shear = kappa*as_matrix([[G23, 0.], [0., G13]])
+    Q_shear_theta = T_shear*Q_shear*transpose(T_shear)
+
+    return Q_shear_theta</code></pre>
+</details>
+</dd>
+<dt id="fenics_optimize.Mechanics.sigma"><code class="name flex">
 <span>def <span class="ident">sigma</span></span>(<span>v, E, nu)</span>
 </code></dt>
 <dd>
@@ -141,6 +783,193 @@ def epsilon(v):
     return 2.0*mu*sym(grad(v)) + lmbda*tr(sym(grad(v)))*Identity(len(v))</code></pre>
 </details>
 </dd>
+<dt id="fenics_optimize.Mechanics.strain_from_voigt"><code class="name flex">
+<span>def <span class="ident">strain_from_voigt</span></span>(<span>e_voigt)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Inverse operation of strain_to_voigt.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>sigma_voigt</code></strong></dt>
+<dd>UFL form with shape (3,1) corresponding to the strain</dd>
+</dl>
+<p>pseudo-vector in Voigt format</p>
+<h2 id="returns">Returns</h2>
+<p>a symmetric stress tensor, typically UFL form with shape (2,2)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def strain_from_voigt(e_voigt):
+    &#39;&#39;&#39;
+    Inverse operation of strain_to_voigt.
+
+    Args:
+        sigma_voigt: UFL form with shape (3,1) corresponding to the strain
+        pseudo-vector in Voigt format
+
+    Returns:
+        a symmetric stress tensor, typically UFL form with shape (2,2)
+    &#39;&#39;&#39;
+    return as_matrix(((e_voigt[0], e_voigt[2]/2.), (e_voigt[2]/2., e_voigt[1])))</code></pre>
+</details>
+</dd>
+<dt id="fenics_optimize.Mechanics.strain_to_voigt"><code class="name flex">
+<span>def <span class="ident">strain_to_voigt</span></span>(<span>e)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the pseudo-vector in the Voigt notation associate to a 2x2
+symmetric strain tensor, according to the following rule (see e.g.
+<a href="https://en.wikipedia.org/wiki/Voigt_notation">https://en.wikipedia.org/wiki/Voigt_notation</a>),</p>
+<pre><code>\[ e  = egin{bmatrix} e_{00} &amp; e_{01}\ e_{01} &amp; e_{11} \end{bmatrix}\quad        o\quad
+e_\mathrm{voigt}= egin{bmatrix} e_{00} &amp; e_{11}&amp; 2e_{01} \end{bmatrix} \]
+</code></pre>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>e</code></strong></dt>
+<dd>a symmetric 2x2 strain tensor, typically UFL form with shape (2,2)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>a UFL form with shape (3,1) corresponding to the input tensor in Voigt
+notation.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def strain_to_voigt(e):
+    &#39;&#39;&#39;
+    Returns the pseudo-vector in the Voigt notation associate to a 2x2
+    symmetric strain tensor, according to the following rule (see e.g.
+    https://en.wikipedia.org/wiki/Voigt_notation),
+
+        .. math::
+         e  = \begin{bmatrix} e_{00} &amp; e_{01}\\ e_{01} &amp; e_{11} \end{bmatrix}\quad\to\quad
+         e_\mathrm{voigt}= \begin{bmatrix} e_{00} &amp; e_{11}&amp; 2e_{01} \end{bmatrix}
+
+    Args:
+        e: a symmetric 2x2 strain tensor, typically UFL form with shape (2,2)
+
+    Returns:
+        a UFL form with shape (3,1) corresponding to the input tensor in Voigt
+        notation.
+    &#39;&#39;&#39;
+    return as_vector((e[0, 0], e[1, 1], 2*e[0, 1]))</code></pre>
+</details>
+</dd>
+<dt id="fenics_optimize.Mechanics.stress_from_voigt"><code class="name flex">
+<span>def <span class="ident">stress_from_voigt</span></span>(<span>sigma_voigt)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Inverse operation of stress_to_voigt.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>sigma_voigt</code></strong></dt>
+<dd>UFL form with shape (3,1) corresponding to the stress</dd>
+</dl>
+<p>pseudo-vector in Voigt format.</p>
+<h2 id="returns">Returns</h2>
+<p>a symmetric stress tensor, typically UFL form with shape (2,2)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def stress_from_voigt(sigma_voigt):
+    &#39;&#39;&#39;
+    Inverse operation of stress_to_voigt.
+
+    Args:
+        sigma_voigt: UFL form with shape (3,1) corresponding to the stress
+        pseudo-vector in Voigt format.
+
+    Returns:
+        a symmetric stress tensor, typically UFL form with shape (2,2)
+    &#39;&#39;&#39;
+    return as_matrix(((sigma_voigt[0], sigma_voigt[2]), (sigma_voigt[2], sigma_voigt[1])))</code></pre>
+</details>
+</dd>
+<dt id="fenics_optimize.Mechanics.stress_to_voigt"><code class="name flex">
+<span>def <span class="ident">stress_to_voigt</span></span>(<span>sigma)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the pseudo-vector in the Voigt notation associate to a 2x2
+symmetric stress tensor, according to the following rule (see e.g.
+<a href="https://en.wikipedia.org/wiki/Voigt_notation">https://en.wikipedia.org/wiki/Voigt_notation</a>),</p>
+<pre><code>\[ \sigma  = egin{bmatrix} \sigma_{00} &amp; \sigma_{01}\ \sigma_{01} &amp; \sigma_{11} \end{bmatrix}\quad       o\quad
+\sigma_\mathrm{voigt}= egin{bmatrix} \sigma_{00} &amp; \sigma_{11}&amp; \sigma_{01} \end{bmatrix} \]
+</code></pre>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>sigma</code></strong></dt>
+<dd>a symmetric 2x2 stress tensor, typically UFL form with shape</dd>
+</dl>
+<p>(2,2).</p>
+<h2 id="returns">Returns</h2>
+<p>a UFL form with shape (3,1) corresponding to the input tensor in Voigt notation.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def stress_to_voigt(sigma):
+    &#39;&#39;&#39;
+    Returns the pseudo-vector in the Voigt notation associate to a 2x2
+    symmetric stress tensor, according to the following rule (see e.g.
+    https://en.wikipedia.org/wiki/Voigt_notation),
+
+        .. math::
+         \sigma  = \begin{bmatrix} \sigma_{00} &amp; \sigma_{01}\\ \sigma_{01} &amp; \sigma_{11} \end{bmatrix}\quad\to\quad
+         \sigma_\mathrm{voigt}= \begin{bmatrix} \sigma_{00} &amp; \sigma_{11}&amp; \sigma_{01} \end{bmatrix}
+
+    Args:
+        sigma: a symmetric 2x2 stress tensor, typically UFL form with shape
+        (2,2).
+
+    Returns:
+        a UFL form with shape (3,1) corresponding to the input tensor in Voigt notation.
+    &#39;&#39;&#39;
+    return as_vector((sigma[0, 0], sigma[1, 1], sigma[0, 1]))</code></pre>
+</details>
+</dd>
+<dt id="fenics_optimize.Mechanics.z_coordinates"><code class="name flex">
+<span>def <span class="ident">z_coordinates</span></span>(<span>hs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return a list with the thickness coordinate of the top surface of each layer
+taking the midplane as z = 0.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>hs</code></strong></dt>
+<dd>a list giving the thinckesses of each layer
+ordered from bottom (layer - 0) to top (layer n-1).</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>z</code></dt>
+<dd>a list of coordinate of the top surface of each layer
+ordered from bottom (layer - 0) to top (layer n-1)</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def z_coordinates(hs):
+    &#39;&#39;&#39;
+    Return a list with the thickness coordinate of the top surface of each layer
+    taking the midplane as z = 0.
+
+    Args:
+        hs: a list giving the thinckesses of each layer
+            ordered from bottom (layer - 0) to top (layer n-1).
+
+    Returns:
+        z: a list of coordinate of the top surface of each layer
+           ordered from bottom (layer - 0) to top (layer n-1)
+    &#39;&#39;&#39;
+
+    z0 = sum(hs)/2.
+    z = [(-sum(hs)/2. + sum(hs for hs in hs[0:i])) for i in range(len(hs)+1)]
+    return z</code></pre>
+</details>
+</dd>
 </dl>
 </section>
 <section>
@@ -154,13 +983,24 @@ def epsilon(v):
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="optimize" href="index.html">optimize</a></code></li>
+<li><code><a title="fenics_optimize" href="index.html">fenics_optimize</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="optimize.Mechanics.epsilon" href="#optimize.Mechanics.epsilon">epsilon</a></code></li>
-<li><code><a title="optimize.Mechanics.sigma" href="#optimize.Mechanics.sigma">sigma</a></code></li>
+<li><code><a title="fenics_optimize.Mechanics.ABD" href="#fenics_optimize.Mechanics.ABD">ABD</a></code></li>
+<li><code><a title="fenics_optimize.Mechanics.F" href="#fenics_optimize.Mechanics.F">F</a></code></li>
+<li><code><a title="fenics_optimize.Mechanics.epsilon" href="#fenics_optimize.Mechanics.epsilon">epsilon</a></code></li>
+<li><code><a title="fenics_optimize.Mechanics.membrane_bending_energy" href="#fenics_optimize.Mechanics.membrane_bending_energy">membrane_bending_energy</a></code></li>
+<li><code><a title="fenics_optimize.Mechanics.membrane_energy" href="#fenics_optimize.Mechanics.membrane_energy">membrane_energy</a></code></li>
+<li><code><a title="fenics_optimize.Mechanics.rotated_lamina_stiffness_inplane" href="#fenics_optimize.Mechanics.rotated_lamina_stiffness_inplane">rotated_lamina_stiffness_inplane</a></code></li>
+<li><code><a title="fenics_optimize.Mechanics.rotated_lamina_stiffness_shear" href="#fenics_optimize.Mechanics.rotated_lamina_stiffness_shear">rotated_lamina_stiffness_shear</a></code></li>
+<li><code><a title="fenics_optimize.Mechanics.sigma" href="#fenics_optimize.Mechanics.sigma">sigma</a></code></li>
+<li><code><a title="fenics_optimize.Mechanics.strain_from_voigt" href="#fenics_optimize.Mechanics.strain_from_voigt">strain_from_voigt</a></code></li>
+<li><code><a title="fenics_optimize.Mechanics.strain_to_voigt" href="#fenics_optimize.Mechanics.strain_to_voigt">strain_to_voigt</a></code></li>
+<li><code><a title="fenics_optimize.Mechanics.stress_from_voigt" href="#fenics_optimize.Mechanics.stress_from_voigt">stress_from_voigt</a></code></li>
+<li><code><a title="fenics_optimize.Mechanics.stress_to_voigt" href="#fenics_optimize.Mechanics.stress_to_voigt">stress_to_voigt</a></code></li>
+<li><code><a title="fenics_optimize.Mechanics.z_coordinates" href="#fenics_optimize.Mechanics.z_coordinates">z_coordinates</a></code></li>
 </ul>
 </li>
 </ul>

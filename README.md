@@ -93,6 +93,7 @@ This container will survive until when you stop the container.
 First, make sure to install the following dependencies:
 
 * [FEniCS](https://fenicsproject.org/) + [pyadjoint](https://github.com/dolfin-adjoint/pyadjoint)
+* [fecr](https://github.com/IvanYashchuk/fecr)
 * [cyipopt](https://github.com/mechmotum/cyipopt)
 * [nlopt](https://github.com/stevengj/nlopt/)
 

@@ -1,7 +1,7 @@
 from dolfin import *
 from dolfin_adjoint import *
-import optimize as op
-from optimize.Mechanics import sigma, epsilon
+import fenics_optimize as op
+from fenics_optimize.Mechanics import sigma, epsilon
 import numpy as np
 from mpi4py import MPI
 comm = MPI.COMM_WORLD
@@ -20,7 +20,7 @@ def k(rho):
 rec = op.Recorder('result/elasticity', 'material')
 log = op.Logger('result/elasticity', 'cost')
 
-mesh = RectangleMesh(comm, Point(0, 0), Point(20, 10), 400, 200)
+mesh = RectangleMesh(comm, Point(0, 0), Point(20, 10), 100, 50)
 problemSize = mesh.num_vertices()
 
 X = FunctionSpace(mesh, "CG", 1)
@@ -49,7 +49,7 @@ def forward(xs):
     bc = DirichletBC(V, Constant((0, 0)), clamped_boundary)
     uh = Function(V)
     A, b = assemble_system(a, L, [bc])
-    uh = op.AMG2Dsolver(A, b).solve(uh, V, False)
+    uh = op.AMGsolver(A, b).solve(uh, V, monitor_convergence=False, build_null_space='2-D')
     cost = assemble(inner(k(rho)*sigma(uh, E, nu), epsilon(uh))*dx)
     rec.rec(project(rho, X))
     log.rec(cost)

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>optimize.Solvers API documentation</title>
+<title>fenics_optimize.Solvers API documentation</title>
 <meta name="description" content="Solvers.
 [detail]" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -20,7 +20,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>optimize.Solvers</code></h1>
+<h1 class="title">Module <code>fenics_optimize.Solvers</code></h1>
 </header>
 <section id="section-intro">
 <p>Solvers.
@@ -39,25 +39,19 @@ from dolfin import *
 from dolfin_adjoint import *
 import numpy as np
 
-# Test for PETSc
 if not has_linear_algebra_backend(&#34;PETSc&#34;):
     print(&#34;DOLFIN has not been configured with PETSc. Exiting.&#34;)
     exit()
 
-# Set backend to PETSC
 parameters[&#34;linear_algebra_backend&#34;] = &#34;PETSc&#34;
 
-def build_nullspace_3D(V, x):
-
-    # Create list of vectors for null space
+def _build_nullspace_3D(V, x):
     nullspace_basis = [x.copy() for i in range(6)]
 
-    # Build translational null space basis
     V.sub(0).dofmap().set(nullspace_basis[0], 1.0);
     V.sub(1).dofmap().set(nullspace_basis[1], 1.0);
     V.sub(2).dofmap().set(nullspace_basis[2], 1.0);
 
-    # Build rotational null space basis
     V.sub(0).set_x(nullspace_basis[3], -1.0, 1);
     V.sub(1).set_x(nullspace_basis[3],  1.0, 0);
     V.sub(0).set_x(nullspace_basis[4],  1.0, 2);
@@ -68,257 +62,88 @@ def build_nullspace_3D(V, x):
     for x in nullspace_basis:
         x.apply(&#34;insert&#34;)
 
-    # Create vector space basis and orthogonalize
     basis = VectorSpaceBasis(nullspace_basis)
     basis.orthonormalize()
 
     return basis
 
-def build_nullspace_2D(V, x):
-    #Function to build null space for 2D elasticity
-    #
-    # Create list of vectors for null space
+def _build_nullspace_2D(V, x):
     nullspace_basis = [x.copy() for i in range(2)]
 
-    # Build translational null space basis - 2D problem
-    #
     V.sub(0).dofmap().set(nullspace_basis[0], 1.0);
     V.sub(1).dofmap().set(nullspace_basis[1], 1.0);
 
     for x in nullspace_basis:
         x.apply(&#34;insert&#34;)
 
-    # Create vector space basis and orthogonalize
     basis = VectorSpaceBasis(nullspace_basis)
     basis.orthonormalize()
 
     return basis
 
-class AMG3Dsolver():
-    &#34;&#34;&#34;# AMGsolver
-    ## AMG3Dsolver
-    Class of the solver for the large static linear elasticity problem.
-    The solver uses smoothed aggregation algerbaric multigrig method.
-
-    ### Args:
-        A : 
-        b : 
-        bcs (list) : boundary conditions
-
-    ### Examples:
-
-    ### Note:
-
-    &#34;&#34;&#34;
-    def __init__(self, A, b):
-        self.A = A
-        self.b = b
-
-    def solve(self, u, V, monitor_convergence=True):
-        &#34;&#34;&#34;# AMGsolver
-        ## solver
-        ### solve
-        solve the problem.
-        ### Args:
-            u : function
-            V : function space
-            monitor_convergence (bool) :
-        ### Returns:
-
-        ### Examples:
-
-        ### Note:
-
-        &#34;&#34;&#34;
-        null_space = build_nullspace_3D(V, u.vector())
-        as_backend_type(self.A).set_near_nullspace(null_space)
-
-        pc = PETScPreconditioner(&#34;petsc_amg&#34;)
-        PETScOptions.set(&#34;mg_levels_ksp_type&#34;, &#34;chebyshev&#34;)
-        PETScOptions.set(&#34;mg_levels_pc_type&#34;, &#34;jacobi&#34;)
-        PETScOptions.set(&#34;mg_levels_esteig_ksp_type&#34;, &#34;cg&#34;)
-        PETScOptions.set(&#34;mg_levels_ksp_chebyshev_esteig_steps&#34;, 50)
-        PETSC_solver = PETScKrylovSolver(&#34;cg&#34;, pc)
-        PETSC_solver.parameters[&#34;monitor_convergence&#34;] = monitor_convergence
-        PETSC_solver.set_operator(self.A)
-        PETSC_solver.solve(u.vector(), self.b)
-        return u
-
-class AMG2Dsolver():
-    &#34;&#34;&#34;# AMGsolver
-    ## AMG2Dsolver
-    Class of the solver for the large static linear elasticity problem.
-    The solver uses smoothed aggregation algerbaric multigrig method.
-
-    ### Args:
-        A :
-        b :
-
-    ### Examples:
-
-    ### Note:
-
-    &#34;&#34;&#34;
-    def __init__(self, A, b):
-        self.A = A
-        self.b = b
-
-    def solve(self, u, V, monitor_convergence=True):
-        &#34;&#34;&#34;# AMGsolverS
-        ## solver
-        ### solve
-        solve the problem.
-        ### Args:
-            u : function
-            V : function space
-            monitor_convergence (bool) :
-        ### Returns:
-
-        ### Examples:
-
-        ### Note:
-
-        &#34;&#34;&#34;
-        null_space = build_nullspace_2D(V, u.vector())
-        as_backend_type(self.A).set_near_nullspace(null_space)
-
-        pc = PETScPreconditioner(&#34;petsc_amg&#34;)
-        PETScOptions.set(&#34;mg_levels_ksp_type&#34;, &#34;chebyshev&#34;)
-        PETScOptions.set(&#34;mg_levels_pc_type&#34;, &#34;jacobi&#34;)
-        PETScOptions.set(&#34;mg_levels_esteig_ksp_type&#34;, &#34;cg&#34;)
-        PETScOptions.set(&#34;mg_levels_ksp_chebyshev_esteig_steps&#34;, 50)
-        PETSC_solver = PETScKrylovSolver(&#34;cg&#34;, pc)
-        PETSC_solver.parameters[&#34;monitor_convergence&#34;] = monitor_convergence
-        PETSC_solver.set_operator(self.A)
-        PETSC_solver.solve(u.vector(), self.b)
-        return u
-
 class AMGsolver():
-    &#34;&#34;&#34;# AMGsolver
-    ## AMGsolver
+    &#39;&#39;&#39;
     Class of the solver for the large static linear elasticity problem.
     The solver uses smoothed aggregation algerbaric multigrig method.
-
-    ### Args:
-        A :
-        b :
-
-    ### Examples:
-
-    ### Note:
-
-    &#34;&#34;&#34;
+    
+    Attributes:
+    &#39;&#39;&#39;    
     def __init__(self, A, b):
+        &#39;&#39;&#39;
+        Class of the solver for the large static linear elasticity problem.
+        The solver uses smoothed aggregation algerbaric multigrig method.
+
+        Args:
+            A (dolfin_adjoint.Form): Bilinear form
+            b (dolfin_adjoint.Form): Linear form
+        &#39;&#39;&#39;        
         self.A = A
         self.b = b
 
-    def solve(self, u, V, monitor_convergence=True):
-        &#34;&#34;&#34;# AMGsolverS
-        ## solver
-        ### solve
-        solve the problem.
-        ### Args:
-            u : function
-            V : function space
-            monitor_convergence (bool) :
-        ### Returns:
+    def solve(self, u, V, monitor_convergence=True, build_null_space=None, mg_levels_ksp_type=&#39;chebyshev&#39;,
+              mg_levels_pc_type=&#39;jacobi&#39;, mg_levels_esteig_ksp_type=&#39;cg&#39;, mg_levels_ksp_chebyshev_esteig_steps=50):
+        &#39;&#39;&#39;
+        Solving the problem with unknown vector `u`.
 
-        ### Examples:
+        Args:
+            u (dolfin_adjoint.Function): Unknown function vector u.
+            V (dolfin_adjoint.FunctionSpace): Function space of u.
+            monitor_convergence (bool, optional): Monitor_convergence. Defaults to True.
+            build_null_space (str, optional): The bilinear form `A` will be set to near null space. Defaults to None without null_space. Set to be &#39;x-D&#39; when x-demension.
+            mg_levels_ksp_type (str, optional): Defaults to &#39;chebyshev&#39;.
+            mg_levels_pc_type (str, optional): Defaults to &#39;jacobi&#39;.
+            mg_levels_esteig_ksp_type (str, optional): Defaults to &#39;cg&#39;.
+            mg_levels_ksp_chebyshev_esteig_steps (int, optional): Defaults to 50.
 
-        ### Note:
+        Returns:
+            dolfin_adjoint.vector: Solution
+        &#39;&#39;&#39;
+        if build_null_space == &#39;2-D&#39;:
+            try:
+                null_space = _build_nullspace_2D(V, u.vector())
+            except ValueError as v:
+                raise ValueError(&#39;Invalid demension is detected. The number of subspaces is assumed {}.&#39;.format(V.num_sub_spaces()))
+            as_backend_type(self.A).set_near_nullspace(null_space)
 
-        &#34;&#34;&#34;
+        elif build_null_space == &#39;3-D&#39;:
+            try:
+                null_space = _build_nullspace_3D(V, u.vector())
+            except ValueError as v:
+                raise ValueError(&#39;Invalid demension is detected. The number of subspaces is assumed {}.&#39;.format(V.num_sub_spaces()))
+            as_backend_type(self.A).set_near_nullspace(null_space)
+
+        elif build_null_space is None:
+            pass
+        else:
+            raise ValueError(&#34;Invalid key is detected: Set to be &#39;x-D&#39; when x-demension.&#34;)
 
         pc = PETScPreconditioner(&#34;petsc_amg&#34;)
-        PETScOptions.set(&#34;mg_levels_ksp_type&#34;, &#34;chebyshev&#34;)
-        PETScOptions.set(&#34;mg_levels_pc_type&#34;, &#34;jacobi&#34;)
-        PETScOptions.set(&#34;mg_levels_esteig_ksp_type&#34;, &#34;cg&#34;)
-        PETScOptions.set(&#34;mg_levels_ksp_chebyshev_esteig_steps&#34;, 50)
+        PETScOptions.set(&#34;mg_levels_ksp_type&#34;, mg_levels_ksp_type)
+        PETScOptions.set(&#34;mg_levels_pc_type&#34;, mg_levels_pc_type)
+        PETScOptions.set(&#34;mg_levels_esteig_ksp_type&#34;, mg_levels_esteig_ksp_type)
+        PETScOptions.set(&#34;mg_levels_ksp_chebyshev_esteig_steps&#34;, mg_levels_ksp_chebyshev_esteig_steps)
         PETSC_solver = PETScKrylovSolver(&#34;cg&#34;, pc)
         PETSC_solver.parameters[&#34;monitor_convergence&#34;] = monitor_convergence
-        PETSC_solver.set_operator(self.A)
-        PETSC_solver.solve(u.vector(), self.b)
-        return u
-
-class SLUDsolver():
-    &#34;&#34;&#34;# SLUDsolver
-    ## SLUDsolver
-    Class of the solver for the large static linear elasticity problem.
-    The solver uses Super LU dist method.
-
-    ### Args:
-        A :
-        b :
-        bcs (list) : boundary conditions
-
-    ### Examples:
-
-    ### Note:
-
-    &#34;&#34;&#34;
-    def __init__(self, A, b):
-        self.A = A
-        self.b = b
-
-    def solve(self, u, V, monitor_convergence=True):
-        &#34;&#34;&#34;# AMGsolver
-        ## solver
-        ### solve
-        solve the problem.
-        ### Args:
-            u : function
-            V : function space
-            monitor_convergence (bool) : igonored
-        ### Returns:
-
-        ### Examples:
-
-        ### Note:
-
-        &#34;&#34;&#34;
-        PETSC_solver = PETScLUSolver(&#34;superlu_dist&#34;)
-        PETSC_solver.set_operator(self.A)
-        PETSC_solver.solve(u.vector(), self.b)
-        return u
-    
-class MUMPSsolver():
-    &#34;&#34;&#34;# SLUDsolver
-    ## SLUDsolver
-    Class of the solver for the large static linear elasticity problem.
-    The solver uses Super LU dist method.
-
-    ### Args:
-        A : 
-        b : 
-        bcs (list) : boundary conditions
-
-    ### Examples:
-
-    ### Note:
-
-    &#34;&#34;&#34;
-    def __init__(self, A, b):
-        self.A = A
-        self.b = b
-
-    def solve(self, u, V, monitor_convergence=True):
-        &#34;&#34;&#34;# AMGsolver
-        ## solver
-        ### solve
-        solve the problem.
-        ### Args:
-            u : function
-            V : function space
-            monitor_convergence (bool) : igonored
-        ### Returns:
-
-        ### Examples:
-
-        ### Note:
-
-        &#34;&#34;&#34;
-
-        PETSC_solver = PETScLUSolver(&#34;mumps&#34;)
         PETSC_solver.set_operator(self.A)
         PETSC_solver.solve(u.vector(), self.b)
         return u</code></pre>
@@ -329,388 +154,92 @@ class MUMPSsolver():
 <section>
 </section>
 <section>
-<h2 class="section-title" id="header-functions">Functions</h2>
-<dl>
-<dt id="optimize.Solvers.build_nullspace_2D"><code class="name flex">
-<span>def <span class="ident">build_nullspace_2D</span></span>(<span>V, x)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def build_nullspace_2D(V, x):
-    #Function to build null space for 2D elasticity
-    #
-    # Create list of vectors for null space
-    nullspace_basis = [x.copy() for i in range(2)]
-
-    # Build translational null space basis - 2D problem
-    #
-    V.sub(0).dofmap().set(nullspace_basis[0], 1.0);
-    V.sub(1).dofmap().set(nullspace_basis[1], 1.0);
-
-    for x in nullspace_basis:
-        x.apply(&#34;insert&#34;)
-
-    # Create vector space basis and orthogonalize
-    basis = VectorSpaceBasis(nullspace_basis)
-    basis.orthonormalize()
-
-    return basis</code></pre>
-</details>
-</dd>
-<dt id="optimize.Solvers.build_nullspace_3D"><code class="name flex">
-<span>def <span class="ident">build_nullspace_3D</span></span>(<span>V, x)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def build_nullspace_3D(V, x):
-
-    # Create list of vectors for null space
-    nullspace_basis = [x.copy() for i in range(6)]
-
-    # Build translational null space basis
-    V.sub(0).dofmap().set(nullspace_basis[0], 1.0);
-    V.sub(1).dofmap().set(nullspace_basis[1], 1.0);
-    V.sub(2).dofmap().set(nullspace_basis[2], 1.0);
-
-    # Build rotational null space basis
-    V.sub(0).set_x(nullspace_basis[3], -1.0, 1);
-    V.sub(1).set_x(nullspace_basis[3],  1.0, 0);
-    V.sub(0).set_x(nullspace_basis[4],  1.0, 2);
-    V.sub(2).set_x(nullspace_basis[4], -1.0, 0);
-    V.sub(2).set_x(nullspace_basis[5],  1.0, 1);
-    V.sub(1).set_x(nullspace_basis[5], -1.0, 2);
-
-    for x in nullspace_basis:
-        x.apply(&#34;insert&#34;)
-
-    # Create vector space basis and orthogonalize
-    basis = VectorSpaceBasis(nullspace_basis)
-    basis.orthonormalize()
-
-    return basis</code></pre>
-</details>
-</dd>
-</dl>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="optimize.Solvers.AMG2Dsolver"><code class="flex name class">
-<span>class <span class="ident">AMG2Dsolver</span></span>
-<span>(</span><span>A, b)</span>
-</code></dt>
-<dd>
-<div class="desc"><h1 id="amgsolver">AMGsolver</h1>
-<h2 id="amg2dsolver">AMG2Dsolver</h2>
-<p>Class of the solver for the large static linear elasticity problem.
-The solver uses smoothed aggregation algerbaric multigrig method.</p>
-<h3 id="args">Args:</h3>
-<pre><code>A :
-b :
-</code></pre>
-<h3 id="examples">Examples:</h3>
-<h3 id="note">Note:</h3></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class AMG2Dsolver():
-    &#34;&#34;&#34;# AMGsolver
-    ## AMG2Dsolver
-    Class of the solver for the large static linear elasticity problem.
-    The solver uses smoothed aggregation algerbaric multigrig method.
-
-    ### Args:
-        A :
-        b :
-
-    ### Examples:
-
-    ### Note:
-
-    &#34;&#34;&#34;
-    def __init__(self, A, b):
-        self.A = A
-        self.b = b
-
-    def solve(self, u, V, monitor_convergence=True):
-        &#34;&#34;&#34;# AMGsolverS
-        ## solver
-        ### solve
-        solve the problem.
-        ### Args:
-            u : function
-            V : function space
-            monitor_convergence (bool) :
-        ### Returns:
-
-        ### Examples:
-
-        ### Note:
-
-        &#34;&#34;&#34;
-        null_space = build_nullspace_2D(V, u.vector())
-        as_backend_type(self.A).set_near_nullspace(null_space)
-
-        pc = PETScPreconditioner(&#34;petsc_amg&#34;)
-        PETScOptions.set(&#34;mg_levels_ksp_type&#34;, &#34;chebyshev&#34;)
-        PETScOptions.set(&#34;mg_levels_pc_type&#34;, &#34;jacobi&#34;)
-        PETScOptions.set(&#34;mg_levels_esteig_ksp_type&#34;, &#34;cg&#34;)
-        PETScOptions.set(&#34;mg_levels_ksp_chebyshev_esteig_steps&#34;, 50)
-        PETSC_solver = PETScKrylovSolver(&#34;cg&#34;, pc)
-        PETSC_solver.parameters[&#34;monitor_convergence&#34;] = monitor_convergence
-        PETSC_solver.set_operator(self.A)
-        PETSC_solver.solve(u.vector(), self.b)
-        return u</code></pre>
-</details>
-<h3>Methods</h3>
-<dl>
-<dt id="optimize.Solvers.AMG2Dsolver.solve"><code class="name flex">
-<span>def <span class="ident">solve</span></span>(<span>self, u, V, monitor_convergence=True)</span>
-</code></dt>
-<dd>
-<div class="desc"><h1 id="amgsolvers">AMGsolverS</h1>
-<h2 id="solver">solver</h2>
-<h3 id="solve">solve</h3>
-<p>solve the problem.</p>
-<h3 id="args">Args:</h3>
-<pre><code>u : function
-V : function space
-monitor_convergence (bool) :
-</code></pre>
-<h3 id="returns">Returns:</h3>
-<h3 id="examples">Examples:</h3>
-<h3 id="note">Note:</h3></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def solve(self, u, V, monitor_convergence=True):
-    &#34;&#34;&#34;# AMGsolverS
-    ## solver
-    ### solve
-    solve the problem.
-    ### Args:
-        u : function
-        V : function space
-        monitor_convergence (bool) :
-    ### Returns:
-
-    ### Examples:
-
-    ### Note:
-
-    &#34;&#34;&#34;
-    null_space = build_nullspace_2D(V, u.vector())
-    as_backend_type(self.A).set_near_nullspace(null_space)
-
-    pc = PETScPreconditioner(&#34;petsc_amg&#34;)
-    PETScOptions.set(&#34;mg_levels_ksp_type&#34;, &#34;chebyshev&#34;)
-    PETScOptions.set(&#34;mg_levels_pc_type&#34;, &#34;jacobi&#34;)
-    PETScOptions.set(&#34;mg_levels_esteig_ksp_type&#34;, &#34;cg&#34;)
-    PETScOptions.set(&#34;mg_levels_ksp_chebyshev_esteig_steps&#34;, 50)
-    PETSC_solver = PETScKrylovSolver(&#34;cg&#34;, pc)
-    PETSC_solver.parameters[&#34;monitor_convergence&#34;] = monitor_convergence
-    PETSC_solver.set_operator(self.A)
-    PETSC_solver.solve(u.vector(), self.b)
-    return u</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
-<dt id="optimize.Solvers.AMG3Dsolver"><code class="flex name class">
-<span>class <span class="ident">AMG3Dsolver</span></span>
-<span>(</span><span>A, b)</span>
-</code></dt>
-<dd>
-<div class="desc"><h1 id="amgsolver">AMGsolver</h1>
-<h2 id="amg3dsolver">AMG3Dsolver</h2>
-<p>Class of the solver for the large static linear elasticity problem.
-The solver uses smoothed aggregation algerbaric multigrig method.</p>
-<h3 id="args">Args:</h3>
-<pre><code>A : 
-b : 
-bcs (list) : boundary conditions
-</code></pre>
-<h3 id="examples">Examples:</h3>
-<h3 id="note">Note:</h3></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class AMG3Dsolver():
-    &#34;&#34;&#34;# AMGsolver
-    ## AMG3Dsolver
-    Class of the solver for the large static linear elasticity problem.
-    The solver uses smoothed aggregation algerbaric multigrig method.
-
-    ### Args:
-        A : 
-        b : 
-        bcs (list) : boundary conditions
-
-    ### Examples:
-
-    ### Note:
-
-    &#34;&#34;&#34;
-    def __init__(self, A, b):
-        self.A = A
-        self.b = b
-
-    def solve(self, u, V, monitor_convergence=True):
-        &#34;&#34;&#34;# AMGsolver
-        ## solver
-        ### solve
-        solve the problem.
-        ### Args:
-            u : function
-            V : function space
-            monitor_convergence (bool) :
-        ### Returns:
-
-        ### Examples:
-
-        ### Note:
-
-        &#34;&#34;&#34;
-        null_space = build_nullspace_3D(V, u.vector())
-        as_backend_type(self.A).set_near_nullspace(null_space)
-
-        pc = PETScPreconditioner(&#34;petsc_amg&#34;)
-        PETScOptions.set(&#34;mg_levels_ksp_type&#34;, &#34;chebyshev&#34;)
-        PETScOptions.set(&#34;mg_levels_pc_type&#34;, &#34;jacobi&#34;)
-        PETScOptions.set(&#34;mg_levels_esteig_ksp_type&#34;, &#34;cg&#34;)
-        PETScOptions.set(&#34;mg_levels_ksp_chebyshev_esteig_steps&#34;, 50)
-        PETSC_solver = PETScKrylovSolver(&#34;cg&#34;, pc)
-        PETSC_solver.parameters[&#34;monitor_convergence&#34;] = monitor_convergence
-        PETSC_solver.set_operator(self.A)
-        PETSC_solver.solve(u.vector(), self.b)
-        return u</code></pre>
-</details>
-<h3>Methods</h3>
-<dl>
-<dt id="optimize.Solvers.AMG3Dsolver.solve"><code class="name flex">
-<span>def <span class="ident">solve</span></span>(<span>self, u, V, monitor_convergence=True)</span>
-</code></dt>
-<dd>
-<div class="desc"><h1 id="amgsolver">AMGsolver</h1>
-<h2 id="solver">solver</h2>
-<h3 id="solve">solve</h3>
-<p>solve the problem.</p>
-<h3 id="args">Args:</h3>
-<pre><code>u : function
-V : function space
-monitor_convergence (bool) :
-</code></pre>
-<h3 id="returns">Returns:</h3>
-<h3 id="examples">Examples:</h3>
-<h3 id="note">Note:</h3></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def solve(self, u, V, monitor_convergence=True):
-    &#34;&#34;&#34;# AMGsolver
-    ## solver
-    ### solve
-    solve the problem.
-    ### Args:
-        u : function
-        V : function space
-        monitor_convergence (bool) :
-    ### Returns:
-
-    ### Examples:
-
-    ### Note:
-
-    &#34;&#34;&#34;
-    null_space = build_nullspace_3D(V, u.vector())
-    as_backend_type(self.A).set_near_nullspace(null_space)
-
-    pc = PETScPreconditioner(&#34;petsc_amg&#34;)
-    PETScOptions.set(&#34;mg_levels_ksp_type&#34;, &#34;chebyshev&#34;)
-    PETScOptions.set(&#34;mg_levels_pc_type&#34;, &#34;jacobi&#34;)
-    PETScOptions.set(&#34;mg_levels_esteig_ksp_type&#34;, &#34;cg&#34;)
-    PETScOptions.set(&#34;mg_levels_ksp_chebyshev_esteig_steps&#34;, 50)
-    PETSC_solver = PETScKrylovSolver(&#34;cg&#34;, pc)
-    PETSC_solver.parameters[&#34;monitor_convergence&#34;] = monitor_convergence
-    PETSC_solver.set_operator(self.A)
-    PETSC_solver.solve(u.vector(), self.b)
-    return u</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
-<dt id="optimize.Solvers.AMGsolver"><code class="flex name class">
+<dt id="fenics_optimize.Solvers.AMGsolver"><code class="flex name class">
 <span>class <span class="ident">AMGsolver</span></span>
 <span>(</span><span>A, b)</span>
 </code></dt>
 <dd>
-<div class="desc"><h1 id="amgsolver">AMGsolver</h1>
-<h2 id="amgsolver_1">AMGsolver</h2>
+<div class="desc"><p>Class of the solver for the large static linear elasticity problem.
+The solver uses smoothed aggregation algerbaric multigrig method.</p>
+<p>Attributes:</p>
 <p>Class of the solver for the large static linear elasticity problem.
 The solver uses smoothed aggregation algerbaric multigrig method.</p>
-<h3 id="args">Args:</h3>
-<pre><code>A :
-b :
-</code></pre>
-<h3 id="examples">Examples:</h3>
-<h3 id="note">Note:</h3></div>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>A</code></strong> :&ensp;<code>dolfin_adjoint.Form</code></dt>
+<dd>Bilinear form</dd>
+<dt><strong><code>b</code></strong> :&ensp;<code>dolfin_adjoint.Form</code></dt>
+<dd>Linear form</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class AMGsolver():
-    &#34;&#34;&#34;# AMGsolver
-    ## AMGsolver
+    &#39;&#39;&#39;
     Class of the solver for the large static linear elasticity problem.
     The solver uses smoothed aggregation algerbaric multigrig method.
-
-    ### Args:
-        A :
-        b :
-
-    ### Examples:
-
-    ### Note:
-
-    &#34;&#34;&#34;
+    
+    Attributes:
+    &#39;&#39;&#39;    
     def __init__(self, A, b):
+        &#39;&#39;&#39;
+        Class of the solver for the large static linear elasticity problem.
+        The solver uses smoothed aggregation algerbaric multigrig method.
+
+        Args:
+            A (dolfin_adjoint.Form): Bilinear form
+            b (dolfin_adjoint.Form): Linear form
+        &#39;&#39;&#39;        
         self.A = A
         self.b = b
 
-    def solve(self, u, V, monitor_convergence=True):
-        &#34;&#34;&#34;# AMGsolverS
-        ## solver
-        ### solve
-        solve the problem.
-        ### Args:
-            u : function
-            V : function space
-            monitor_convergence (bool) :
-        ### Returns:
+    def solve(self, u, V, monitor_convergence=True, build_null_space=None, mg_levels_ksp_type=&#39;chebyshev&#39;,
+              mg_levels_pc_type=&#39;jacobi&#39;, mg_levels_esteig_ksp_type=&#39;cg&#39;, mg_levels_ksp_chebyshev_esteig_steps=50):
+        &#39;&#39;&#39;
+        Solving the problem with unknown vector `u`.
 
-        ### Examples:
+        Args:
+            u (dolfin_adjoint.Function): Unknown function vector u.
+            V (dolfin_adjoint.FunctionSpace): Function space of u.
+            monitor_convergence (bool, optional): Monitor_convergence. Defaults to True.
+            build_null_space (str, optional): The bilinear form `A` will be set to near null space. Defaults to None without null_space. Set to be &#39;x-D&#39; when x-demension.
+            mg_levels_ksp_type (str, optional): Defaults to &#39;chebyshev&#39;.
+            mg_levels_pc_type (str, optional): Defaults to &#39;jacobi&#39;.
+            mg_levels_esteig_ksp_type (str, optional): Defaults to &#39;cg&#39;.
+            mg_levels_ksp_chebyshev_esteig_steps (int, optional): Defaults to 50.
 
-        ### Note:
+        Returns:
+            dolfin_adjoint.vector: Solution
+        &#39;&#39;&#39;
+        if build_null_space == &#39;2-D&#39;:
+            try:
+                null_space = _build_nullspace_2D(V, u.vector())
+            except ValueError as v:
+                raise ValueError(&#39;Invalid demension is detected. The number of subspaces is assumed {}.&#39;.format(V.num_sub_spaces()))
+            as_backend_type(self.A).set_near_nullspace(null_space)
 
-        &#34;&#34;&#34;
+        elif build_null_space == &#39;3-D&#39;:
+            try:
+                null_space = _build_nullspace_3D(V, u.vector())
+            except ValueError as v:
+                raise ValueError(&#39;Invalid demension is detected. The number of subspaces is assumed {}.&#39;.format(V.num_sub_spaces()))
+            as_backend_type(self.A).set_near_nullspace(null_space)
+
+        elif build_null_space is None:
+            pass
+        else:
+            raise ValueError(&#34;Invalid key is detected: Set to be &#39;x-D&#39; when x-demension.&#34;)
 
         pc = PETScPreconditioner(&#34;petsc_amg&#34;)
-        PETScOptions.set(&#34;mg_levels_ksp_type&#34;, &#34;chebyshev&#34;)
-        PETScOptions.set(&#34;mg_levels_pc_type&#34;, &#34;jacobi&#34;)
-        PETScOptions.set(&#34;mg_levels_esteig_ksp_type&#34;, &#34;cg&#34;)
-        PETScOptions.set(&#34;mg_levels_ksp_chebyshev_esteig_steps&#34;, 50)
+        PETScOptions.set(&#34;mg_levels_ksp_type&#34;, mg_levels_ksp_type)
+        PETScOptions.set(&#34;mg_levels_pc_type&#34;, mg_levels_pc_type)
+        PETScOptions.set(&#34;mg_levels_esteig_ksp_type&#34;, mg_levels_esteig_ksp_type)
+        PETScOptions.set(&#34;mg_levels_ksp_chebyshev_esteig_steps&#34;, mg_levels_ksp_chebyshev_esteig_steps)
         PETSC_solver = PETScKrylovSolver(&#34;cg&#34;, pc)
         PETSC_solver.parameters[&#34;monitor_convergence&#34;] = monitor_convergence
         PETSC_solver.set_operator(self.A)
@@ -719,266 +248,83 @@ b :
 </details>
 <h3>Methods</h3>
 <dl>
-<dt id="optimize.Solvers.AMGsolver.solve"><code class="name flex">
-<span>def <span class="ident">solve</span></span>(<span>self, u, V, monitor_convergence=True)</span>
+<dt id="fenics_optimize.Solvers.AMGsolver.solve"><code class="name flex">
+<span>def <span class="ident">solve</span></span>(<span>self, u, V, monitor_convergence=True, build_null_space=None, mg_levels_ksp_type='chebyshev', mg_levels_pc_type='jacobi', mg_levels_esteig_ksp_type='cg', mg_levels_ksp_chebyshev_esteig_steps=50)</span>
 </code></dt>
 <dd>
-<div class="desc"><h1 id="amgsolvers">AMGsolverS</h1>
-<h2 id="solver">solver</h2>
-<h3 id="solve">solve</h3>
-<p>solve the problem.</p>
-<h3 id="args">Args:</h3>
-<pre><code>u : function
-V : function space
-monitor_convergence (bool) :
-</code></pre>
-<h3 id="returns">Returns:</h3>
-<h3 id="examples">Examples:</h3>
-<h3 id="note">Note:</h3></div>
+<div class="desc"><p>Solving the problem with unknown vector <code>u</code>.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>u</code></strong> :&ensp;<code>dolfin_adjoint.Function</code></dt>
+<dd>Unknown function vector u.</dd>
+<dt><strong><code>V</code></strong> :&ensp;<code>dolfin_adjoint.FunctionSpace</code></dt>
+<dd>Function space of u.</dd>
+<dt><strong><code>monitor_convergence</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Monitor_convergence. Defaults to True.</dd>
+<dt><strong><code>build_null_space</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The bilinear form <code>A</code> will be set to near null space. Defaults to None without null_space. Set to be 'x-D' when x-demension.</dd>
+<dt><strong><code>mg_levels_ksp_type</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>Defaults to 'chebyshev'.</dd>
+<dt><strong><code>mg_levels_pc_type</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>Defaults to 'jacobi'.</dd>
+<dt><strong><code>mg_levels_esteig_ksp_type</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>Defaults to 'cg'.</dd>
+<dt><strong><code>mg_levels_ksp_chebyshev_esteig_steps</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>Defaults to 50.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>dolfin_adjoint.vector</code></dt>
+<dd>Solution</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def solve(self, u, V, monitor_convergence=True):
-    &#34;&#34;&#34;# AMGsolverS
-    ## solver
-    ### solve
-    solve the problem.
-    ### Args:
-        u : function
-        V : function space
-        monitor_convergence (bool) :
-    ### Returns:
+<pre><code class="python">def solve(self, u, V, monitor_convergence=True, build_null_space=None, mg_levels_ksp_type=&#39;chebyshev&#39;,
+          mg_levels_pc_type=&#39;jacobi&#39;, mg_levels_esteig_ksp_type=&#39;cg&#39;, mg_levels_ksp_chebyshev_esteig_steps=50):
+    &#39;&#39;&#39;
+    Solving the problem with unknown vector `u`.
 
-    ### Examples:
+    Args:
+        u (dolfin_adjoint.Function): Unknown function vector u.
+        V (dolfin_adjoint.FunctionSpace): Function space of u.
+        monitor_convergence (bool, optional): Monitor_convergence. Defaults to True.
+        build_null_space (str, optional): The bilinear form `A` will be set to near null space. Defaults to None without null_space. Set to be &#39;x-D&#39; when x-demension.
+        mg_levels_ksp_type (str, optional): Defaults to &#39;chebyshev&#39;.
+        mg_levels_pc_type (str, optional): Defaults to &#39;jacobi&#39;.
+        mg_levels_esteig_ksp_type (str, optional): Defaults to &#39;cg&#39;.
+        mg_levels_ksp_chebyshev_esteig_steps (int, optional): Defaults to 50.
 
-    ### Note:
+    Returns:
+        dolfin_adjoint.vector: Solution
+    &#39;&#39;&#39;
+    if build_null_space == &#39;2-D&#39;:
+        try:
+            null_space = _build_nullspace_2D(V, u.vector())
+        except ValueError as v:
+            raise ValueError(&#39;Invalid demension is detected. The number of subspaces is assumed {}.&#39;.format(V.num_sub_spaces()))
+        as_backend_type(self.A).set_near_nullspace(null_space)
 
-    &#34;&#34;&#34;
+    elif build_null_space == &#39;3-D&#39;:
+        try:
+            null_space = _build_nullspace_3D(V, u.vector())
+        except ValueError as v:
+            raise ValueError(&#39;Invalid demension is detected. The number of subspaces is assumed {}.&#39;.format(V.num_sub_spaces()))
+        as_backend_type(self.A).set_near_nullspace(null_space)
+
+    elif build_null_space is None:
+        pass
+    else:
+        raise ValueError(&#34;Invalid key is detected: Set to be &#39;x-D&#39; when x-demension.&#34;)
 
     pc = PETScPreconditioner(&#34;petsc_amg&#34;)
-    PETScOptions.set(&#34;mg_levels_ksp_type&#34;, &#34;chebyshev&#34;)
-    PETScOptions.set(&#34;mg_levels_pc_type&#34;, &#34;jacobi&#34;)
-    PETScOptions.set(&#34;mg_levels_esteig_ksp_type&#34;, &#34;cg&#34;)
-    PETScOptions.set(&#34;mg_levels_ksp_chebyshev_esteig_steps&#34;, 50)
+    PETScOptions.set(&#34;mg_levels_ksp_type&#34;, mg_levels_ksp_type)
+    PETScOptions.set(&#34;mg_levels_pc_type&#34;, mg_levels_pc_type)
+    PETScOptions.set(&#34;mg_levels_esteig_ksp_type&#34;, mg_levels_esteig_ksp_type)
+    PETScOptions.set(&#34;mg_levels_ksp_chebyshev_esteig_steps&#34;, mg_levels_ksp_chebyshev_esteig_steps)
     PETSC_solver = PETScKrylovSolver(&#34;cg&#34;, pc)
     PETSC_solver.parameters[&#34;monitor_convergence&#34;] = monitor_convergence
-    PETSC_solver.set_operator(self.A)
-    PETSC_solver.solve(u.vector(), self.b)
-    return u</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
-<dt id="optimize.Solvers.MUMPSsolver"><code class="flex name class">
-<span>class <span class="ident">MUMPSsolver</span></span>
-<span>(</span><span>A, b)</span>
-</code></dt>
-<dd>
-<div class="desc"><h1 id="sludsolver">SLUDsolver</h1>
-<h2 id="sludsolver_1">SLUDsolver</h2>
-<p>Class of the solver for the large static linear elasticity problem.
-The solver uses Super LU dist method.</p>
-<h3 id="args">Args:</h3>
-<pre><code>A : 
-b : 
-bcs (list) : boundary conditions
-</code></pre>
-<h3 id="examples">Examples:</h3>
-<h3 id="note">Note:</h3></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class MUMPSsolver():
-    &#34;&#34;&#34;# SLUDsolver
-    ## SLUDsolver
-    Class of the solver for the large static linear elasticity problem.
-    The solver uses Super LU dist method.
-
-    ### Args:
-        A : 
-        b : 
-        bcs (list) : boundary conditions
-
-    ### Examples:
-
-    ### Note:
-
-    &#34;&#34;&#34;
-    def __init__(self, A, b):
-        self.A = A
-        self.b = b
-
-    def solve(self, u, V, monitor_convergence=True):
-        &#34;&#34;&#34;# AMGsolver
-        ## solver
-        ### solve
-        solve the problem.
-        ### Args:
-            u : function
-            V : function space
-            monitor_convergence (bool) : igonored
-        ### Returns:
-
-        ### Examples:
-
-        ### Note:
-
-        &#34;&#34;&#34;
-
-        PETSC_solver = PETScLUSolver(&#34;mumps&#34;)
-        PETSC_solver.set_operator(self.A)
-        PETSC_solver.solve(u.vector(), self.b)
-        return u</code></pre>
-</details>
-<h3>Methods</h3>
-<dl>
-<dt id="optimize.Solvers.MUMPSsolver.solve"><code class="name flex">
-<span>def <span class="ident">solve</span></span>(<span>self, u, V, monitor_convergence=True)</span>
-</code></dt>
-<dd>
-<div class="desc"><h1 id="amgsolver">AMGsolver</h1>
-<h2 id="solver">solver</h2>
-<h3 id="solve">solve</h3>
-<p>solve the problem.</p>
-<h3 id="args">Args:</h3>
-<pre><code>u : function
-V : function space
-monitor_convergence (bool) : igonored
-</code></pre>
-<h3 id="returns">Returns:</h3>
-<h3 id="examples">Examples:</h3>
-<h3 id="note">Note:</h3></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def solve(self, u, V, monitor_convergence=True):
-    &#34;&#34;&#34;# AMGsolver
-    ## solver
-    ### solve
-    solve the problem.
-    ### Args:
-        u : function
-        V : function space
-        monitor_convergence (bool) : igonored
-    ### Returns:
-
-    ### Examples:
-
-    ### Note:
-
-    &#34;&#34;&#34;
-
-    PETSC_solver = PETScLUSolver(&#34;mumps&#34;)
-    PETSC_solver.set_operator(self.A)
-    PETSC_solver.solve(u.vector(), self.b)
-    return u</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
-<dt id="optimize.Solvers.SLUDsolver"><code class="flex name class">
-<span>class <span class="ident">SLUDsolver</span></span>
-<span>(</span><span>A, b)</span>
-</code></dt>
-<dd>
-<div class="desc"><h1 id="sludsolver">SLUDsolver</h1>
-<h2 id="sludsolver_1">SLUDsolver</h2>
-<p>Class of the solver for the large static linear elasticity problem.
-The solver uses Super LU dist method.</p>
-<h3 id="args">Args:</h3>
-<pre><code>A :
-b :
-bcs (list) : boundary conditions
-</code></pre>
-<h3 id="examples">Examples:</h3>
-<h3 id="note">Note:</h3></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class SLUDsolver():
-    &#34;&#34;&#34;# SLUDsolver
-    ## SLUDsolver
-    Class of the solver for the large static linear elasticity problem.
-    The solver uses Super LU dist method.
-
-    ### Args:
-        A :
-        b :
-        bcs (list) : boundary conditions
-
-    ### Examples:
-
-    ### Note:
-
-    &#34;&#34;&#34;
-    def __init__(self, A, b):
-        self.A = A
-        self.b = b
-
-    def solve(self, u, V, monitor_convergence=True):
-        &#34;&#34;&#34;# AMGsolver
-        ## solver
-        ### solve
-        solve the problem.
-        ### Args:
-            u : function
-            V : function space
-            monitor_convergence (bool) : igonored
-        ### Returns:
-
-        ### Examples:
-
-        ### Note:
-
-        &#34;&#34;&#34;
-        PETSC_solver = PETScLUSolver(&#34;superlu_dist&#34;)
-        PETSC_solver.set_operator(self.A)
-        PETSC_solver.solve(u.vector(), self.b)
-        return u</code></pre>
-</details>
-<h3>Methods</h3>
-<dl>
-<dt id="optimize.Solvers.SLUDsolver.solve"><code class="name flex">
-<span>def <span class="ident">solve</span></span>(<span>self, u, V, monitor_convergence=True)</span>
-</code></dt>
-<dd>
-<div class="desc"><h1 id="amgsolver">AMGsolver</h1>
-<h2 id="solver">solver</h2>
-<h3 id="solve">solve</h3>
-<p>solve the problem.</p>
-<h3 id="args">Args:</h3>
-<pre><code>u : function
-V : function space
-monitor_convergence (bool) : igonored
-</code></pre>
-<h3 id="returns">Returns:</h3>
-<h3 id="examples">Examples:</h3>
-<h3 id="note">Note:</h3></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def solve(self, u, V, monitor_convergence=True):
-    &#34;&#34;&#34;# AMGsolver
-    ## solver
-    ### solve
-    solve the problem.
-    ### Args:
-        u : function
-        V : function space
-        monitor_convergence (bool) : igonored
-    ### Returns:
-
-    ### Examples:
-
-    ### Note:
-
-    &#34;&#34;&#34;
-    PETSC_solver = PETScLUSolver(&#34;superlu_dist&#34;)
     PETSC_solver.set_operator(self.A)
     PETSC_solver.solve(u.vector(), self.b)
     return u</code></pre>
@@ -997,45 +343,15 @@ monitor_convergence (bool) : igonored
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="optimize" href="index.html">optimize</a></code></li>
-</ul>
-</li>
-<li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="">
-<li><code><a title="optimize.Solvers.build_nullspace_2D" href="#optimize.Solvers.build_nullspace_2D">build_nullspace_2D</a></code></li>
-<li><code><a title="optimize.Solvers.build_nullspace_3D" href="#optimize.Solvers.build_nullspace_3D">build_nullspace_3D</a></code></li>
+<li><code><a title="fenics_optimize" href="index.html">fenics_optimize</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="optimize.Solvers.AMG2Dsolver" href="#optimize.Solvers.AMG2Dsolver">AMG2Dsolver</a></code></h4>
+<h4><code><a title="fenics_optimize.Solvers.AMGsolver" href="#fenics_optimize.Solvers.AMGsolver">AMGsolver</a></code></h4>
 <ul class="">
-<li><code><a title="optimize.Solvers.AMG2Dsolver.solve" href="#optimize.Solvers.AMG2Dsolver.solve">solve</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="optimize.Solvers.AMG3Dsolver" href="#optimize.Solvers.AMG3Dsolver">AMG3Dsolver</a></code></h4>
-<ul class="">
-<li><code><a title="optimize.Solvers.AMG3Dsolver.solve" href="#optimize.Solvers.AMG3Dsolver.solve">solve</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="optimize.Solvers.AMGsolver" href="#optimize.Solvers.AMGsolver">AMGsolver</a></code></h4>
-<ul class="">
-<li><code><a title="optimize.Solvers.AMGsolver.solve" href="#optimize.Solvers.AMGsolver.solve">solve</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="optimize.Solvers.MUMPSsolver" href="#optimize.Solvers.MUMPSsolver">MUMPSsolver</a></code></h4>
-<ul class="">
-<li><code><a title="optimize.Solvers.MUMPSsolver.solve" href="#optimize.Solvers.MUMPSsolver.solve">solve</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="optimize.Solvers.SLUDsolver" href="#optimize.Solvers.SLUDsolver">SLUDsolver</a></code></h4>
-<ul class="">
-<li><code><a title="optimize.Solvers.SLUDsolver.solve" href="#optimize.Solvers.SLUDsolver.solve">solve</a></code></li>
+<li><code><a title="fenics_optimize.Solvers.AMGsolver.solve" href="#fenics_optimize.Solvers.AMGsolver.solve">solve</a></code></li>
 </ul>
 </li>
 </ul>

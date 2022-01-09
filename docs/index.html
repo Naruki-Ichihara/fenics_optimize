@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>optimize API documentation</title>
+<title>fenics_optimize API documentation</title>
 <meta name="description" content="&lt;div align=&#34;center&#34;&gt;&lt;img src=&#34;https://user-images.githubusercontent.com/70839257/148243588-6517e901-3c49-4dd7-9130-56e61aa94c3e.png&#34; width=&#34;400&#34;/&gt;
 …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -20,7 +20,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Package <code>optimize</code></h1>
+<h1 class="title">Package <code>fenics_optimize</code></h1>
 </header>
 <section id="section-intro">
 <div align="center"><img src="https://user-images.githubusercontent.com/70839257/148243588-6517e901-3c49-4dd7-9130-56e61aa94c3e.png" width="400"/>
@@ -41,14 +41,14 @@
 <p><strong>fenics-optimize</strong> enables reusable and straightforward UFL coding for physical optimization problems and provides decorators that bridge easily between a fenics calculation chain and optimizers.</p>
 <h2 id="example">Example</h2>
 <p>2-D Poisson topology optimization problem.</p>
-<p>First, import <code><a title="optimize" href="#optimize">optimize</a></code> with <code>dolfin</code>, <code>dolfin-adjoint</code> and <code>numpy</code>.</p>
+<p>First, import <code>optimize</code> with <code>dolfin</code>, <code>dolfin-adjoint</code> and <code>numpy</code>.</p>
 <pre><code class="language-python">from dolfin import *
 from dolfin_adjoint import *
 import optimize as op
 import numpy as np
 </code></pre>
-<p>Then define the pysical model using the FEniCS with decorator <code><a title="optimize.with_derivative" href="#optimize.with_derivative">with_derivative()</a></code>.</p>
-<p><code><a title="optimize.with_derivative" href="#optimize.with_derivative">with_derivative()</a></code> will wrrap the fenics function to the numpy function and compute Jacobian automatically.</p>
+<p>Then define the pysical model using the FEniCS with decorator <code>with_derivative</code>.</p>
+<p><code>with_derivative</code> will wrrap the fenics function to the numpy function and compute Jacobian automatically.</p>
 <pre><code class="language-python">@op.with_derivative([X])
 def forward(xs):
     rho = op.helmholtzFilter(xs[0], X, R=r)
@@ -92,12 +92,14 @@ def constraint(xs):
 <p>First, make sure to install the following dependencies:</p>
 <ul>
 <li><a href="https://fenicsproject.org/">FEniCS</a> + <a href="https://github.com/dolfin-adjoint/pyadjoint">pyadjoint</a></li>
+<li><a href="https://github.com/IvanYashchuk/fecr">fecr</a></li>
 <li><a href="https://github.com/mechmotum/cyipopt">cyipopt</a></li>
 <li><a href="https://github.com/stevengj/nlopt/">nlopt</a></li>
 </ul>
 <p>Second, install using pip.</p>
 <pre><code>pip install git+https://github.com/Naruki-Ichihara/fenics-optimize.git@main
 </code></pre>
+<p><a href="https://github.com/Naruki-Ichihara/fenics-optimize/blob/main/installation/INSTALL.md">Installation page</a> details installation instruction on your local system.</p>
 <h2 id="contributors">Contributors</h2>
 <ul>
 <li><a href="https://github.com/Naruki-Ichihara">Naruki-Ichihara</a></li>
@@ -114,575 +116,51 @@ def constraint(xs):
 .. include:: ../README.md
 &#34;&#34;&#34;
 
-__version__ = &#34;0.0.6.alpha&#34;
+__version__ = &#34;0.0.7.alpha&#34;
 
 from .Core import with_derivative, without_derivative
-from .Utilities import Recorder, Logger, evalGradient
-from .Solvers import AMGsolver, AMG2Dsolver, AMG3Dsolver, SLUDsolver, MUMPSsolver
+from .Utilities import Recorder, Logger
+from .Solvers import AMGsolver
 from .Optimizer import HSLoptimize, MMAoptimize
-from .Filters import helmholtzFilter, hevisideFilter, isoparametric2Dfilter
-
-__all__ = [
-    &#39;with_derivative&#39;,
-    &#39;without_derivative&#39;,
-    &#39;Recorder&#39;,
-    &#39;Logger&#39;,
-    &#39;HSLoptimize&#39;,
-    &#39;MMAoptimize&#39;,
-    &#39;helmholtzFilter&#39;,
-    &#39;isoparametric2Dfilter&#39;
-]</code></pre>
+from .Filters import helmholtzFilter, hevisideFilter, isoparametric2Dfilter</code></pre>
 </details>
 </section>
 <section>
 <h2 class="section-title" id="header-submodules">Sub-modules</h2>
 <dl>
-<dt><code class="name"><a title="optimize.Core" href="Core.html">optimize.Core</a></code></dt>
+<dt><code class="name"><a title="fenics_optimize.Core" href="Core.html">fenics_optimize.Core</a></code></dt>
 <dd>
 <div class="desc"><p>Core source file for fenics-optimize …</p></div>
 </dd>
-<dt><code class="name"><a title="optimize.Filters" href="Filters.html">optimize.Filters</a></code></dt>
+<dt><code class="name"><a title="fenics_optimize.Filters" href="Filters.html">fenics_optimize.Filters</a></code></dt>
 <dd>
 <div class="desc"><p>Filters for homogenization based topology optimization problems …</p></div>
 </dd>
-<dt><code class="name"><a title="optimize.Mechanics" href="Mechanics.html">optimize.Mechanics</a></code></dt>
+<dt><code class="name"><a title="fenics_optimize.Mechanics" href="Mechanics.html">fenics_optimize.Mechanics</a></code></dt>
 <dd>
 <div class="desc"><p>Helper module for machanical engineering problems …</p></div>
 </dd>
-<dt><code class="name"><a title="optimize.Optimizer" href="Optimizer.html">optimize.Optimizer</a></code></dt>
+<dt><code class="name"><a title="fenics_optimize.Optimizer" href="Optimizer.html">fenics_optimize.Optimizer</a></code></dt>
 <dd>
 <div class="desc"><p>Optimizer interfaces of the ipopt and nlopt.</p></div>
 </dd>
-<dt><code class="name"><a title="optimize.Solvers" href="Solvers.html">optimize.Solvers</a></code></dt>
+<dt><code class="name"><a title="fenics_optimize.Solvers" href="Solvers.html">fenics_optimize.Solvers</a></code></dt>
 <dd>
 <div class="desc"><p>Solvers.
 [detail]</p></div>
 </dd>
-<dt><code class="name"><a title="optimize.Utilities" href="Utilities.html">optimize.Utilities</a></code></dt>
+<dt><code class="name"><a title="fenics_optimize.Utilities" href="Utilities.html">fenics_optimize.Utilities</a></code></dt>
 <dd>
 <div class="desc"><p>Utilities.
 [detail]</p></div>
 </dd>
-<dt><code class="name"><a title="optimize.fecr" href="fecr.html">optimize.fecr</a></code></dt>
-<dd>
-<div class="desc"><p>Backends in <code>numpy-fem-adjoint</code> are organized to meet the following requirements
-- backends are not imported unless those are actually needed,
-…</p></div>
-</dd>
-<dt><code class="name"><a title="optimize.shells" href="shells/index.html">optimize.shells</a></code></dt>
-<dd>
-<div class="desc"><p>fenics-shells is an open-source library that provides a wide range of thin
-structural models (beams, plates and shells) expressed in the Unified Form
-…</p></div>
-</dd>
 </dl>
 </section>
 <section>
 </section>
 <section>
-<h2 class="section-title" id="header-functions">Functions</h2>
-<dl>
-<dt id="optimize.HSLoptimize"><code class="name flex">
-<span>def <span class="ident">HSLoptimize</span></span>(<span>problemSize, initial, forward, constraints, bounds, maxeval=100, rel=1e-08, verbosity=5, solver_type='ma27')</span>
-</code></dt>
-<dd>
-<div class="desc"><p>HSL (ma-XX) by Ipopt optimizer. Working with Jacobians.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>problemSize</code></strong> :&ensp;<code>int</code></dt>
-<dd>Problem size.</dd>
-<dt><strong><code>initial</code></strong> :&ensp;<code>np.ndarray</code></dt>
-<dd>numpy vector for the initial values.</dd>
-<dt><strong><code>forward</code></strong> :&ensp;<code>function</code></dt>
-<dd>Forward calculation chain with decorator <code><a title="optimize.with_derivative" href="#optimize.with_derivative">with_derivative()</a></code>.</dd>
-<dt><strong><code>constraints</code></strong> :&ensp;<code>list</code></dt>
-<dd>Inequality constraints list <code>gs =&lt; 0</code>.</dd>
-<dt><strong><code>bounds</code></strong> :&ensp;<code>list</code></dt>
-<dd>Bounds for control variables.</dd>
-<dt><strong><code>maxeval</code></strong> :&ensp;<code>int</code>, optional</dt>
-<dd>Number of maximum evaluations. Defaults to 100.</dd>
-<dt><strong><code>rel</code></strong> :&ensp;<code>float</code>, optional</dt>
-<dd>Relative tolerance. Defaults to 1e-8.</dd>
-<dt><strong><code>verbosity</code></strong> :&ensp;<code>int</code>, optional</dt>
-<dd>Defaults to 0.</dd>
-<dt><strong><code>solver_type</code></strong> :&ensp;<code>str</code>, optional</dt>
-<dd>HSL solver type. Default to 'ma27'.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>optimized (np.ndarray): Optimized controls.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def HSLoptimize(problemSize, initial, forward, constraints, bounds, maxeval=100, rel=1e-8, verbosity=5, solver_type=&#39;ma27&#39;):
-    &#39;&#39;&#39;
-    HSL (ma-XX) by Ipopt optimizer. Working with Jacobians.
-
-    Args:
-        problemSize (int): Problem size.
-        initial (np.ndarray): numpy vector for the initial values.
-        forward (function): Forward calculation chain with decorator `with_derivative`.
-        constraints (list): Inequality constraints list `gs =&lt; 0`.
-        bounds (list): Bounds for control variables.
-        maxeval (int, optional): Number of maximum evaluations. Defaults to 100.
-        rel (float, optional): Relative tolerance. Defaults to 1e-8.
-        verbosity (int, optional): Defaults to 0.
-        solver_type (str, optional): HSL solver type. Default to &#39;ma27&#39;.
-
-    Returns:
-        optimized (np.ndarray): Optimized controls.
-    &#39;&#39;&#39;
-    class HS():
-        def objective(self, x):
-            return forward(x)[0]
-        
-        def gradient(self, x):
-            return forward(x)[1]
-
-        def constraints(self, x):
-            constraints_list = []
-            for constraint in constraints:
-                constraints_list.append(constraint(x)[0])
-            return np.array(constraints_list)
-
-        def jacobian(self, x):
-            constraints_list = []
-            for constraint in constraints:
-                constraints_list.append(constraint(x)[1])
-            return np.array(constraints_list)
-
-    cl = [-1e19]
-    cu = np.zeros(len(constraints))
-
-    nlp = cp.Problem(
-    n=problemSize,
-    m=len(cl),
-    problem_obj=HS(),
-    lb=bounds[0],
-    ub=bounds[1],
-    cl=cl,
-    cu=cu,
-    )
-
-    nlp.add_option(&#39;linear_solver&#39;, solver_type)
-    nlp.add_option(&#39;max_iter&#39;, maxeval)
-    nlp.add_option(&#39;tol&#39;, rel)
-    nlp.add_option(&#39;print_level&#39;, verbosity)
-
-    x, info = nlp.solve(initial)
-    print(info)
-    return x</code></pre>
-</details>
-</dd>
-<dt id="optimize.MMAoptimize"><code class="name flex">
-<span>def <span class="ident">MMAoptimize</span></span>(<span>problemSize, initial, forward, constraints, bounds, maxeval=100, rel=1e-08, verbosity=1)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Method of Moving Asymptotes based on Nlopt. Working with Jacobians.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>problemSize</code></strong> :&ensp;<code>int</code></dt>
-<dd>Problem size.</dd>
-<dt><strong><code>initial</code></strong> :&ensp;<code>np.ndarray</code></dt>
-<dd>numpy vector for the initial values.</dd>
-<dt><strong><code>forward</code></strong> :&ensp;<code>function</code></dt>
-<dd>Forward calculation chain with decorator <code><a title="optimize.with_derivative" href="#optimize.with_derivative">with_derivative()</a></code>.</dd>
-<dt><strong><code>constraints</code></strong> :&ensp;<code>list</code></dt>
-<dd>Inequality constraints list <code>gs =&lt; 0</code>.</dd>
-<dt><strong><code>bounds</code></strong> :&ensp;<code>list</code></dt>
-<dd>Bounds for control variables.</dd>
-<dt><strong><code>maxeval</code></strong> :&ensp;<code>int</code>, optional</dt>
-<dd>Number of maximum evaluations. Defaults to 100.</dd>
-<dt><strong><code>rel</code></strong> :&ensp;<code>float</code>, optional</dt>
-<dd>Relative tolerance. Defaults to 1e-8.</dd>
-<dt><strong><code>verbosity</code></strong> :&ensp;<code>int</code>, optional</dt>
-<dd>Defaults to 0.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>optimized (np.ndarray): Optimized controls.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def MMAoptimize(problemSize, initial, forward, constraints, bounds, maxeval=100, rel=1e-8, verbosity=1):
-    &#39;&#39;&#39;
-    Method of Moving Asymptotes based on Nlopt. Working with Jacobians.
-
-    Args:
-        problemSize (int): Problem size.
-        initial (np.ndarray): numpy vector for the initial values.
-        forward (function): Forward calculation chain with decorator `with_derivative`.
-        constraints (list): Inequality constraints list `gs =&lt; 0`.
-        bounds (list): Bounds for control variables.
-        maxeval (int, optional): Number of maximum evaluations. Defaults to 100.
-        rel (float, optional): Relative tolerance. Defaults to 1e-8.
-        verbosity (int, optional): Defaults to 0.
-
-    Returns:
-        optimized (np.ndarray): Optimized controls.
-    &#39;&#39;&#39;    
-    opt = nl.opt(nl.LD_MMA, problemSize)
-    def eval(x, grad):
-        cost, J = forward(x)
-        grad[:] = J
-        return cost
-    for constraint in constraints:
-        def const(x, grad):
-            cost, J = constraint(x)
-            grad[:] = J
-            return cost
-        opt.add_inequality_constraint(const, 1e-8)
-    opt.set_min_objective(eval)
-    opt.add_inequality_constraint(const, 1e-8)
-    opt.set_lower_bounds(bounds[0])
-    opt.set_upper_bounds(bounds[1])
-    opt.set_xtol_rel(rel)
-    opt.set_param(&#39;verbosity&#39;, verbosity)
-    opt.set_maxeval(maxeval)
-    return opt.optimize(initial)</code></pre>
-</details>
-</dd>
-<dt id="optimize.helmholtzFilter"><code class="name flex">
-<span>def <span class="ident">helmholtzFilter</span></span>(<span>u, U, R=0.025)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Apply the helmholtz filter.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>u</code></strong> :&ensp;<code>dolfin_adjoint.Function</code></dt>
-<dd>Target function</dd>
-<dt><strong><code>U</code></strong> :&ensp;<code>dolfin_adjoint.FunctionSpace</code></dt>
-<dd>Functionspace of target function</dd>
-<dt><strong><code>R</code></strong> :&ensp;<code>float</code>, optional</dt>
-<dd>Filter radius. Defaults to 0.025.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<p>(dolfin_adjoint.Function): Filtered function</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def helmholtzFilter(u, U, R=0.025):
-    &#39;&#39;&#39;
-    Apply the helmholtz filter.
-
-    Args:
-        u (dolfin_adjoint.Function): Target function
-        U (dolfin_adjoint.FunctionSpace): Functionspace of target function
-        R (float, optional): Filter radius. Defaults to 0.025.
-
-    Returns:
-        (dolfin_adjoint.Function): Filtered function
-    &#39;&#39;&#39;
-    v = TrialFunction(U)
-    dv = TestFunction(U)
-    vh = Function(U)
-    a = R**2*inner(grad(v), grad(dv))*dx + dot(v, dv)*dx
-    L = inner(u, dv)*dx
-    A, b = assemble_system(a, L)
-    pc = PETScPreconditioner(&#34;petsc_amg&#34;)
-    PETScOptions.set(&#34;mg_levels_ksp_type&#34;, &#34;chebyshev&#34;)
-    PETScOptions.set(&#34;mg_levels_pc_type&#34;, &#34;jacobi&#34;)
-    PETScOptions.set(&#34;mg_levels_esteig_ksp_type&#34;, &#34;cg&#34;)
-    PETScOptions.set(&#34;mg_levels_ksp_chebyshev_esteig_steps&#34;, 50)
-    PETSC_solver = PETScKrylovSolver(&#34;cg&#34;, pc)
-    PETSC_solver.parameters[&#34;monitor_convergence&#34;] = False
-    PETSC_solver.set_operator(A)
-    PETSC_solver.solve(vh.vector(), b)
-    return vh</code></pre>
-</details>
-</dd>
-<dt id="optimize.isoparametric2Dfilter"><code class="name flex">
-<span>def <span class="ident">isoparametric2Dfilter</span></span>(<span>z, e)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Apply 2D isoparametric projection onto orientation vector.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>z</code></strong> :&ensp;<code>dolfin_adjoint.Function</code></dt>
-<dd>0-component of the orientation vector (on natural setting).</dd>
-<dt><strong><code>e</code></strong> :&ensp;<code>dolfin_adjoint.Function</code></dt>
-<dd>1-component of the orientation vector (on natural setting)</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>dolfin_adjoint.Vector</code></dt>
-<dd>Orientation vector with unit circle boundary condition on real setting.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def isoparametric2Dfilter(z, e):
-    &#39;&#39;&#39;
-    Apply 2D isoparametric projection onto orientation vector.
-
-    Args:
-        z (dolfin_adjoint.Function): 0-component of the orientation vector (on natural setting).
-        e (dolfin_adjoint.Function): 1-component of the orientation vector (on natural setting)
-
-    Returns:
-        dolfin_adjoint.Vector: Orientation vector with unit circle boundary condition on real setting.
-    &#39;&#39;&#39;    
-    u = as_vector([-1/np.sqrt(2), 0, 1/np.sqrt(2), 1, 1/np.sqrt(2), 0, -1/np.sqrt(2), -1])
-    v = as_vector([-1/np.sqrt(2), -1, -1/np.sqrt(2), 0, 1/np.sqrt(2), 1, 1/np.sqrt(2), 0])
-    N1 = -(1-z)*(1-e)*(1+z+e)/4
-    N2 =  (1-z**2)*(1-e)/2
-    N3 = -(1+z)*(1-e)*(1-z+e)/4
-    N4 =  (1+z)*(1-e**2)/2
-    N5 = -(1+z)*(1+e)*(1-z-e)/4
-    N6 =  (1-z**2)*(1+e)/2
-    N7 = -(1-z)*(1+e)*(1+z-e)/4
-    N8 =  (1-z)*(1-e**2)/2
-    N = as_vector([N1, N2, N3, N4, N5, N6, N7, N8])
-    Nx = inner(u, N)
-    Ny = inner(v, N)
-    return as_vector((Nx, Ny))</code></pre>
-</details>
-</dd>
-<dt id="optimize.with_derivative"><code class="name flex">
-<span>def <span class="ident">with_derivative</span></span>(<span>temp, wrt=None)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Decorator to wrap the fenics chain.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>temp</code></strong> :&ensp;<code>list[dolfin_adjoint.FunctionSpace]</code></dt>
-<dd>Function spaces that contain each control variables.</dd>
-<dt><strong><code>wrt</code></strong> :&ensp;<code>list[int]</code>, optional</dt>
-<dd>Automatic derivative of cost w.r.t. wrt index. Defaults to None.</dd>
-</dl>
-<p>Returns:</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def with_derivative(temp, wrt=None):
-    &#39;&#39;&#39;
-    Decorator to wrap the fenics chain.
-
-    Args:
-        temp (list[dolfin_adjoint.FunctionSpace]): Function spaces that contain each control variables.
-        wrt (list[int], optional): Automatic derivative of cost w.r.t. wrt index. Defaults to None.
-
-    Returns:
-    &#39;&#39;&#39;
-    def _with_derivative(func):
-        def wrapper(*args, **kwargs):
-            x = np.split(args[0], len(temp))
-            xs = []
-            for pack in zip(x, temp):
-                x, X = pack
-                xs.append(from_numpy(x, Function(X)))
-            res = func(xs, **kwargs)
-            Js = []
-            Hs = []
-            if wrt is None:
-                for x_ in xs:
-                    control = Control(x_)
-                    Js.append(to_numpy(compute_gradient(res, control)))
-                J = np.concatenate(Js)
-                return res, J
-            else:
-                for i in range(len(xs)):
-                    if i not in wrt:
-                        Js.append(to_numpy(xs[i])*0)
-                    else:
-                        control = Control(xs[i])
-                        Js.append(to_numpy(compute_gradient(res, control)))
-                J = np.concatenate(Js)
-                return res, J
-        return wrapper
-    return _with_derivative</code></pre>
-</details>
-</dd>
-<dt id="optimize.without_derivative"><code class="name flex">
-<span>def <span class="ident">without_derivative</span></span>(<span>temp)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Decorator to wrap the fenics chain without derivative.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>temp</code></strong> :&ensp;<code>list[dolfin_adjoint.FunctionSpace]</code></dt>
-<dd>Function spaces that contain each control variables.</dd>
-</dl>
-<p>Returns:</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def without_derivative(temp):
-    &#39;&#39;&#39;
-    Decorator to wrap the fenics chain without derivative.
-
-    Args:
-        temp (list[dolfin_adjoint.FunctionSpace]): Function spaces that contain each control variables.
-
-    Returns:
-    &#39;&#39;&#39;
-    def _without_derivative(func):
-        def wrapper(*args, **kwargs):
-            x = np.split(args[0], len(temp))
-            xs = []
-            for pack in zip(x, temp):
-                x, X = pack
-                xs.append(from_numpy(x, Function(X)))
-            res = func(xs, **kwargs)
-            return res
-        return wrapper
-    return _without_derivative</code></pre>
-</details>
-</dd>
-</dl>
 </section>
 <section>
-<h2 class="section-title" id="header-classes">Classes</h2>
-<dl>
-<dt id="optimize.Logger"><code class="flex name class">
-<span>class <span class="ident">Logger</span></span>
-<span>(</span><span>dir, name)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Logging a cost to .csv file at each iterations.</p>
-<h2 id="attributes">Attributes</h2>
-<dl>
-<dt><strong><code>dir</code></strong> :&ensp;<code>string</code></dt>
-<dd>Directory name</dd>
-<dt><strong><code>name</code></strong> :&ensp;<code>string</code></dt>
-<dd>File name</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class Logger():
-    &#39;&#39;&#39;
-    Logging a cost to .csv file at each iterations.
-
-    Attributes:
-        dir (string): Directory name
-        name (string): File name
-    &#39;&#39;&#39;
-    def __init__(self, dir, name):  
-        self.dir = dir
-        self.name = name
-        with open(self.dir + &#39;/&#39; + self.name + &#39;.csv&#39;, &#39;w&#39;) as f:
-            f.write(&#39;fenics-optimize\n&#39;)
-            f.write(&#39;Date, {}\n&#39;.format(datetime.datetime.now()))
-            f.write(&#39;Iter.,&#39; + self.name + &#39;\n&#39;)
-        self.count = 0
-
-    def rec(self, value):
-        &#39;&#39;&#39;
-        Logging.
-
-        Args:
-            value (float): Logging Value.
-        &#39;&#39;&#39;
-        self.count += 1
-        with open(self.dir + &#39;/&#39; + self.name + &#39;.csv&#39;, &#39;a&#39;) as f:
-            f.write(&#39;{}, {}\n&#39;.format(self.count, value))</code></pre>
-</details>
-<h3>Methods</h3>
-<dl>
-<dt id="optimize.Logger.rec"><code class="name flex">
-<span>def <span class="ident">rec</span></span>(<span>self, value)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Logging.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>value</code></strong> :&ensp;<code>float</code></dt>
-<dd>Logging Value.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def rec(self, value):
-    &#39;&#39;&#39;
-    Logging.
-
-    Args:
-        value (float): Logging Value.
-    &#39;&#39;&#39;
-    self.count += 1
-    with open(self.dir + &#39;/&#39; + self.name + &#39;.csv&#39;, &#39;a&#39;) as f:
-        f.write(&#39;{}, {}\n&#39;.format(self.count, value))</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
-<dt id="optimize.Recorder"><code class="flex name class">
-<span>class <span class="ident">Recorder</span></span>
-<span>(</span><span>dir, name)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Recording a field to .pvd file at each iterations.</p>
-<h2 id="attributes">Attributes</h2>
-<dl>
-<dt><strong><code>dir</code></strong> :&ensp;<code>string</code></dt>
-<dd>Directory name</dd>
-<dt><strong><code>name</code></strong> :&ensp;<code>string</code></dt>
-<dd>File name</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class Recorder():
-    &#39;&#39;&#39;
-    Recording a field to .pvd file at each iterations.
-
-    Attributes:
-        dir (string): Directory name
-        name (string): File name
-    &#39;&#39;&#39;
-    def __init__(self, dir, name):  
-        self.dir = dir
-        self.name = name
-        self.f = File(self.dir + &#39;/&#39; + self.name + &#39;/&#39; + self.name + &#39;.pvd&#39;)
-
-    def rec(self, u):
-        &#39;&#39;&#39;
-        Recording.
-
-        Args:
-            u (dolfin_adjoin.Function): Field
-        &#39;&#39;&#39;
-        u.rename(self.name, &#39;label&#39;)    
-        self.f &lt;&lt; u</code></pre>
-</details>
-<h3>Methods</h3>
-<dl>
-<dt id="optimize.Recorder.rec"><code class="name flex">
-<span>def <span class="ident">rec</span></span>(<span>self, u)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Recording.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>u</code></strong> :&ensp;<code>dolfin_adjoin.Function</code></dt>
-<dd>Field</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def rec(self, u):
-    &#39;&#39;&#39;
-    Recording.
-
-    Args:
-        u (dolfin_adjoin.Function): Field
-    &#39;&#39;&#39;
-    u.rename(self.name, &#39;label&#39;)    
-    self.f &lt;&lt; u</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
-</dl>
 </section>
 </article>
 <nav id="sidebar">
@@ -707,40 +185,12 @@ structural models (beams, plates and shells) expressed in the Unified Form
 <ul id="index">
 <li><h3><a href="#header-submodules">Sub-modules</a></h3>
 <ul>
-<li><code><a title="optimize.Core" href="Core.html">optimize.Core</a></code></li>
-<li><code><a title="optimize.Filters" href="Filters.html">optimize.Filters</a></code></li>
-<li><code><a title="optimize.Mechanics" href="Mechanics.html">optimize.Mechanics</a></code></li>
-<li><code><a title="optimize.Optimizer" href="Optimizer.html">optimize.Optimizer</a></code></li>
-<li><code><a title="optimize.Solvers" href="Solvers.html">optimize.Solvers</a></code></li>
-<li><code><a title="optimize.Utilities" href="Utilities.html">optimize.Utilities</a></code></li>
-<li><code><a title="optimize.fecr" href="fecr.html">optimize.fecr</a></code></li>
-<li><code><a title="optimize.shells" href="shells/index.html">optimize.shells</a></code></li>
-</ul>
-</li>
-<li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="">
-<li><code><a title="optimize.HSLoptimize" href="#optimize.HSLoptimize">HSLoptimize</a></code></li>
-<li><code><a title="optimize.MMAoptimize" href="#optimize.MMAoptimize">MMAoptimize</a></code></li>
-<li><code><a title="optimize.helmholtzFilter" href="#optimize.helmholtzFilter">helmholtzFilter</a></code></li>
-<li><code><a title="optimize.isoparametric2Dfilter" href="#optimize.isoparametric2Dfilter">isoparametric2Dfilter</a></code></li>
-<li><code><a title="optimize.with_derivative" href="#optimize.with_derivative">with_derivative</a></code></li>
-<li><code><a title="optimize.without_derivative" href="#optimize.without_derivative">without_derivative</a></code></li>
-</ul>
-</li>
-<li><h3><a href="#header-classes">Classes</a></h3>
-<ul>
-<li>
-<h4><code><a title="optimize.Logger" href="#optimize.Logger">Logger</a></code></h4>
-<ul class="">
-<li><code><a title="optimize.Logger.rec" href="#optimize.Logger.rec">rec</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="optimize.Recorder" href="#optimize.Recorder">Recorder</a></code></h4>
-<ul class="">
-<li><code><a title="optimize.Recorder.rec" href="#optimize.Recorder.rec">rec</a></code></li>
-</ul>
-</li>
+<li><code><a title="fenics_optimize.Core" href="Core.html">fenics_optimize.Core</a></code></li>
+<li><code><a title="fenics_optimize.Filters" href="Filters.html">fenics_optimize.Filters</a></code></li>
+<li><code><a title="fenics_optimize.Mechanics" href="Mechanics.html">fenics_optimize.Mechanics</a></code></li>
+<li><code><a title="fenics_optimize.Optimizer" href="Optimizer.html">fenics_optimize.Optimizer</a></code></li>
+<li><code><a title="fenics_optimize.Solvers" href="Solvers.html">fenics_optimize.Solvers</a></code></li>
+<li><code><a title="fenics_optimize.Utilities" href="Utilities.html">fenics_optimize.Utilities</a></code></li>
 </ul>
 </li>
 </ul>

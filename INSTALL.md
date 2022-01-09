@@ -96,5 +96,14 @@ cmake -DPYTHON_EXECUTABLE=/usr/bin/python3 ..
 
 and run `make` and `make install`.
 
+## fecr installation
+
+Using `pip` to install
+
+```
+pip install git+https://github.com/IvanYashchuk/firedrake-numpy-adjoint@master
+```
+
+
 
 
