@@ -25,11 +25,11 @@
 ## Example
 2-D Poisson topology optimization problem.
 
-First, import `optimize` with `dolfin`, `dolfin-adjoint` and `numpy`.
+First, import `fenics_optimize` with `dolfin`, `dolfin-adjoint` and `numpy`.
 ```python
 from dolfin import *
 from dolfin_adjoint import *
-import optimize as op
+import fenics_optimize as op
 import numpy as np
 ```
 
@@ -63,7 +63,7 @@ def constraint(xs):
 Finally, optimize the cost function with inequality constraints.
 
 ```python
-op.MMAoptimize(problemSize, x0, forward, constraint, maxeval=1000, bounds=[0, 1], rel=1e-20)
+op.MMAoptimize(problemSize, x0, forward, constraints, maxeval=1000, bounds=[0, 1], rel=1e-20)
 ```
 
 ## Installation
