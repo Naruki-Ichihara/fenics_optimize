@@ -47,7 +47,7 @@ def forward(xs):
     a = inner(grad(u), k(rho)*grad(v))*dx
     L = f*v*dx
     A, b = assemble_system(a, L, bcs)
-    Th = op.AMGsolver(A, b).solve(Th, X, False)
+    Th = op.AMGsolver(A, b).solve(Th, X)
     cost = assemble(inner(grad(Th), k(rho)*grad(Th))*dx)
     return cost
 
@@ -77,11 +77,11 @@ First, please install Docker. Linux users should follow the [instraction](https:
 
 Second, clone this repository on your system.
 ```
-git clone https://github.com/Naruki-Ichihara/fenics-optimize.git
+git clone https://github.com/Naruki-Ichihara/fenics_optimize.git
 ```
 and move to the docker-compose directory
 ```
-cd morphogenesis/.docker_optimize
+cd fenics_optimize/.docker_optimize
 ```
 Then, launch the docker-compose and pull the image from our docker hub.
 ```
