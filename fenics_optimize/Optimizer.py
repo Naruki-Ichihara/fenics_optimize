@@ -6,7 +6,6 @@ from dolfin import *
 from dolfin_adjoint import *
 import nlopt as nl
 import cyipopt as cp
-from cyipopt import minimize_ipopt
 import numpy as np
 
 def MMAoptimize(problemSize, initial, forward, constraints, bounds, maxeval=100, rel=1e-8, verbosity=1):

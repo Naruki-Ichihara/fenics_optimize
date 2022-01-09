@@ -17,13 +17,19 @@ def with_derivative(temp, wrt=None):
 
     Args:
         temp (list[dolfin_adjoint.FunctionSpace]): Function spaces that contain each control variables.
-        wrt (list[int], optional): Automatic derivative of cost w.r.t. wrt index. Defaults to None.
+        wrt (list[int], optional): Automatic derivative of cost w.r.t. wrt index. 
+                                   Defaults to None to calculate Jacobians for all controls.
 
     Returns:
     '''
     def _with_derivative(func):
         def wrapper(*args, **kwargs):
-            x = np.split(args[0], len(temp))
+            try:
+                split_size = len(temp)
+            except TypeError:
+                raise TypeError('Wrong type argments is detected. The temp argment must be list of the FunctionSpace.')
+
+            x = np.split(args[0], split_size)
             xs = []
             for pack in zip(x, temp):
                 x, X = pack

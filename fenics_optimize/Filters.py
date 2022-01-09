@@ -4,7 +4,6 @@
 
 [Detail]
 '''
-
 from dolfin import *
 from dolfin_adjoint import *
 import numpy as np
