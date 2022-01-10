@@ -99,7 +99,7 @@ First, make sure to install the following dependencies:
 
 Second, install using pip.
 ```
-pip install git+https://github.com/Naruki-Ichihara/fenics-optimize.git@main
+pip install git+https://github.com/Naruki-Ichihara/fenics_optimize.git@main
 ```
 
 [Installation page](https://github.com/Naruki-Ichihara/fenics_optimize/blob/main/INSTALL.md) details installation instruction on your local system.
