@@ -34,7 +34,7 @@ class Bottom(SubDomain):
 def clamped_boundary(x, on_boundary):
     return on_boundary and x[0] < 1e-10 or x[0] > 19.999
 
-@op.with_derivative(Xs, wrt=[2])
+@op.with_derivative(Xs)
 def forward(xs):
     rho = op.helmholtzFilter(xs[0], X, R)
     facets = MeshFunction('size_t', mesh, 1)

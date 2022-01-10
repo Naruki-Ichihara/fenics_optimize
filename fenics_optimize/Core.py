@@ -29,14 +29,21 @@ def with_derivative(temp, wrt=None):
             except TypeError:
                 raise TypeError('Wrong type argments is detected. The temp argment must be list of the FunctionSpace.')
 
-            x = np.split(args[0], split_size)
+            split_index = []
+            index = 0
+            for template in temp:
+                index += Function(template).vector().size()
+                split_index.append(index)
+            x = np.split(args[0], indices_or_sections=split_index)
+
             xs = []
             for pack in zip(x, temp):
                 x, X = pack
                 xs.append(from_numpy(x, Function(X)))
+
             res = func(xs, **kwargs)
+
             Js = []
-            Hs = []
             if wrt is None:
                 for x_ in xs:
                     control = Control(x_)
@@ -66,11 +73,23 @@ def without_derivative(temp):
     '''
     def _without_derivative(func):
         def wrapper(*args, **kwargs):
-            x = np.split(args[0], len(temp))
+            try:
+                split_size = len(temp)
+            except TypeError:
+                raise TypeError('Wrong type argments is detected. The temp argment must be list of the FunctionSpace.')
+
+            split_index = []
+            index = 0
+            for template in temp:
+                index += Function(template).vector().size()
+                split_index.append(index)
+            x = np.split(args[0], indices_or_sections=split_index)
+
             xs = []
             for pack in zip(x, temp):
                 x, X = pack
                 xs.append(from_numpy(x, Function(X)))
+
             res = func(xs, **kwargs)
             return res
         return wrapper

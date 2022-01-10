@@ -1,8 +1,8 @@
 from dolfin import *
 from dolfin_adjoint import *
-import optimize as op
+import fenics_optimize as op
 from ufl.operators import atan_2
-from optimize.Mechanics import epsilon, stress_from_voigt, strain_to_voigt, rotated_lamina_stiffness_inplane
+from fenics_optimize.Mechanics import epsilon, stress_from_voigt, strain_to_voigt, rotated_lamina_stiffness_inplane
 import numpy as np
 
 def stress(Q, u):
@@ -57,7 +57,7 @@ def forward(xs):
     bc = DirichletBC(V, Constant((0, 0)), clamped_boundary)
     uh = Function(V)
     A, b = assemble_system(a, L, [bc])
-    uh = op.AMG2Dsolver(A, b).solve(uh, V, False)
+    uh = op.AMGsolver(A, b).solve(uh, V, False, '2-D')
     rec_rho.rec(project(rho, X))
     rec_phi.rec(phi)
     cost = assemble(inner(stress(Q, uh), epsilon(uh))*dx)
@@ -84,4 +84,4 @@ r_min = np.zeros(N)
 x_min = np.concatenate([z_min, e_min, r_min])
 x_max = np.ones(N*3)
 
-op.HSLoptimize(N*3, x0, forward, [constraint], maxeval=1000, bounds=[x_min, x_max], rel=1e-20)
+op.HSLoptimize(N*3, x0, forward, [constraint], maxeval=1000, bounds=[x_min, x_max], rel=1e-20, solver_type='ma97')
