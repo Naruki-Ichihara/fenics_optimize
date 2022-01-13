@@ -8,7 +8,7 @@ import nlopt as nl
 import cyipopt as cp
 import numpy as np
 
-def MMAoptimize(problemSize, initial, forward, constraints, bounds, maxeval=100, rel=1e-8, verbosity=1):
+def MMAoptimize(problemSize, initial, forward, constraints=None, bounds=[0, 1], maxeval=100, rel=1e-8, verbosity=1):
     '''
     Method of Moving Asymptotes based on Nlopt. Working with Jacobians.
 
@@ -30,12 +30,16 @@ def MMAoptimize(problemSize, initial, forward, constraints, bounds, maxeval=100,
         cost, J = forward(x)
         grad[:] = J
         return cost
-    for constraint in constraints:
-        def const(x, grad):
-            cost, J = constraint(x)
-            grad[:] = J
-            return cost
-        opt.add_inequality_constraint(const, 1e-8)
+    if constraints is not None:
+        for constraint in constraints:
+            def const(x, grad):
+                cost, J = constraint(x)
+                grad[:] = J
+                return cost
+            opt.add_inequality_constraint(const, 1e-8)
+    else:
+        print('Optimizer is conctructed without any constraints.')
+        
     opt.set_min_objective(eval)
     opt.add_inequality_constraint(const, 1e-8)
     opt.set_lower_bounds(bounds[0])
@@ -45,7 +49,7 @@ def MMAoptimize(problemSize, initial, forward, constraints, bounds, maxeval=100,
     opt.set_maxeval(maxeval)
     return opt.optimize(initial)
 
-def HSLoptimize(problemSize, initial, forward, constraints, bounds, maxeval=100, rel=1e-8, verbosity=5, solver_type='ma27'):
+def HSLoptimize(problemSize, initial, forward, constraints=None, bounds=[0, 1], maxeval=100, rel=1e-8, verbosity=5, solver_type='ma27'):
     '''
     HSL (ma-XX) by Ipopt optimizer. Working with Jacobians.
 
@@ -63,32 +67,47 @@ def HSLoptimize(problemSize, initial, forward, constraints, bounds, maxeval=100,
     Returns:
         optimized (np.ndarray): Optimized controls.
     '''
-    class HS():
-        def objective(self, x):
-            return forward(x)[0]
+    if constraints is not None:
+        class Problem():
+            def objective(self, x):
+                return forward(x)[0]
         
-        def gradient(self, x):
-            return forward(x)[1]
+            def gradient(self, x):
+                return forward(x)[1]
 
-        def constraints(self, x):
-            constraints_list = []
-            for constraint in constraints:
-                constraints_list.append(constraint(x)[0])
-            return np.array(constraints_list)
+            def constraints(self, x):
+                constraints_list = []
+                for constraint in constraints:
+                    constraints_list.append(constraint(x)[0])
+                return np.array(constraints_list)
 
-        def jacobian(self, x):
-            constraints_list = []
-            for constraint in constraints:
-                constraints_list.append(constraint(x)[1])
-            return np.array(constraints_list)
+            def jacobian(self, x):
+                constraints_list = []
+                for constraint in constraints:
+                    constraints_list.append(constraint(x)[1])
+                return np.array(constraints_list)
 
-    cl = [-1e19]
-    cu = np.zeros(len(constraints))
+        cl = [-1e19]
+        cu = np.zeros(len(constraints))
+        m = len(cl)
+    else:
+        class Problem():
+            def objective(self, x):
+                return forward(x)[0]
+        
+            def gradient(self, x):
+                return forward(x)[1]
+        print('Optimizer is conctructed without any constraints.')
+        m = 0
+        cl = None
+        cu = None
+
+
 
     nlp = cp.Problem(
     n=problemSize,
-    m=len(cl),
-    problem_obj=HS(),
+    m=m,
+    problem_obj=Problem(),
     lb=bounds[0],
     ub=bounds[1],
     cl=cl,
