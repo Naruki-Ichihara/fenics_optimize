@@ -128,7 +128,8 @@ def max_derivative_approximation(temp, wrt=None, rho=50.0):
                 xs.append(from_numpy(x, Function(X)))
 
             res = func(xs, **kwargs)
-            cost = 1/rho*ln(assemble(exp(rho*res)*dx))
+            cost = res.vector().max()
+            # cost = 1/rho*ln(assemble(exp(rho*res)*dx))
 
             Js = []
             if wrt is None:
