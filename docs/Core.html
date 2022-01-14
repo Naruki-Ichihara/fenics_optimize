@@ -48,20 +48,33 @@ def with_derivative(temp, wrt=None):
 
     Args:
         temp (list[dolfin_adjoint.FunctionSpace]): Function spaces that contain each control variables.
-        wrt (list[int], optional): Automatic derivative of cost w.r.t. wrt index. Defaults to None.
+        wrt (list[int], optional): Automatic derivative of cost w.r.t. wrt index. 
+                                   Defaults to None to calculate Jacobians for all controls.
 
     Returns:
     &#39;&#39;&#39;
     def _with_derivative(func):
         def wrapper(*args, **kwargs):
-            x = np.split(args[0], len(temp))
+            try:
+                split_size = len(temp)
+            except TypeError:
+                raise TypeError(&#39;Wrong type argments is detected. The temp argment must be list of the FunctionSpace.&#39;)
+
+            split_index = []
+            index = 0
+            for template in temp:
+                index += Function(template).vector().size()
+                split_index.append(index)
+            x = np.split(args[0], indices_or_sections=split_index)
+
             xs = []
             for pack in zip(x, temp):
                 x, X = pack
                 xs.append(from_numpy(x, Function(X)))
+
             res = func(xs, **kwargs)
+
             Js = []
-            Hs = []
             if wrt is None:
                 for x_ in xs:
                     control = Control(x_)
@@ -91,15 +104,83 @@ def without_derivative(temp):
     &#39;&#39;&#39;
     def _without_derivative(func):
         def wrapper(*args, **kwargs):
-            x = np.split(args[0], len(temp))
+            try:
+                split_size = len(temp)
+            except TypeError:
+                raise TypeError(&#39;Wrong type argments is detected. The temp argment must be list of the FunctionSpace.&#39;)
+
+            split_index = []
+            index = 0
+            for template in temp:
+                index += Function(template).vector().size()
+                split_index.append(index)
+            x = np.split(args[0], indices_or_sections=split_index)
+
             xs = []
             for pack in zip(x, temp):
                 x, X = pack
                 xs.append(from_numpy(x, Function(X)))
+
             res = func(xs, **kwargs)
             return res
         return wrapper
-    return _without_derivative</code></pre>
+    return _without_derivative
+
+def max_derivative_approximation(temp, wrt=None, rho=50.0):
+    &#39;&#39;&#39;
+    Return max value and Jacobian of a given field. 
+    KS function approximates the Jacobian for the max type cost function.
+    Notably, this function returns strict max value.
+
+    Args:
+        temp (list): Function spaces that contain each control variables.
+        wrt (list, optional): Automatic derivative of cost w.r.t. wrt index. 
+                              Defaults to None to calculate Jacobians for all controls.
+        rho (float, optional): Parameter. Lager rho provides great approximation but numerical instability.
+                                Defaults to 50.0.
+    &#39;&#39;&#39;    
+    def _max_derivative_approximation(func):
+        def wrapper(*args, **kwargs):
+            try:
+                split_size = len(temp)
+            except TypeError:
+                raise TypeError(&#39;Wrong type argments is detected. The temp argment must be list of the FunctionSpace.&#39;)
+
+            split_index = []
+            index = 0
+            for template in temp:
+                index += Function(template).vector().size()
+                split_index.append(index)
+            x = np.split(args[0], indices_or_sections=split_index)
+
+            xs = []
+            for pack in zip(x, temp):
+                x, X = pack
+                xs.append(from_numpy(x, Function(X)))
+
+            res = func(xs, **kwargs)
+            cost = 1/rho*ln(assemble(exp(rho*res)*dx))
+
+            Js = []
+            if wrt is None:
+                for x_ in xs:
+                    control = Control(x_)
+                    F = assemble(exp(rho*res)*dx)
+                    dF = compute_gradient(F, control)
+                    Js.append(to_numpy(dF)/(F*rho))
+                J = np.concatenate(Js)
+                return cost, J
+            else:
+                for i in range(len(xs)):
+                    if i not in wrt:
+                        Js.append(to_numpy(xs[i])*0)
+                    else:
+                        control = Control(xs[i])
+                        Js.append(to_numpy(compute_gradient(res, control)))
+                J = np.concatenate(Js)
+                return cost, J
+        return wrapper
+    return _max_derivative_approximation</code></pre>
 </details>
 </section>
 <section>
@@ -109,6 +190,85 @@ def without_derivative(temp):
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="fenics_optimize.Core.max_derivative_approximation"><code class="name flex">
+<span>def <span class="ident">max_derivative_approximation</span></span>(<span>temp, wrt=None, rho=50.0)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return max value and Jacobian of a given field.
+KS function approximates the Jacobian for the max type cost function.
+Notably, this function returns strict max value.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>temp</code></strong> :&ensp;<code>list</code></dt>
+<dd>Function spaces that contain each control variables.</dd>
+<dt><strong><code>wrt</code></strong> :&ensp;<code>list</code>, optional</dt>
+<dd>Automatic derivative of cost w.r.t. wrt index.
+Defaults to None to calculate Jacobians for all controls.</dd>
+<dt><strong><code>rho</code></strong> :&ensp;<code>float</code>, optional</dt>
+<dd>Parameter. Lager rho provides great approximation but numerical instability.
+Defaults to 50.0.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def max_derivative_approximation(temp, wrt=None, rho=50.0):
+    &#39;&#39;&#39;
+    Return max value and Jacobian of a given field. 
+    KS function approximates the Jacobian for the max type cost function.
+    Notably, this function returns strict max value.
+
+    Args:
+        temp (list): Function spaces that contain each control variables.
+        wrt (list, optional): Automatic derivative of cost w.r.t. wrt index. 
+                              Defaults to None to calculate Jacobians for all controls.
+        rho (float, optional): Parameter. Lager rho provides great approximation but numerical instability.
+                                Defaults to 50.0.
+    &#39;&#39;&#39;    
+    def _max_derivative_approximation(func):
+        def wrapper(*args, **kwargs):
+            try:
+                split_size = len(temp)
+            except TypeError:
+                raise TypeError(&#39;Wrong type argments is detected. The temp argment must be list of the FunctionSpace.&#39;)
+
+            split_index = []
+            index = 0
+            for template in temp:
+                index += Function(template).vector().size()
+                split_index.append(index)
+            x = np.split(args[0], indices_or_sections=split_index)
+
+            xs = []
+            for pack in zip(x, temp):
+                x, X = pack
+                xs.append(from_numpy(x, Function(X)))
+
+            res = func(xs, **kwargs)
+            cost = 1/rho*ln(assemble(exp(rho*res)*dx))
+
+            Js = []
+            if wrt is None:
+                for x_ in xs:
+                    control = Control(x_)
+                    F = assemble(exp(rho*res)*dx)
+                    dF = compute_gradient(F, control)
+                    Js.append(to_numpy(dF)/(F*rho))
+                J = np.concatenate(Js)
+                return cost, J
+            else:
+                for i in range(len(xs)):
+                    if i not in wrt:
+                        Js.append(to_numpy(xs[i])*0)
+                    else:
+                        control = Control(xs[i])
+                        Js.append(to_numpy(compute_gradient(res, control)))
+                J = np.concatenate(Js)
+                return cost, J
+        return wrapper
+    return _max_derivative_approximation</code></pre>
+</details>
+</dd>
 <dt id="fenics_optimize.Core.with_derivative"><code class="name flex">
 <span>def <span class="ident">with_derivative</span></span>(<span>temp, wrt=None)</span>
 </code></dt>
@@ -119,7 +279,8 @@ def without_derivative(temp):
 <dt><strong><code>temp</code></strong> :&ensp;<code>list[dolfin_adjoint.FunctionSpace]</code></dt>
 <dd>Function spaces that contain each control variables.</dd>
 <dt><strong><code>wrt</code></strong> :&ensp;<code>list[int]</code>, optional</dt>
-<dd>Automatic derivative of cost w.r.t. wrt index. Defaults to None.</dd>
+<dd>Automatic derivative of cost w.r.t. wrt index.
+Defaults to None to calculate Jacobians for all controls.</dd>
 </dl>
 <p>Returns:</p></div>
 <details class="source">
@@ -132,20 +293,33 @@ def without_derivative(temp):
 
     Args:
         temp (list[dolfin_adjoint.FunctionSpace]): Function spaces that contain each control variables.
-        wrt (list[int], optional): Automatic derivative of cost w.r.t. wrt index. Defaults to None.
+        wrt (list[int], optional): Automatic derivative of cost w.r.t. wrt index. 
+                                   Defaults to None to calculate Jacobians for all controls.
 
     Returns:
     &#39;&#39;&#39;
     def _with_derivative(func):
         def wrapper(*args, **kwargs):
-            x = np.split(args[0], len(temp))
+            try:
+                split_size = len(temp)
+            except TypeError:
+                raise TypeError(&#39;Wrong type argments is detected. The temp argment must be list of the FunctionSpace.&#39;)
+
+            split_index = []
+            index = 0
+            for template in temp:
+                index += Function(template).vector().size()
+                split_index.append(index)
+            x = np.split(args[0], indices_or_sections=split_index)
+
             xs = []
             for pack in zip(x, temp):
                 x, X = pack
                 xs.append(from_numpy(x, Function(X)))
+
             res = func(xs, **kwargs)
+
             Js = []
-            Hs = []
             if wrt is None:
                 for x_ in xs:
                     control = Control(x_)
@@ -191,11 +365,23 @@ def without_derivative(temp):
     &#39;&#39;&#39;
     def _without_derivative(func):
         def wrapper(*args, **kwargs):
-            x = np.split(args[0], len(temp))
+            try:
+                split_size = len(temp)
+            except TypeError:
+                raise TypeError(&#39;Wrong type argments is detected. The temp argment must be list of the FunctionSpace.&#39;)
+
+            split_index = []
+            index = 0
+            for template in temp:
+                index += Function(template).vector().size()
+                split_index.append(index)
+            x = np.split(args[0], indices_or_sections=split_index)
+
             xs = []
             for pack in zip(x, temp):
                 x, X = pack
                 xs.append(from_numpy(x, Function(X)))
+
             res = func(xs, **kwargs)
             return res
         return wrapper
@@ -220,6 +406,7 @@ def without_derivative(temp):
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="fenics_optimize.Core.max_derivative_approximation" href="#fenics_optimize.Core.max_derivative_approximation">max_derivative_approximation</a></code></li>
 <li><code><a title="fenics_optimize.Core.with_derivative" href="#fenics_optimize.Core.with_derivative">with_derivative</a></code></li>
 <li><code><a title="fenics_optimize.Core.without_derivative" href="#fenics_optimize.Core.without_derivative">without_derivative</a></code></li>
 </ul>

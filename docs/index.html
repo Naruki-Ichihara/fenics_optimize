@@ -24,16 +24,16 @@
 </header>
 <section id="section-intro">
 <div align="center"><img src="https://user-images.githubusercontent.com/70839257/148243588-6517e901-3c49-4dd7-9130-56e61aa94c3e.png" width="400"/>
-<h3><a href="https://naruki-ichihara.github.io/fenics-optimize/"> Documents </a> | Examples </h3></div>
+<h3><a href="https://fenics-optimize-examples.netlify.app/"> Documents </a> | <a href="https://naruki-ichihara.github.io/fenics_optimize/"> API </h3></div>
 <h1 id="fenics-optimize">fenics-optimize</h1>
 <!-- # Short Description -->
 <p><strong>fenics-optimize</strong> is an add-on module of the <a href="https://fenicsproject.org/">FEniCS computing platform</a> for multiphysics optimization problems. </p>
 <!-- # Badges -->
-<p><a href="https://github.com/Naruki-Ichihara/fenics-optimize/issues"><img alt="Github issues" src="https://img.shields.io/github/issues/Naruki-Ichihara/fenics-optimize?style=for-the-badge&amp;logo=appveyor"></a>
-<a href="https://github.com/Naruki-Ichihara/fenics-optimize/network/members"><img alt="Github forks" src="https://img.shields.io/github/forks/Naruki-Ichihara/fenics-optimize?style=for-the-badge&amp;logo=appveyor"></a>
-<a href="https://github.com/Naruki-Ichihara/fenics-optimize/stargazers"><img alt="Github stars" src="https://img.shields.io/github/stars/Naruki-Ichihara/fenics-optimize?style=for-the-badge&amp;logo=appveyor"></a>
-<a href="https://github.com/Naruki-Ichihara/fenics-optimize/"><img alt="Github top language" src="https://img.shields.io/github/languages/top/Naruki-Ichihara/fenics-optimize?style=for-the-badge&amp;logo=appveyor"></a>
-<a href="https://github.com/Naruki-Ichihara/fenics-optimize/"><img alt="Github license" src="https://img.shields.io/github/license/Naruki-Ichihara/fenics-optimize?style=for-the-badge&amp;logo=appveyor"></a></p>
+<p><a href="https://github.com/Naruki-Ichihara/fenics-optimize/issues"><img alt="Github issues" src="https://img.shields.io/github/issues/Naruki-Ichihara/fenics_optimize?style=for-the-badge&amp;logo=appveyor"></a>
+<a href="https://github.com/Naruki-Ichihara/fenics-optimize/network/members"><img alt="Github forks" src="https://img.shields.io/github/forks/Naruki-Ichihara/fenics_optimize?style=for-the-badge&amp;logo=appveyor"></a>
+<a href="https://github.com/Naruki-Ichihara/fenics-optimize/stargazers"><img alt="Github stars" src="https://img.shields.io/github/stars/Naruki-Ichihara/fenics_optimize?style=for-the-badge&amp;logo=appveyor"></a>
+<a href="https://github.com/Naruki-Ichihara/fenics-optimize/"><img alt="Github top language" src="https://img.shields.io/github/languages/top/Naruki-Ichihara/fenics_optimize?style=for-the-badge&amp;logo=appveyor"></a>
+<a href="https://github.com/Naruki-Ichihara/fenics-optimize/"><img alt="Github license" src="https://img.shields.io/github/license/Naruki-Ichihara/fenics_optimize?style=for-the-badge&amp;logo=appveyor"></a></p>
 <h2 id="motivation-and-significance">Motivation and significance</h2>
 <p align="center">
 <img src="https://user-images.githubusercontent.com/70839257/148230717-e25da51a-3f96-461d-960f-8f22381387fc.png" width="600"/>
@@ -41,10 +41,10 @@
 <p><strong>fenics-optimize</strong> enables reusable and straightforward UFL coding for physical optimization problems and provides decorators that bridge easily between a fenics calculation chain and optimizers.</p>
 <h2 id="example">Example</h2>
 <p>2-D Poisson topology optimization problem.</p>
-<p>First, import <code>optimize</code> with <code>dolfin</code>, <code>dolfin-adjoint</code> and <code>numpy</code>.</p>
+<p>First, import <code><a title="fenics_optimize" href="#fenics_optimize">fenics_optimize</a></code> with <code>dolfin</code>, <code>dolfin-adjoint</code> and <code>numpy</code>.</p>
 <pre><code class="language-python">from dolfin import *
 from dolfin_adjoint import *
-import optimize as op
+import fenics_optimize as op
 import numpy as np
 </code></pre>
 <p>Then define the pysical model using the FEniCS with decorator <code>with_derivative</code>.</p>
@@ -58,7 +58,7 @@ def forward(xs):
     a = inner(grad(u), k(rho)*grad(v))*dx
     L = f*v*dx
     A, b = assemble_system(a, L, bcs)
-    Th = op.AMGsolver(A, b).solve(Th, X, False)
+    Th = op.AMGsolver(A, b).solve(Th, X)
     cost = assemble(inner(grad(Th), k(rho)*grad(Th))*dx)
     return cost
 
@@ -71,7 +71,7 @@ def constraint(xs):
     return rel - V
 </code></pre>
 <p>Finally, optimize the cost function with inequality constraints.</p>
-<pre><code class="language-python">op.MMAoptimize(problemSize, x0, forward, constraint, maxeval=1000, bounds=[0, 1], rel=1e-20)
+<pre><code class="language-python">op.MMAoptimize(problemSize, x0, forward, constraints, maxeval=1000, bounds=[0, 1], rel=1e-20)
 </code></pre>
 <h2 id="installation">Installation</h2>
 <h3 id="docker">Docker</h3>
@@ -79,10 +79,10 @@ def constraint(xs):
 <p>Docker enables to build and ship the environment for <strong>fenics-optimize</strong> for almost any platform, e.g., Linux, macOS, or windows.</p>
 <p>First, please install Docker. Linux users should follow the <a href="https://docs.docker.com/get-started/">instraction</a>. Mac or Windows users should install the <a href="https://www.docker.com/products/docker-desktop">Docker Desktop</a>, which suits your platform.</p>
 <p>Second, clone this repository on your system.</p>
-<pre><code>git clone https://github.com/Naruki-Ichihara/fenics-optimize.git
+<pre><code>git clone https://github.com/Naruki-Ichihara/fenics_optimize.git
 </code></pre>
 <p>and move to the docker-compose directory</p>
-<pre><code>cd morphogenesis/.docker_optimize
+<pre><code>cd fenics_optimize/.docker_optimize
 </code></pre>
 <p>Then, launch the docker-compose and pull the image from our docker hub.</p>
 <pre><code>docker-compose up
@@ -97,9 +97,9 @@ def constraint(xs):
 <li><a href="https://github.com/stevengj/nlopt/">nlopt</a></li>
 </ul>
 <p>Second, install using pip.</p>
-<pre><code>pip install git+https://github.com/Naruki-Ichihara/fenics-optimize.git@main
+<pre><code>pip install git+https://github.com/Naruki-Ichihara/fenics_optimize.git@main
 </code></pre>
-<p><a href="https://github.com/Naruki-Ichihara/fenics-optimize/blob/main/installation/INSTALL.md">Installation page</a> details installation instruction on your local system.</p>
+<p><a href="https://github.com/Naruki-Ichihara/fenics_optimize/blob/main/INSTALL.md">Installation page</a> details installation instruction on your local system.</p>
 <h2 id="contributors">Contributors</h2>
 <ul>
 <li><a href="https://github.com/Naruki-Ichihara">Naruki-Ichihara</a></li>
@@ -116,9 +116,9 @@ def constraint(xs):
 .. include:: ../README.md
 &#34;&#34;&#34;
 
-__version__ = &#34;0.0.7.alpha&#34;
+__version__ = &#34;0.0.8.alpha&#34;
 
-from .Core import with_derivative, without_derivative
+from .Core import with_derivative, without_derivative, max_derivative_approximation
 from .Utilities import Recorder, Logger
 from .Solvers import AMGsolver
 from .Optimizer import HSLoptimize, MMAoptimize
