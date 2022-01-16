@@ -1,6 +1,6 @@
 from dolfin import *
 from dolfin_adjoint import *
-import optimize as op
+import fenics_optimize as op
 import numpy as np
 
 V = 0.3  # volume bound on the control
