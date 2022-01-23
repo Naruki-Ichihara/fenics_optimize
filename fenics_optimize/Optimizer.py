@@ -8,7 +8,7 @@ import nlopt as nl
 import cyipopt as cp
 import numpy as np
 
-def MMAoptimize(problemSize, initial, forward, constraints=None, bounds=[0, 1], maxeval=100, rel=1e-8, verbosity=1):
+def MMAoptimize(problemSize, initial, forward, constraints=None, constraints_targets=None, bounds=[0, 1], maxeval=100, rel=1e-8, verbosity=1):
     '''
     Method of Moving Asymptotes based on Nlopt. Working with Jacobians.
 
@@ -16,7 +16,8 @@ def MMAoptimize(problemSize, initial, forward, constraints=None, bounds=[0, 1], 
         problemSize (int): Problem size.
         initial (np.ndarray): numpy vector for the initial values.
         forward (function): Forward calculation chain with decorator `with_derivative`.
-        constraints (list): Inequality constraints list `gs =< 0`.
+        constraints (list): Inequality constraints list `gs =< constraints_target`.
+        constraints_targets (list): Inequality constraint targets list `gs =< constraints_target`.
         bounds (list): Bounds for control variables.
         maxeval (int, optional): Number of maximum evaluations. Defaults to 100.
         rel (float, optional): Relative tolerance. Defaults to 1e-8.
@@ -31,11 +32,12 @@ def MMAoptimize(problemSize, initial, forward, constraints=None, bounds=[0, 1], 
         grad[:] = J
         return cost
     if constraints is not None:
-        for constraint in constraints:
+        for pack in zip(constraints, constraints_targets):
+            constraint, constraints_target = pack
             def const(x, grad):
                 cost, J = constraint(x)
                 grad[:] = J
-                return cost
+                return cost - constraints_target
             opt.add_inequality_constraint(const, 1e-8)
     else:
         print('Optimizer is conctructed without any constraints.')
@@ -49,7 +51,7 @@ def MMAoptimize(problemSize, initial, forward, constraints=None, bounds=[0, 1], 
     opt.set_maxeval(maxeval)
     return opt.optimize(initial)
 
-def HSLoptimize(problemSize, initial, forward, constraints=None, bounds=[0, 1], maxeval=100, rel=1e-8, verbosity=5, solver_type='ma27'):
+def HSLoptimize(problemSize, initial, forward, constraints=None, constraints_targets=None, bounds=[0, 1], maxeval=100, rel=1e-8, verbosity=5, solver_type='ma27'):
     '''
     HSL (ma-XX) by Ipopt optimizer. Working with Jacobians.
 
@@ -57,7 +59,8 @@ def HSLoptimize(problemSize, initial, forward, constraints=None, bounds=[0, 1], 
         problemSize (int): Problem size.
         initial (np.ndarray): numpy vector for the initial values.
         forward (function): Forward calculation chain with decorator `with_derivative`.
-        constraints (list): Inequality constraints list `gs =< 0`.
+        constraints (list): Inequality constraints list `gs =< constraints_target`.
+        constraints_targets (list): Inequality constraint targets list `gs =< constraints_target`.
         bounds (list): Bounds for control variables.
         maxeval (int, optional): Number of maximum evaluations. Defaults to 100.
         rel (float, optional): Relative tolerance. Defaults to 1e-8.
@@ -88,7 +91,7 @@ def HSLoptimize(problemSize, initial, forward, constraints=None, bounds=[0, 1], 
                 return np.array(constraints_list)
 
         cl = [-1e19]
-        cu = np.zeros(len(constraints))
+        cu = constraints_targets
         m = len(cl)
     else:
         class Problem():

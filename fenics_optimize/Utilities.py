@@ -59,3 +59,9 @@ class Logger():
         self.count += 1
         with open(self.dir + '/' + self.name + '.csv', 'a') as f:
             f.write('{}, {}\n'.format(self.count, value))
+
+def catch_problemSize(Xs):
+    size = 0
+    for X in Xs:
+        size += Function(X).vector().size()
+    return int(size)
