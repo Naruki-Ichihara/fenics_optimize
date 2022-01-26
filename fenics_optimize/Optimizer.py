@@ -90,7 +90,7 @@ def HSLoptimize(problemSize, initial, forward, constraints=None, constraints_tar
                     constraints_list.append(constraint(x)[1])
                 return np.array(constraints_list)
 
-        cl = [-1e19, -1e19]
+        cl = [-1e19] * len(constraints_targets)
         cu = constraints_targets
         m = len(cl)
     else:
