@@ -24,7 +24,7 @@
 </header>
 <section id="section-intro">
 <div align="center"><img src="https://user-images.githubusercontent.com/70839257/148243588-6517e901-3c49-4dd7-9130-56e61aa94c3e.png" width="400"/>
-<h3><a href="https://fenics-optimize-examples.netlify.app/"> Documents </a> | <a href="https://naruki-ichihara.github.io/fenics_optimize/"> API </h3></div>
+<h3><a href="https://fenics-optimize.naruki-ichihara.com/"> Documents </a> | <a href="https://naruki-ichihara.github.io/fenics_optimize/"> API </a></h3></div>
 <h1 id="fenics-optimize">fenics-optimize</h1>
 <!-- # Short Description -->
 <p><strong>fenics-optimize</strong> is an add-on module of the <a href="https://fenicsproject.org/">FEniCS computing platform</a> for multiphysics optimization problems. </p>
@@ -116,10 +116,10 @@ def constraint(xs):
 .. include:: ../README.md
 &#34;&#34;&#34;
 
-__version__ = &#34;0.1.0.alpha&#34;
+__version__ = &#34;0.1.1.alpha&#34;
 
-from .Core import with_derivative, without_derivative, max_derivative_approximation
-from .Utilities import Recorder, Logger
+from .Core import with_derivative, without_derivative, with_minmax_derivative
+from .Utilities import Recorder, Logger, catch_problemSize
 from .Solvers import AMGsolver
 from .Optimizer import HSLoptimize, MMAoptimize
 from .Filters import helmholtzFilter, hevisideFilter, isoparametric2Dfilter</code></pre>

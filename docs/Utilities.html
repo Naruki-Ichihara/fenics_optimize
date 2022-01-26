@@ -89,7 +89,13 @@ class Logger():
         &#39;&#39;&#39;
         self.count += 1
         with open(self.dir + &#39;/&#39; + self.name + &#39;.csv&#39;, &#39;a&#39;) as f:
-            f.write(&#39;{}, {}\n&#39;.format(self.count, value))</code></pre>
+            f.write(&#39;{}, {}\n&#39;.format(self.count, value))
+
+def catch_problemSize(Xs):
+    size = 0
+    for X in Xs:
+        size += Function(X).vector().size()
+    return int(size)</code></pre>
 </details>
 </section>
 <section>
@@ -97,6 +103,25 @@ class Logger():
 <section>
 </section>
 <section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="fenics_optimize.Utilities.catch_problemSize"><code class="name flex">
+<span>def <span class="ident">catch_problemSize</span></span>(<span>Xs)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def catch_problemSize(Xs):
+    size = 0
+    for X in Xs:
+        size += Function(X).vector().size()
+    return int(size)</code></pre>
+</details>
+</dd>
+</dl>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
@@ -257,6 +282,11 @@ class Logger():
 <li><h3>Super-module</h3>
 <ul>
 <li><code><a title="fenics_optimize" href="index.html">fenics_optimize</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="fenics_optimize.Utilities.catch_problemSize" href="#fenics_optimize.Utilities.catch_problemSize">catch_problemSize</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
