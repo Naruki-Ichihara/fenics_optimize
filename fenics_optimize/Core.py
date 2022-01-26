@@ -129,7 +129,7 @@ def with_minmax_derivative(temp, wrt=None, method='P-norm', **params):
                 xs.append(from_numpy(x, Function(X)))
 
             res = func(xs, **kwargs)
-            cost = res.vector().max()
+            # cost = res.vector().max()
             # cost = 1/rho*ln(assemble(exp(rho*res)*dx))
 
             Js = []
@@ -139,6 +139,7 @@ def with_minmax_derivative(temp, wrt=None, method='P-norm', **params):
                     k = params['k']
                 except KeyError:
                     raise  KeyError('Invalid key is detected. Please give "k" value bacause "KS" method is selected.')
+                cost = ln(assemble(exp(k*res)*dx))/k
                 if wrt is None:
                     for x_ in xs:
                         control = Control(x_)
@@ -162,6 +163,7 @@ def with_minmax_derivative(temp, wrt=None, method='P-norm', **params):
                     P = params['P']
                 except KeyError:
                     raise  KeyError('Invalid key is detected. Please give "P" value bacause "P-norm" method is selected.')
+                cost = assemble(res**P*dx)**(1/P)
                 if wrt is None:
                     for x_ in xs:
                         control = Control(x_)

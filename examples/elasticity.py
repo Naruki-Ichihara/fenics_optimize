@@ -17,15 +17,12 @@ R = 0.001
 def k(rho):
     return eps + (1 - eps) * rho ** p
 
-rec = op.Recorder('result/elasticity', 'material')
-log = op.Logger('result/elasticity', 'cost')
-
-mesh = RectangleMesh(comm, Point(0, 0), Point(20, 10), 100, 50)
-problemSize = mesh.num_vertices()
+mesh = RectangleMesh(comm, Point(0, 0), Point(20, 10), 1000, 500)
 
 X = FunctionSpace(mesh, "CG", 1)
 Xs = [X]
 V = VectorFunctionSpace(mesh, "CG", 1)
+problemSize = Function(X).vector().size()
 
 class Bottom(SubDomain):
     def inside(self, x, on_boundary):
@@ -51,7 +48,6 @@ def forward(xs):
     A, b = assemble_system(a, L, [bc])
     uh = op.AMGsolver(A, b).solve(uh, V, monitor_convergence=False, build_null_space='2-D')
     cost = assemble(inner(k(rho)*sigma(uh, E, nu), epsilon(uh))*dx)
-    rec.rec(project(rho, X))
     return cost
 
 @op.with_derivative(Xs)
@@ -66,4 +62,4 @@ x0 = np.ones(problemSize)*target
 x_min = np.zeros(problemSize)
 x_max = np.ones(problemSize)
 
-op.MMAoptimize(problemSize, x0, forward, [constraint], maxeval=1000, bounds=[x_min, x_max], rel=1e-20, verbosity=5)#, solver_type='ma97')
+op.HSLoptimize(problemSize, x0, forward, [constraint], [0], maxeval=1000, bounds=[x_min, x_max], rel=1e-20, verbosity=5, solver_type='ma97')

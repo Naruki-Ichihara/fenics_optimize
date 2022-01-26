@@ -6,12 +6,14 @@ import numpy as np
 from mpi4py import MPI
 comm = MPI.COMM_WORLD
 
-rec_sig = op.Recorder('result/stress_constraint', 'sigma')
-rec_rho = op.Recorder('result/stress_constraint', 'material')
+rec_sig = op.Recorder('result/stress_constraint3', 'sigma')
+rec_rho = op.Recorder('result/stress_constraint3', 'material')
+rec_disp = op.Recorder('result/stress_constraint3', 'displacement')
+
 
 E = 1.0e9
 nu = 0.3
-f = Constant((0, -1e3))
+f = Constant((0, 1e3))
 p = 3
 eps = 1.0e-3
 target = 0.5
@@ -62,7 +64,7 @@ uh0 = op.AMGsolver(A0, b0).solve(uh0, V, monitor_convergence=False, build_null_s
 e0 = assemble(inner(sigma(uh0, E, nu), epsilon(uh0))*dx)
 
 @op.with_minmax_derivative(Xs, None, 'P-norm', P=6)
-def stress_constraint(xs):
+def forward(xs):
     rho = op.helmholtzFilter(xs[0], X, R)
     a = inner(k(rho)*sigma(u, E, nu), epsilon(v))*dx
     L = inner(f, v)*ds(1)
@@ -72,15 +74,21 @@ def stress_constraint(xs):
     uh = solver.solve(uh, V, False, '2-D')
     sig_m = project(mises(uh), X)
     rec_sig.rec(sig_m)
+    rec_rho.rec(rho)
+    rec_disp.rec(uh)
     return sig_m
 
 @op.with_derivative(Xs)
-def forward(xs):
+def mass(xs):
     rho = op.helmholtzFilter(xs[0], X, R)
     rho_bulk = project(Constant(1.0), X)
     rho_0 = assemble(rho_bulk*dx)
     rho_f = assemble(rho*dx)
-    rec_rho.rec(rho)
+    return rho_f/rho_0
+
+@op.with_derivative(Xs)
+def stiffness(xs):
+    rho = op.helmholtzFilter(xs[0], X, R)
     a = inner(k(rho)*sigma(u, E, nu), epsilon(v))*dx
     L = inner(f, v)*ds(1)
     A, b = assemble_system(a, L, [bc])
@@ -88,12 +96,10 @@ def forward(xs):
     uh = Function(V)
     uh = solver.solve(uh, V, False, '2-D')
     e = assemble(inner(k0(rho)*sigma(uh, E, nu), epsilon(uh0))*dx)
-    theta = 0.5
-    cost = theta*(rho_f/rho_0) + (1-theta)*(e/e0)
-    return cost
+    return e
 
-x0 = np.ones(problemSize)*0.5
+x0 = np.ones(problemSize)*0.6
 x_min = np.zeros(problemSize)
 x_max = np.ones(problemSize)
 
-op.HSLoptimize(problemSize, x0, forward, [stress_constraint], [5000], maxeval=1000, bounds=[x_min, x_max], rel=1e-20, verbosity=5, solver_type='ma86')
+op.HSLoptimize(problemSize, x0, forward, [mass, stiffness], [0.6, e0**1.5], maxeval=500, bounds=[x_min, x_max], rel=1e-20, verbosity=5, solver_type='ma97')
