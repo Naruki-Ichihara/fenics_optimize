@@ -121,25 +121,26 @@ def without_derivative(temp):
                 x, X = pack
                 xs.append(from_numpy(x, Function(X)))
 
-            res = func(xs, **kwargs)
-            return res
+            res, J = func(xs, **kwargs)
+            return res, J
         return wrapper
     return _without_derivative
 
-def max_derivative_approximation(temp, wrt=None, rho=50.0):
+def with_minmax_derivative(temp, wrt=None, method=&#39;P-norm&#39;, **params):
     &#39;&#39;&#39;
     Return max value and Jacobian of a given field. 
-    KS function approximates the Jacobian for the max type cost function.
+    P-norm of KS function approximates the Jacobian for the max type cost function.
     Notably, this function returns strict max value.
 
     Args:
         temp (list): Function spaces that contain each control variables.
         wrt (list, optional): Automatic derivative of cost w.r.t. wrt index. 
                               Defaults to None to calculate Jacobians for all controls.
-        rho (float, optional): Parameter. Lager rho provides great approximation but numerical instability.
-                                Defaults to 50.0.
+        method (str, optional): Set the approximation method. &#39;P-norm&#39; or &#39;KS&#39; is available. Defaults to &#39;p-norm&#39;.
+        P (float, optional): P value for the p-norm.
+        k (float, optional): k value for the KS approximation.
     &#39;&#39;&#39;    
-    def _max_derivative_approximation(func):
+    def _with_minmax_derivative(func):
         def wrapper(*args, **kwargs):
             try:
                 split_size = len(temp)
@@ -159,29 +160,63 @@ def max_derivative_approximation(temp, wrt=None, rho=50.0):
                 xs.append(from_numpy(x, Function(X)))
 
             res = func(xs, **kwargs)
-            cost = res.vector().max()
+            # cost = res.vector().max()
             # cost = 1/rho*ln(assemble(exp(rho*res)*dx))
 
             Js = []
-            if wrt is None:
-                for x_ in xs:
-                    control = Control(x_)
-                    F = assemble(exp(rho*res)*dx)
-                    dF = compute_gradient(F, control)
-                    Js.append(to_numpy(dF)/(F*rho))
-                J = np.concatenate(Js)
-                return cost, J
+            
+            if method == &#39;KS&#39;:
+                try:
+                    k = params[&#39;k&#39;]
+                except KeyError:
+                    raise  KeyError(&#39;Invalid key is detected. Please give &#34;k&#34; value bacause &#34;KS&#34; method is selected.&#39;)
+                cost = ln(assemble(exp(k*res)*dx))/k
+                if wrt is None:
+                    for x_ in xs:
+                        control = Control(x_)
+                        F = assemble(exp(k*res)*dx)
+                        dF = compute_gradient(F, control)
+                        Js.append(to_numpy(dF)/(F*k))
+                    J = np.concatenate(Js)
+                    return cost, J
+                else:
+                    for i in range(len(xs)):
+                        if i not in wrt:
+                            Js.append(to_numpy(xs[i])*0)
+                        else:
+                            control = Control(xs[i])
+                            Js.append(to_numpy(compute_gradient(res, control)))
+                    J = np.concatenate(Js)
+                    return cost, J
+
+            elif method == &#39;P-norm&#39;:
+                try:
+                    P = params[&#39;P&#39;]
+                except KeyError:
+                    raise  KeyError(&#39;Invalid key is detected. Please give &#34;P&#34; value bacause &#34;P-norm&#34; method is selected.&#39;)
+                cost = assemble(res**P*dx)**(1/P)
+                if wrt is None:
+                    for x_ in xs:
+                        control = Control(x_)
+                        F = assemble(res**P*dx)**(1/P)
+                        dF = compute_gradient(F, control)
+                        Js.append(to_numpy(dF))
+                    J = np.concatenate(Js)
+                    return cost, J
+                else:
+                    for i in range(len(xs)):
+                        if i not in wrt:
+                            Js.append(to_numpy(xs[i])*0)
+                        else:
+                            control = Control(xs[i])
+                            Js.append(to_numpy(compute_gradient(res, control)))
+                    J = np.concatenate(Js)
+                    return cost, J
             else:
-                for i in range(len(xs)):
-                    if i not in wrt:
-                        Js.append(to_numpy(xs[i])*0)
-                    else:
-                        control = Control(xs[i])
-                        Js.append(to_numpy(compute_gradient(res, control)))
-                J = np.concatenate(Js)
-                return cost, J
+                raise KeyError(&#39;Unknown method &#34;{}&#34; is ordered. Only supported &#34;P-norm&#34; and &#34;KS&#34;.&#39;.format(method))
+
         return wrapper
-    return _max_derivative_approximation</code></pre>
+    return _with_minmax_derivative</code></pre>
 </details>
 </section>
 <section>
@@ -191,86 +226,6 @@ def max_derivative_approximation(temp, wrt=None, rho=50.0):
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="fenics_optimize.Core.max_derivative_approximation"><code class="name flex">
-<span>def <span class="ident">max_derivative_approximation</span></span>(<span>temp, wrt=None, rho=50.0)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Return max value and Jacobian of a given field.
-KS function approximates the Jacobian for the max type cost function.
-Notably, this function returns strict max value.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>temp</code></strong> :&ensp;<code>list</code></dt>
-<dd>Function spaces that contain each control variables.</dd>
-<dt><strong><code>wrt</code></strong> :&ensp;<code>list</code>, optional</dt>
-<dd>Automatic derivative of cost w.r.t. wrt index.
-Defaults to None to calculate Jacobians for all controls.</dd>
-<dt><strong><code>rho</code></strong> :&ensp;<code>float</code>, optional</dt>
-<dd>Parameter. Lager rho provides great approximation but numerical instability.
-Defaults to 50.0.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def max_derivative_approximation(temp, wrt=None, rho=50.0):
-    &#39;&#39;&#39;
-    Return max value and Jacobian of a given field. 
-    KS function approximates the Jacobian for the max type cost function.
-    Notably, this function returns strict max value.
-
-    Args:
-        temp (list): Function spaces that contain each control variables.
-        wrt (list, optional): Automatic derivative of cost w.r.t. wrt index. 
-                              Defaults to None to calculate Jacobians for all controls.
-        rho (float, optional): Parameter. Lager rho provides great approximation but numerical instability.
-                                Defaults to 50.0.
-    &#39;&#39;&#39;    
-    def _max_derivative_approximation(func):
-        def wrapper(*args, **kwargs):
-            try:
-                split_size = len(temp)
-            except TypeError:
-                raise TypeError(&#39;Wrong type argments is detected. The temp argment must be list of the FunctionSpace.&#39;)
-
-            split_index = []
-            index = 0
-            for template in temp:
-                index += Function(template).vector().size()
-                split_index.append(index)
-            x = np.split(args[0], indices_or_sections=split_index)
-
-            xs = []
-            for pack in zip(x, temp):
-                x, X = pack
-                xs.append(from_numpy(x, Function(X)))
-
-            res = func(xs, **kwargs)
-            cost = res.vector().max()
-            # cost = 1/rho*ln(assemble(exp(rho*res)*dx))
-
-            Js = []
-            if wrt is None:
-                for x_ in xs:
-                    control = Control(x_)
-                    F = assemble(exp(rho*res)*dx)
-                    dF = compute_gradient(F, control)
-                    Js.append(to_numpy(dF)/(F*rho))
-                J = np.concatenate(Js)
-                return cost, J
-            else:
-                for i in range(len(xs)):
-                    if i not in wrt:
-                        Js.append(to_numpy(xs[i])*0)
-                    else:
-                        control = Control(xs[i])
-                        Js.append(to_numpy(compute_gradient(res, control)))
-                J = np.concatenate(Js)
-                return cost, J
-        return wrapper
-    return _max_derivative_approximation</code></pre>
-</details>
-</dd>
 <dt id="fenics_optimize.Core.with_derivative"><code class="name flex">
 <span>def <span class="ident">with_derivative</span></span>(<span>temp, wrt=None)</span>
 </code></dt>
@@ -341,6 +296,124 @@ Defaults to None to calculate Jacobians for all controls.</dd>
     return _with_derivative</code></pre>
 </details>
 </dd>
+<dt id="fenics_optimize.Core.with_minmax_derivative"><code class="name flex">
+<span>def <span class="ident">with_minmax_derivative</span></span>(<span>temp, wrt=None, method='P-norm', **params)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Return max value and Jacobian of a given field.
+P-norm of KS function approximates the Jacobian for the max type cost function.
+Notably, this function returns strict max value.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>temp</code></strong> :&ensp;<code>list</code></dt>
+<dd>Function spaces that contain each control variables.</dd>
+<dt><strong><code>wrt</code></strong> :&ensp;<code>list</code>, optional</dt>
+<dd>Automatic derivative of cost w.r.t. wrt index.
+Defaults to None to calculate Jacobians for all controls.</dd>
+<dt><strong><code>method</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>Set the approximation method. 'P-norm' or 'KS' is available. Defaults to 'p-norm'.</dd>
+<dt><strong><code>P</code></strong> :&ensp;<code>float</code>, optional</dt>
+<dd>P value for the p-norm.</dd>
+<dt><strong><code>k</code></strong> :&ensp;<code>float</code>, optional</dt>
+<dd>k value for the KS approximation.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def with_minmax_derivative(temp, wrt=None, method=&#39;P-norm&#39;, **params):
+    &#39;&#39;&#39;
+    Return max value and Jacobian of a given field. 
+    P-norm of KS function approximates the Jacobian for the max type cost function.
+    Notably, this function returns strict max value.
+
+    Args:
+        temp (list): Function spaces that contain each control variables.
+        wrt (list, optional): Automatic derivative of cost w.r.t. wrt index. 
+                              Defaults to None to calculate Jacobians for all controls.
+        method (str, optional): Set the approximation method. &#39;P-norm&#39; or &#39;KS&#39; is available. Defaults to &#39;p-norm&#39;.
+        P (float, optional): P value for the p-norm.
+        k (float, optional): k value for the KS approximation.
+    &#39;&#39;&#39;    
+    def _with_minmax_derivative(func):
+        def wrapper(*args, **kwargs):
+            try:
+                split_size = len(temp)
+            except TypeError:
+                raise TypeError(&#39;Wrong type argments is detected. The temp argment must be list of the FunctionSpace.&#39;)
+
+            split_index = []
+            index = 0
+            for template in temp:
+                index += Function(template).vector().size()
+                split_index.append(index)
+            x = np.split(args[0], indices_or_sections=split_index)
+
+            xs = []
+            for pack in zip(x, temp):
+                x, X = pack
+                xs.append(from_numpy(x, Function(X)))
+
+            res = func(xs, **kwargs)
+            # cost = res.vector().max()
+            # cost = 1/rho*ln(assemble(exp(rho*res)*dx))
+
+            Js = []
+            
+            if method == &#39;KS&#39;:
+                try:
+                    k = params[&#39;k&#39;]
+                except KeyError:
+                    raise  KeyError(&#39;Invalid key is detected. Please give &#34;k&#34; value bacause &#34;KS&#34; method is selected.&#39;)
+                cost = ln(assemble(exp(k*res)*dx))/k
+                if wrt is None:
+                    for x_ in xs:
+                        control = Control(x_)
+                        F = assemble(exp(k*res)*dx)
+                        dF = compute_gradient(F, control)
+                        Js.append(to_numpy(dF)/(F*k))
+                    J = np.concatenate(Js)
+                    return cost, J
+                else:
+                    for i in range(len(xs)):
+                        if i not in wrt:
+                            Js.append(to_numpy(xs[i])*0)
+                        else:
+                            control = Control(xs[i])
+                            Js.append(to_numpy(compute_gradient(res, control)))
+                    J = np.concatenate(Js)
+                    return cost, J
+
+            elif method == &#39;P-norm&#39;:
+                try:
+                    P = params[&#39;P&#39;]
+                except KeyError:
+                    raise  KeyError(&#39;Invalid key is detected. Please give &#34;P&#34; value bacause &#34;P-norm&#34; method is selected.&#39;)
+                cost = assemble(res**P*dx)**(1/P)
+                if wrt is None:
+                    for x_ in xs:
+                        control = Control(x_)
+                        F = assemble(res**P*dx)**(1/P)
+                        dF = compute_gradient(F, control)
+                        Js.append(to_numpy(dF))
+                    J = np.concatenate(Js)
+                    return cost, J
+                else:
+                    for i in range(len(xs)):
+                        if i not in wrt:
+                            Js.append(to_numpy(xs[i])*0)
+                        else:
+                            control = Control(xs[i])
+                            Js.append(to_numpy(compute_gradient(res, control)))
+                    J = np.concatenate(Js)
+                    return cost, J
+            else:
+                raise KeyError(&#39;Unknown method &#34;{}&#34; is ordered. Only supported &#34;P-norm&#34; and &#34;KS&#34;.&#39;.format(method))
+
+        return wrapper
+    return _with_minmax_derivative</code></pre>
+</details>
+</dd>
 <dt id="fenics_optimize.Core.without_derivative"><code class="name flex">
 <span>def <span class="ident">without_derivative</span></span>(<span>temp)</span>
 </code></dt>
@@ -384,8 +457,8 @@ Defaults to None to calculate Jacobians for all controls.</dd>
                 x, X = pack
                 xs.append(from_numpy(x, Function(X)))
 
-            res = func(xs, **kwargs)
-            return res
+            res, J = func(xs, **kwargs)
+            return res, J
         return wrapper
     return _without_derivative</code></pre>
 </details>
@@ -408,8 +481,8 @@ Defaults to None to calculate Jacobians for all controls.</dd>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="fenics_optimize.Core.max_derivative_approximation" href="#fenics_optimize.Core.max_derivative_approximation">max_derivative_approximation</a></code></li>
 <li><code><a title="fenics_optimize.Core.with_derivative" href="#fenics_optimize.Core.with_derivative">with_derivative</a></code></li>
+<li><code><a title="fenics_optimize.Core.with_minmax_derivative" href="#fenics_optimize.Core.with_minmax_derivative">with_minmax_derivative</a></code></li>
 <li><code><a title="fenics_optimize.Core.without_derivative" href="#fenics_optimize.Core.without_derivative">without_derivative</a></code></li>
 </ul>
 </li>

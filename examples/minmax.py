@@ -50,7 +50,7 @@ uh0 = op.AMGsolver(A0, b0).solve(uh0, V, monitor_convergence=False, build_null_s
 s0 = dev(sigma(uh0, E, nu))
 mises0 = project(sqrt(3/2*inner(s0, s0)), X).vector().max()
 
-@op.max_derivative_approximation(Xs, None, rho=10)
+@op.with_minmax_derivative(Xs, None, method='P-norm', P=5)
 def forward(xs):
     rho = op.helmholtzFilter(xs[0], X, R)
     a = inner(k(rho)*sigma(u, E, nu), epsilon(v))*dx
