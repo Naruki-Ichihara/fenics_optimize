@@ -1,7 +1,8 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 ''' Solvers.
-[detail]
+
+TODO: add null_space option. Now provides interface only.
 '''
 
 from dolfin import *
