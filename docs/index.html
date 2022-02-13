@@ -5,8 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>fenics_optimize API documentation</title>
-<meta name="description" content="&lt;div align=&#34;center&#34;&gt;&lt;img src=&#34;https://user-images.githubusercontent.com/70839257/148243588-6517e901-3c49-4dd7-9130-56e61aa94c3e.png&#34; width=&#34;400&#34;/&gt;
-…" />
+<meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -23,98 +22,12 @@
 <h1 class="title">Package <code>fenics_optimize</code></h1>
 </header>
 <section id="section-intro">
-<div align="center"><img src="https://user-images.githubusercontent.com/70839257/148243588-6517e901-3c49-4dd7-9130-56e61aa94c3e.png" width="400"/>
-<h3><a href="https://fenics-optimize.naruki-ichihara.com/"> Documents </a> | <a href="https://naruki-ichihara.github.io/fenics_optimize/"> API </a></h3></div>
-<h1 id="fenics-optimize">fenics-optimize</h1>
-<!-- # Short Description -->
-<p><strong>fenics-optimize</strong> is an add-on module of the <a href="https://fenicsproject.org/">FEniCS computing platform</a> for multiphysics optimization problems. </p>
-<!-- # Badges -->
-<p><a href="https://github.com/Naruki-Ichihara/fenics-optimize/issues"><img alt="Github issues" src="https://img.shields.io/github/issues/Naruki-Ichihara/fenics_optimize?style=for-the-badge&amp;logo=appveyor"></a>
-<a href="https://github.com/Naruki-Ichihara/fenics-optimize/network/members"><img alt="Github forks" src="https://img.shields.io/github/forks/Naruki-Ichihara/fenics_optimize?style=for-the-badge&amp;logo=appveyor"></a>
-<a href="https://github.com/Naruki-Ichihara/fenics-optimize/stargazers"><img alt="Github stars" src="https://img.shields.io/github/stars/Naruki-Ichihara/fenics_optimize?style=for-the-badge&amp;logo=appveyor"></a>
-<a href="https://github.com/Naruki-Ichihara/fenics-optimize/"><img alt="Github top language" src="https://img.shields.io/github/languages/top/Naruki-Ichihara/fenics_optimize?style=for-the-badge&amp;logo=appveyor"></a>
-<a href="https://github.com/Naruki-Ichihara/fenics-optimize/"><img alt="Github license" src="https://img.shields.io/github/license/Naruki-Ichihara/fenics_optimize?style=for-the-badge&amp;logo=appveyor"></a></p>
-<h2 id="motivation-and-significance">Motivation and significance</h2>
-<p align="center">
-<img src="https://user-images.githubusercontent.com/70839257/148230717-e25da51a-3f96-461d-960f-8f22381387fc.png" width="600"/>
-</p>
-<p><strong>fenics-optimize</strong> enables reusable and straightforward UFL coding for physical optimization problems and provides decorators that bridge easily between a fenics calculation chain and optimizers.</p>
-<h2 id="example">Example</h2>
-<p>2-D Poisson topology optimization problem.</p>
-<p>First, import <code><a title="fenics_optimize" href="#fenics_optimize">fenics_optimize</a></code> with <code>dolfin</code>, <code>dolfin-adjoint</code> and <code>numpy</code>.</p>
-<pre><code class="language-python">from dolfin import *
-from dolfin_adjoint import *
-import fenics_optimize as op
-import numpy as np
-</code></pre>
-<p>Then define the pysical model using the FEniCS with decorator <code>with_derivative</code>.</p>
-<p><code>with_derivative</code> will wrrap the fenics function to the numpy function and compute Jacobian automatically.</p>
-<pre><code class="language-python">@op.with_derivative([X])
-def forward(xs):
-    rho = op.helmholtzFilter(xs[0], X, R=r)
-    Th = Function(X, name='Temperature')
-    u = TrialFunction(X)
-    v = TestFunction(X)
-    a = inner(grad(u), k(rho)*grad(v))*dx
-    L = f*v*dx
-    A, b = assemble_system(a, L, bcs)
-    Th = op.AMGsolver(A, b).solve(Th, X)
-    cost = assemble(inner(grad(Th), k(rho)*grad(Th))*dx)
-    return cost
-
-@op.with_derivative([X])
-def constraint(xs):
-    rho_bulk = project(Constant(1.0), X)
-    rho_0 = assemble(rho_bulk*dx)
-    rho_f = assemble(xs[0]*dx)
-    rel = rho_f/rho_0
-    return rel - V
-</code></pre>
-<p>Finally, optimize the cost function with inequality constraints.</p>
-<pre><code class="language-python">op.MMAoptimize(problemSize, x0, forward, constraints, maxeval=1000, bounds=[0, 1], rel=1e-20)
-</code></pre>
-<h2 id="installation">Installation</h2>
-<h3 id="docker">Docker</h3>
-<p><a href="https://hub.docker.com/r/ichiharanaruki/fenics-optimize"><img alt="dockeri.co" src="https://dockeri.co/image/ichiharanaruki/fenics-optimize"></a></p>
-<p>Docker enables to build and ship the environment for <strong>fenics-optimize</strong> for almost any platform, e.g., Linux, macOS, or windows.</p>
-<p>First, please install Docker. Linux users should follow the <a href="https://docs.docker.com/get-started/">instraction</a>. Mac or Windows users should install the <a href="https://www.docker.com/products/docker-desktop">Docker Desktop</a>, which suits your platform.</p>
-<p>Second, clone this repository on your system.</p>
-<pre><code>git clone https://github.com/Naruki-Ichihara/fenics_optimize.git
-</code></pre>
-<p>and move to the docker-compose directory</p>
-<pre><code>cd fenics_optimize/.docker_optimize
-</code></pre>
-<p>Then, launch the docker-compose and pull the image from our docker hub.</p>
-<pre><code>docker-compose up
-</code></pre>
-<p>This container will survive until when you stop the container.</p>
-<h3 id="install-on-your-local-host">install on your local host</h3>
-<p>First, make sure to install the following dependencies:</p>
-<ul>
-<li><a href="https://fenicsproject.org/">FEniCS</a> + <a href="https://github.com/dolfin-adjoint/pyadjoint">pyadjoint</a></li>
-<li><a href="https://github.com/IvanYashchuk/fecr">fecr</a></li>
-<li><a href="https://github.com/mechmotum/cyipopt">cyipopt</a></li>
-<li><a href="https://github.com/stevengj/nlopt/">nlopt</a></li>
-</ul>
-<p>Second, install using pip.</p>
-<pre><code>pip install git+https://github.com/Naruki-Ichihara/fenics_optimize.git@main
-</code></pre>
-<p><a href="https://github.com/Naruki-Ichihara/fenics_optimize/blob/main/INSTALL.md">Installation page</a> details installation instruction on your local system.</p>
-<h2 id="contributors">Contributors</h2>
-<ul>
-<li><a href="https://github.com/Naruki-Ichihara">Naruki-Ichihara</a></li>
-</ul>
-<h2 id="references">References</h2>
-<h2 id="cite">Cite</h2>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">#! /usr/bin/python3
 # -*- coding: utf-8 -*-
-&#34;&#34;&#34;
-.. include:: ../README.md
-&#34;&#34;&#34;
 
 __version__ = &#34;0.1.1.alpha&#34;
 
@@ -146,8 +59,7 @@ from .Filters import helmholtzFilter, hevisideFilter, isoparametric2Dfilter</cod
 </dd>
 <dt><code class="name"><a title="fenics_optimize.Solvers" href="Solvers.html">fenics_optimize.Solvers</a></code></dt>
 <dd>
-<div class="desc"><p>Solvers.
-[detail]</p></div>
+<div class="desc"><p>Solvers …</p></div>
 </dd>
 <dt><code class="name"><a title="fenics_optimize.Utilities" href="Utilities.html">fenics_optimize.Utilities</a></code></dt>
 <dd>
@@ -166,21 +78,7 @@ from .Filters import helmholtzFilter, hevisideFilter, isoparametric2Dfilter</cod
 <nav id="sidebar">
 <h1>Index</h1>
 <div class="toc">
-<ul>
-<li><a href="#fenics-optimize">fenics-optimize</a><ul>
-<li><a href="#motivation-and-significance">Motivation and significance</a></li>
-<li><a href="#example">Example</a></li>
-<li><a href="#installation">Installation</a><ul>
-<li><a href="#docker">Docker</a></li>
-<li><a href="#install-on-your-local-host">install on your local host</a></li>
-</ul>
-</li>
-<li><a href="#contributors">Contributors</a></li>
-<li><a href="#references">References</a></li>
-<li><a href="#cite">Cite</a></li>
-</ul>
-</li>
-</ul>
+<ul></ul>
 </div>
 <ul id="index">
 <li><h3><a href="#header-submodules">Sub-modules</a></h3>

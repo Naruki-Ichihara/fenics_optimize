@@ -43,7 +43,6 @@ def MMAoptimize(problemSize, initial, forward, constraints=None, constraints_tar
         print('Optimizer is conctructed without any constraints.')
         
     opt.set_min_objective(eval)
-    opt.add_inequality_constraint(const, 1e-8)
     opt.set_lower_bounds(bounds[0])
     opt.set_upper_bounds(bounds[1])
     opt.set_xtol_rel(rel)

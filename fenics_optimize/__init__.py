@@ -1,8 +1,5 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
-"""
-.. include:: ../README.md
-"""
 
 __version__ = "0.1.1.alpha"
 
