@@ -67,6 +67,23 @@ op.MMAoptimize(problemSize, x0, forward, constraints, maxeval=1000, bounds=[0, 1
 ```
 
 ## Installation
+### Singularity
+
+We recommend using *Singularity* container system. First, install [SingularityCE](https://sylabs.io/singularity) on your host.
+Then download our singularity image:
+```
+singularity pull docker://ichiharanaruki/fenics-optimize:latest
+```
+or from our github release
+```
+export VERSION=0.1.1-alpha
+wget https://github.com/Naruki-Ichihara/fenics_optimize/releases/download/v${VERSION}/fenics-optimize.sif
+```
+then, move into singularity shell
+```
+singularity shell fenics-optimize.sif
+```
+
 ### Docker
 
 [![dockeri.co](https://dockeri.co/image/ichiharanaruki/fenics-optimize)](https://hub.docker.com/r/ichiharanaruki/fenics-optimize)
