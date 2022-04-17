@@ -63,7 +63,7 @@ def constraint(xs):
 Finally, optimize the cost function with inequality constraints.
 
 ```python
-op.MMAoptimize(problemSize, x0, forward, constraints, maxeval=1000, bounds=[0, 1], rel=1e-20)
+op.MMAoptimize(problemSize, x0, forward, [constraint], [0], maxeval=100, bounds=[0, 1], rel=1e-20)
 ```
 
 ## Installation
@@ -72,10 +72,6 @@ op.MMAoptimize(problemSize, x0, forward, constraints, maxeval=1000, bounds=[0, 1
 We recommend using *Singularity* container system. First, install [SingularityCE](https://sylabs.io/singularity) on your host.
 Then download our singularity image:
 ```
-singularity pull docker://ichiharanaruki/fenics-optimize:latest
-```
-or from our github release
-```
 export VERSION=0.1.1-alpha
 wget https://github.com/Naruki-Ichihara/fenics_optimize/releases/download/v${VERSION}/fenics-optimize.sif
 ```
@@ -83,28 +79,6 @@ then, move into singularity shell
 ```
 singularity shell fenics-optimize.sif
 ```
-
-### Docker
-
-[![dockeri.co](https://dockeri.co/image/ichiharanaruki/fenics-optimize)](https://hub.docker.com/r/ichiharanaruki/fenics-optimize)
-
-Docker enables to build and ship the environment for **fenics-optimize** for almost any platform, e.g., Linux, macOS, or windows.
-
-First, please install Docker. Linux users should follow the [instraction](https://docs.docker.com/get-started/). Mac or Windows users should install the [Docker Desktop](https://www.docker.com/products/docker-desktop), which suits your platform.
-
-Second, clone this repository on your system.
-```
-git clone https://github.com/Naruki-Ichihara/fenics_optimize.git
-```
-and move to the docker-compose directory
-```
-cd fenics_optimize/.docker_optimize
-```
-Then, launch the docker-compose and pull the image from our docker hub.
-```
-docker-compose up
-```
-This container will survive until when you stop the container.
 
 ### install on your local host
 First, make sure to install the following dependencies:
