@@ -5,6 +5,8 @@
 /coinhsl/
 .DS_Store/
 *.sif
+*.pvd
+*.vtu
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

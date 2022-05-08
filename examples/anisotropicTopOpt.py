@@ -1,14 +1,15 @@
 from dolfin import *
 from dolfin_adjoint import *
 import fenics_optimize as op
+from fenics_optimize.optimizer import interface_nlopt
 import numpy as np
 from ufl.operators import atan_2, transpose
-import nlopt as nl
+from fecr import from_numpy
 
-E1 = 1
-E2 = 1/15
+E1 = 2400
+E2 = 2400/5
 nu12 = 0.33
-G12 = 1/20
+G12 = 2400/8
 eps = 0.01
 target = 0.5
 R = 0.5
@@ -20,12 +21,6 @@ def SIMP(x, p=3):
 
 def strain_to_voigt(e):
     return as_vector((e[0, 0], e[1, 1], 2*e[0, 1]))
-
-def stress_to_voigt(sigma):
-    return as_vector((sigma[0, 0], sigma[1, 1], sigma[0, 1]))
-
-def strain_from_voigt(e_voigt):
-    return as_matrix(((e_voigt[0], e_voigt[2]/2.), (e_voigt[2]/2., e_voigt[1])))
 
 def stress_from_voigt(sigma_voigt):
     return as_matrix(((sigma_voigt[0], sigma_voigt[2]), (sigma_voigt[2], sigma_voigt[1])))
@@ -67,10 +62,10 @@ Q = as_matrix([[Q11, Q12, Q16],
                 [Q12, Q22, Q26],
                 [Q16, Q26, Q66]])
 
-mesh = RectangleMesh(Point((0, 0)), Point(75, 25), 75, 25)
+mesh = RectangleMesh(Point((0, 0)), Point(75, 25), 75*2, 25*2)
 X = FunctionSpace(mesh, "CG", 1)
 V = VectorFunctionSpace(mesh, "CG", 1)
-Xs = [X, X, X]
+templates = [X, X, X]
 N = Function(X).vector().size()
 problemSize = N*3
 
@@ -99,14 +94,12 @@ class Problem(op.Module):
         L = inner(f, v)*ds(1)
         A, b = assemble_system(a, L, bcs)
         us = Function(V)
-        us = op.amg(A, b, us)
+        us = op.amg(A, b, us, False)
         cost = assemble(inner(stress(Q_rotated, us), strain(us))*dx)
-
         rho_bulk = project(Constant(1.0), X)
         rho_0 = assemble(rho_bulk*dx)
         rho_f = assemble(controls[0]*dx)
         self.volumeFraction = rho_f/rho_0
-
         return cost
 
     def volume_constraint(self):
@@ -116,40 +109,20 @@ x0 = np.ones(N)*target
 z0 = np.ones(N)
 e0 = np.zeros(N)
 initial = np.concatenate([x0, z0, e0])
-
-x_min = np.zeros(N)
-z_min = - np.ones(N)
-e_min = - np.ones(N)
-min_bounds = np.concatenate([x_min, z_min, e_min])
-
-x_max = np.ones(N)
-z_max = np.ones(N)
-e_max = np.ones(N)
-max_bounds = np.concatenate([x_max, z_max, e_max])
-
-controls = [x0, z0, e0]
-templates = [X, X, X]
+min_bounds = np.concatenate([np.zeros(N), -np.ones(N), -np.ones(N)])
+max_bounds = np.ones(N*3)
 
 anisoTopOpt = Problem()
-optimizer = nl.opt(nl.LD_MMA, problemSize)
 
-def eval(x, grad):
-    xs = np.split(x, 3)
-    cost = anisoTopOpt.forward(xs, templates)
-    grad[:] = np.concatenate(anisoTopOpt.backward())
-    return cost
+setting = {'set_lower_bounds': min_bounds,
+           'set_upper_bounds': max_bounds,
+           'set_maxeval': 10
+          }
+params = {'verbosity': 5}
 
-def const(x, grad):
-    measure = anisoTopOpt.volume_constraint()
-    grad[:] = np.concatenate(anisoTopOpt.backward_constraint('volume_constraint', wrt=[0]))
-    return measure
+solution = interface_nlopt(anisoTopOpt, initial, templates, ['volume_constraint'], [0], setting, params)
 
-optimizer.set_min_objective(eval)
-optimizer.add_inequality_constraint(const, 1e-5)
-optimizer.set_lower_bounds(min_bounds)
-optimizer.set_upper_bounds(max_bounds)
-optimizer.set_maxeval(10)
-optimizer.set_param('verbosity', 5)
-solution = optimizer.optimize(initial)
-
-x_opt, z_opt, e_opt = np.split(solution, 3)
+file = File('examples/results/test.pvd')
+x_sol, _, _ = np.split(solution, 3)
+x_fenics = from_numpy(x_sol, Function(X))
+file << x_fenics
