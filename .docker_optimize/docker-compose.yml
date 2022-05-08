@@ -1,9 +1,9 @@
 version: '3.9'
 services:
-  optimize_dev:
+  v02_opt:
     restart: always
-    image: ichiharanaruki/fenics-optimize-academic:0.1.1a
-    container_name: 'optimize_dev'
+    image: ichiharanaruki/fenics_optimize:latest
+    container_name: 'v02_opt'
     working_dir: '/root/'
     tty: true
     volumes:

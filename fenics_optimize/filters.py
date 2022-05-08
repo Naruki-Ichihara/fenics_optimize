@@ -1,12 +1,11 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
-''' Filters for homogenization based topology optimization problems.
-
-[Detail]
+''' Filters in topology optimization.
 '''
 from dolfin import *
 from dolfin_adjoint import *
 import numpy as np
+from ufl import tanh
 
 def helmholtzFilter(u, U, R=0.025):
     '''
@@ -37,22 +36,22 @@ def helmholtzFilter(u, U, R=0.025):
     PETSC_solver.solve(vh.vector(), b)
     return vh
 
-def hevisideFilter(u, V, a=10.0, offset=0.001):
+def hevisideFilter(u, U, beta=10.0, eta=0.5):
     '''
-    Apply the heviside function (approximate with sigmoid function).
+    Apply the heviside function (approximate with hyperbolic tangent function).
 
     Args:
         u (dolfin_adjoint.Function): Target function.
-        V (dolfin_adjoint.FunctionSpace): Function space for function.
-        a (float, optional): Coefficient for the smoothness. Defaults to 50.
-        offset (float, optional): Minimize bias. Defaults to 0.001.
+        U (dolfin_adjoint.FunctionSpace): Function space for function.
+        beta (float): Coefficient for the smoothness. Defaults to 10.
+        eta (float, optional): Cutoff value. Defaults to 0.5.
 
     Returns:
-        dolfin_adjoint.Form: Filtered function form.
+        dolfin_adjoint.Form: Filtered function.
     '''
-    return project((1 + offset*exp(-a*u))/(1 + exp(-a*u)), V)
+    return project((tanh(beta*eta)+tanh(beta*(u-eta)))/(tanh(beta*eta)+tanh(beta*(1.0-eta))), U)
 
-def isoparametric2Dfilter(z, e):
+def box2circleConstraint(z, e):
     '''
     Apply 2D isoparametric projection onto orientation vector.
 
