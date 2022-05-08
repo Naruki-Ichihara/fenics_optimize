@@ -15,7 +15,7 @@
 
 ## Motivation and significance
 
-**fenics-optimize** enables reusable and straightforward UFL coding for physical optimization problems and provides decorators that bridge easily between a fenics calculation chain and optimizers.
+**fenics-optimize** enables reusable and straightforward UFL coding for physical optimization problem.
 
 ## Example
 
@@ -25,7 +25,7 @@
 We recommend using *Singularity* container system. First, install [SingularityCE](https://sylabs.io/singularity) on your host.
 Then download our singularity image:
 ```
-export VERSION=0.1.1-alpha
+export VERSION=0.2.0-alpha
 wget https://github.com/Naruki-Ichihara/fenics_optimize/releases/download/v${VERSION}/fenics-optimize.sif
 ```
 then, move into singularity shell
