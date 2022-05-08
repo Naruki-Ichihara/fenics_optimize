@@ -1,4 +1,3 @@
-<div align="center"><img src="https://user-images.githubusercontent.com/70839257/153740154-08177e3c-a6ef-4918-8478-d0dc8e483801.svg" width="400"/>
 <h3><a href="https://fenics-optimize.naruki-ichihara.com/"> Documents </a> | <a href="https://naruki-ichihara.github.io/fenics_optimize/"> API </a></h3></div>
 
 # fenics-optimize

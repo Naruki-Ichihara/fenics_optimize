@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>fenics_optimize API documentation</title>
-<meta name="description" content="" />
+<title>fenics_optimize.solver API documentation</title>
+<meta name="description" content="Built-in solvers." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -19,43 +19,117 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Package <code>fenics_optimize</code></h1>
+<h1 class="title">Module <code>fenics_optimize.solver</code></h1>
 </header>
 <section id="section-intro">
+<p>Built-in solvers.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">#! /usr/bin/python3
 # -*- coding: utf-8 -*-
+&#39;&#39;&#39; Built-in solvers.
+&#39;&#39;&#39;
 
-__version__ = &#34;0.2.0.alpha&#34;
+from dolfin import *
+from dolfin_adjoint import *
 
-from .core import Module
-from .filters import helmholtzFilter, hevisideFilter, box2circleConstraint
-from .solver import amg</code></pre>
+def amg(A, b, u, monitor_convergence=True, mg_levels_ksp_type=&#39;chebyshev&#39;, mg_levels_pc_type=&#39;jacobi&#39;, mg_levels_esteig_ksp_type=&#39;cg&#39;, mg_levels_ksp_chebyshev_esteig_steps=50):
+    &#39;&#39;&#39;
+    Solving the problem `Au=b` with unknown vector `u`.
+    Args:
+        A (dolfin_adjoint.Form): Bilinear form
+        b (dolfin_adjoint.Form): Linear form
+        u (dolfin_adjoint.Function): Unknown function vector u.
+        monitor_convergence (bool, optional): Monitor_convergence. Defaults to True.
+        mg_levels_ksp_type (str, optional): Defaults to &#39;chebyshev&#39;.
+        mg_levels_pc_type (str, optional): Defaults to &#39;jacobi&#39;.
+        mg_levels_esteig_ksp_type (str, optional): Defaults to &#39;cg&#39;.
+        mg_levels_ksp_chebyshev_esteig_steps (int, optional): Defaults to 50.
+    Returns:
+        dolfin_adjoint.vector: Solution
+    &#39;&#39;&#39;
+    pc = PETScPreconditioner(&#34;petsc_amg&#34;)
+    PETScOptions.set(&#34;mg_levels_ksp_type&#34;, mg_levels_ksp_type)
+    PETScOptions.set(&#34;mg_levels_pc_type&#34;, mg_levels_pc_type)
+    PETScOptions.set(&#34;mg_levels_esteig_ksp_type&#34;, mg_levels_esteig_ksp_type)
+    PETScOptions.set(&#34;mg_levels_ksp_chebyshev_esteig_steps&#34;, mg_levels_ksp_chebyshev_esteig_steps)
+    PETSC_solver = PETScKrylovSolver(&#34;cg&#34;, pc)
+    PETSC_solver.parameters[&#34;monitor_convergence&#34;] = monitor_convergence
+    PETSC_solver.set_operator(A)
+    PETSC_solver.solve(u.vector(), b)
+    return u</code></pre>
 </details>
 </section>
 <section>
-<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt><code class="name"><a title="fenics_optimize.core" href="core.html">fenics_optimize.core</a></code></dt>
+<dt id="fenics_optimize.solver.amg"><code class="name flex">
+<span>def <span class="ident">amg</span></span>(<span>A, b, u, monitor_convergence=True, mg_levels_ksp_type='chebyshev', mg_levels_pc_type='jacobi', mg_levels_esteig_ksp_type='cg', mg_levels_ksp_chebyshev_esteig_steps=50)</span>
+</code></dt>
 <dd>
-<div class="desc"><p>Abstract class for field optimization problems.</p></div>
-</dd>
-<dt><code class="name"><a title="fenics_optimize.filters" href="filters.html">fenics_optimize.filters</a></code></dt>
-<dd>
-<div class="desc"><p>Filters in topology optimization.</p></div>
-</dd>
-<dt><code class="name"><a title="fenics_optimize.solver" href="solver.html">fenics_optimize.solver</a></code></dt>
-<dd>
-<div class="desc"><p>Built-in solvers.</p></div>
+<div class="desc"><p>Solving the problem <code>Au=b</code> with unknown vector <code>u</code>.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>A</code></strong> :&ensp;<code>dolfin_adjoint.Form</code></dt>
+<dd>Bilinear form</dd>
+<dt><strong><code>b</code></strong> :&ensp;<code>dolfin_adjoint.Form</code></dt>
+<dd>Linear form</dd>
+<dt><strong><code>u</code></strong> :&ensp;<code>dolfin_adjoint.Function</code></dt>
+<dd>Unknown function vector u.</dd>
+<dt><strong><code>monitor_convergence</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Monitor_convergence. Defaults to True.</dd>
+<dt><strong><code>mg_levels_ksp_type</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>Defaults to 'chebyshev'.</dd>
+<dt><strong><code>mg_levels_pc_type</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>Defaults to 'jacobi'.</dd>
+<dt><strong><code>mg_levels_esteig_ksp_type</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>Defaults to 'cg'.</dd>
+<dt><strong><code>mg_levels_ksp_chebyshev_esteig_steps</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>Defaults to 50.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>dolfin_adjoint.vector</code></dt>
+<dd>Solution</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def amg(A, b, u, monitor_convergence=True, mg_levels_ksp_type=&#39;chebyshev&#39;, mg_levels_pc_type=&#39;jacobi&#39;, mg_levels_esteig_ksp_type=&#39;cg&#39;, mg_levels_ksp_chebyshev_esteig_steps=50):
+    &#39;&#39;&#39;
+    Solving the problem `Au=b` with unknown vector `u`.
+    Args:
+        A (dolfin_adjoint.Form): Bilinear form
+        b (dolfin_adjoint.Form): Linear form
+        u (dolfin_adjoint.Function): Unknown function vector u.
+        monitor_convergence (bool, optional): Monitor_convergence. Defaults to True.
+        mg_levels_ksp_type (str, optional): Defaults to &#39;chebyshev&#39;.
+        mg_levels_pc_type (str, optional): Defaults to &#39;jacobi&#39;.
+        mg_levels_esteig_ksp_type (str, optional): Defaults to &#39;cg&#39;.
+        mg_levels_ksp_chebyshev_esteig_steps (int, optional): Defaults to 50.
+    Returns:
+        dolfin_adjoint.vector: Solution
+    &#39;&#39;&#39;
+    pc = PETScPreconditioner(&#34;petsc_amg&#34;)
+    PETScOptions.set(&#34;mg_levels_ksp_type&#34;, mg_levels_ksp_type)
+    PETScOptions.set(&#34;mg_levels_pc_type&#34;, mg_levels_pc_type)
+    PETScOptions.set(&#34;mg_levels_esteig_ksp_type&#34;, mg_levels_esteig_ksp_type)
+    PETScOptions.set(&#34;mg_levels_ksp_chebyshev_esteig_steps&#34;, mg_levels_ksp_chebyshev_esteig_steps)
+    PETSC_solver = PETScKrylovSolver(&#34;cg&#34;, pc)
+    PETSC_solver.parameters[&#34;monitor_convergence&#34;] = monitor_convergence
+    PETSC_solver.set_operator(A)
+    PETSC_solver.solve(u.vector(), b)
+    return u</code></pre>
+</details>
 </dd>
 </dl>
-</section>
-<section>
-</section>
-<section>
 </section>
 <section>
 </section>
@@ -66,11 +140,14 @@ from .solver import amg</code></pre>
 <ul></ul>
 </div>
 <ul id="index">
-<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<li><h3>Super-module</h3>
 <ul>
-<li><code><a title="fenics_optimize.core" href="core.html">fenics_optimize.core</a></code></li>
-<li><code><a title="fenics_optimize.filters" href="filters.html">fenics_optimize.filters</a></code></li>
-<li><code><a title="fenics_optimize.solver" href="solver.html">fenics_optimize.solver</a></code></li>
+<li><code><a title="fenics_optimize" href="index.html">fenics_optimize</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="fenics_optimize.solver.amg" href="#fenics_optimize.solver.amg">amg</a></code></li>
 </ul>
 </li>
 </ul>
