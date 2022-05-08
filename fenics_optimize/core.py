@@ -22,7 +22,7 @@ class Module(metaclass=ABCMeta):
                 else:
                     control = Control(controls[i])
                     sensitivities_numpy.append(to_numpy(compute_gradient(objective, control)))
-                return sensitivities_numpy
+            return sensitivities_numpy
         elif wrt is None:
             controls_fenics = [Control(i) for i in controls]
         elif np.isscalar(wrt):
@@ -31,7 +31,7 @@ class Module(metaclass=ABCMeta):
         return sensitivities_numpy
 
     @abstractmethod
-    def problem(self, *args):
+    def problem(self, controls):
         '''
         This is abstract method. You must override this method.
 
@@ -77,6 +77,6 @@ class Module(metaclass=ABCMeta):
             wrt (list, optional): Automatic derivative of objective w.r.t. wrt index. Defaults to None to calculate sensitivities for all controls.
         Returns:
             list: list of numpy array.
-        '''          
+        '''
         sensitivities_numpy = self.__compute_sensitivities(getattr(self, target)(), self.controls_fenics, wrt)
         return sensitivities_numpy
