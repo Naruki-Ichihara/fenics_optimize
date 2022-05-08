@@ -52,4 +52,31 @@ class Module(metaclass=ABCMeta):
             AdjFroat: objective float value.
         '''        
         templates_function = [Function(i) for i in templates]
-        self.controls_fenics = [from_numpy(i, 
+        self.controls_fenics = [from_numpy(i, j) for i, j in zip(controls, templates_function)]
+        self.objective = self.problem(self.controls_fenics)
+        return self.objective
+
+    def backward(self, wrt=None):
+        '''
+        Compute the sensitivities of the objective value w.r.t. `wrt` indices.
+
+        Args:
+            wrt (list, optional): Automatic derivative of objective w.r.t. wrt index. Defaults to None to calculate sensitivities for all controls.
+        Returns:
+            list: list of numpy array.
+        '''        
+        sensitivities_numpy = self.__compute_sensitivities(self.objective, self.controls_fenics, wrt)
+        return sensitivities_numpy
+
+    def backward_constraint(self, target, wrt=None):
+        '''
+        Compute the sensitivities of the constraint value w.r.t. `wrt` indices.
+
+        Args:
+            target (str): Name of the target constraint.
+            wrt (list, optional): Automatic derivative of objective w.r.t. wrt index. Defaults to None to calculate sensitivities for all controls.
+        Returns:
+            list: list of numpy array.
+        '''          
+        sensitivities_numpy = self.__compute_sensitivities(getattr(self, target)(), self.controls_fenics, wrt)
+        return sensitivities_numpy
