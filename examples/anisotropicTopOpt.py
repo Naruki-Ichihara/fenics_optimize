@@ -4,20 +4,24 @@ import fenics_optimize as op
 from fenics_optimize.optimizer import interface_nlopt
 import numpy as np
 from ufl.operators import atan_2, transpose
-from fecr import from_numpy
+# Some flags for FEniCS
+parameters["form_compiler"]["optimize"] = True
+parameters["form_compiler"]["cpp_optimize"] = True
 
-E1 = 2400
-E2 = 2400/5
-nu12 = 0.33
-G12 = 2400/8
-eps = 0.01
+# Quadrature degree in FEniCS  (sometimes, the "automatic" determination of the quadrature degree becomes excessively high, meaning that it should be manually reduced)
+parameters['form_compiler']['quadrature_degree'] = 5
+
+eps = 0.1
 target = 0.5
 R = 0.5
 R_th = 0.5
 f = Constant((0, -10))
 
-def SIMP(x, p=3):
-    return eps + (1-eps)*x**p
+def SIMP(x, coff, p):
+    return eps + (1-eps)*coff*x**p
+
+def POL(x):
+    return 0.2733*x**2-0.0292*x+0.0245
 
 def strain_to_voigt(e):
     return as_vector((e[0, 0], e[1, 1], 2*e[0, 1]))
@@ -51,11 +55,29 @@ class Loading(SubDomain):
     def inside(self, x, on_boundary):
         return on_boundary and x[1] > 25-1e-10 and x[0] < 3
 
-nu21 = E2/E1*nu12
-Q11 = E1/(1-nu12*nu21)
-Q12 = nu12*E2/(1-nu12*nu21)
-Q22 = E2/(1-nu12*nu21)
-Q66 = G12
+class Initial_alinge_1(UserExpression):
+    def eval(self, value, x):
+        value[0] = 1
+
+class Initial_alinge_2(UserExpression):
+    def eval(self, value, x):
+        value[0] = 0
+
+class Initial_density(UserExpression):
+    def eval(self, value, x):
+        value[0] = target
+
+class Initial_alinge(UserExpression):
+    def eval(self, value, x):
+        value[0] = 1
+        value[1] = 0
+    def value_shape(self):
+        return (2,)
+
+Q11 = 2334.50
+Q12 = 863.59
+Q22 = 2353.03
+Q66 = 685.62
 Q16 = 0.
 Q26 = 0.
 Q = as_matrix([[Q11, Q12, Q16],
@@ -65,7 +87,6 @@ Q = as_matrix([[Q11, Q12, Q16],
 mesh = RectangleMesh(Point((0, 0)), Point(75, 25), 75*2, 25*2)
 X = FunctionSpace(mesh, "CG", 1)
 V = VectorFunctionSpace(mesh, "CG", 1)
-templates = [X, X, X]
 N = Function(X).vector().size()
 problemSize = N*3
 
@@ -83,12 +104,18 @@ bcs = [bc1, bc2]
 class Problem(op.Module):
     def problem(self, controls):
         rho = controls[0]
-        zeta = controls[1]
-        eta = controls[2]
+        zeta = controls[1][0]
+        eta = controls[1][1]
         rho = op.helmholtzFilter(rho, X, R)
         phi = op.helmholtzFilter(op.box2circleConstraint(zeta, eta), V, R_th)
         theta = atan_2(phi[1], phi[0])
-        Q_reduced = SIMP(rho)*Q
+        Q_reduced_11 = POL(rho)*Q[0, 0]
+        Q_reduced_22 = POL(rho)*Q[0, 0]
+        Q_reduced_12 = POL(rho)*Q[0, 1]
+        Q_reduced_66 = POL(rho)*Q[2, 2]
+        Q_reduced = as_matrix([[Q_reduced_11, Q_reduced_12, Q16],
+                                [Q_reduced_12, Q_reduced_22, Q26],
+                                [Q16, Q26, Q_reduced_66]])
         Q_rotated = rotation_matrix(Q_reduced, theta)
         a = inner(stress(Q_rotated, u), strain(v))*dx
         L = inner(f, v)*ds(1)
@@ -99,18 +126,20 @@ class Problem(op.Module):
         rho_bulk = project(Constant(1.0), X)
         rho_0 = assemble(rho_bulk*dx)
         rho_f = assemble(controls[0]*dx)
-        self.volumeFraction = rho_f/rho_0
+        self.constraint_Volume = rho_f/rho_0 - target
         return cost
 
-    def volume_constraint(self):
-        return self.volumeFraction - target
-
-x0 = np.ones(N)*target
-z0 = np.ones(N)
-e0 = np.zeros(N)
-initial = np.concatenate([x0, z0, e0])
+x0 = Function(X)
+x0.interpolate(Initial_density())
+z0 = Function(X)
+z0.interpolate(Initial_alinge_1())
+e0 = Function(X)
+e0.interpolate(Initial_alinge_2())
+v0 = Function(V)
+v0.interpolate(Initial_alinge())
+initials = [x0, v0]
 min_bounds = np.concatenate([np.zeros(N), -np.ones(N), -np.ones(N)])
-max_bounds = np.ones(N*3)
+max_bounds = np.concatenate([np.ones(N)*0.9, np.ones(N), np.ones(N)])
 
 anisoTopOpt = Problem()
 
@@ -120,9 +149,6 @@ setting = {'set_lower_bounds': min_bounds,
           }
 params = {'verbosity': 5}
 
-solution = interface_nlopt(anisoTopOpt, initial, templates, ['volume_constraint'], [0], setting, params)
-
-file = File('examples/results/test.pvd')
-x_sol, _, _ = np.split(solution, 3)
-x_fenics = from_numpy(x_sol, Function(X))
-file << x_fenics
+solution = interface_nlopt(anisoTopOpt, initials, [0], setting, params)
+file = File('/workspace/examples/results/test.pvd')
+file << solution[1]

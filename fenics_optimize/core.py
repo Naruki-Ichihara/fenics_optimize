@@ -15,20 +15,20 @@ class Module(metaclass=ABCMeta):
     '''     
     def __compute_sensitivities(self, objective, controls, wrt):
         if isinstance(wrt, Iterable):
-            sensitivities_numpy = []
+            sensitivities = []
             for i in range(len(controls)):
                 if i not in wrt:
-                    sensitivities_numpy.append(to_numpy(controls[i])*0.0)
+                    sensitivities.append(controls[i]*0.0)
                 else:
                     control = Control(controls[i])
-                    sensitivities_numpy.append(to_numpy(compute_gradient(objective, control)))
-            return sensitivities_numpy
+                    sensitivities.append(compute_gradient(objective, control))
+            return sensitivities
         elif wrt is None:
             controls_fenics = [Control(i) for i in controls]
         elif np.isscalar(wrt):
             controls_fenics = [Control(controls[wrt])]
-        sensitivities_numpy = [to_numpy(compute_gradient(objective, i)) for i in controls_fenics]
-        return sensitivities_numpy
+        sensitivities = [compute_gradient(objective, i) for i in controls_fenics]
+        return sensitivities
 
     @abstractmethod
     def problem(self, controls):
@@ -40,19 +40,18 @@ class Module(metaclass=ABCMeta):
         '''        
         raise NotImplementedError('')
 
-    def forward(self, controls, templates):
+    def forward(self, controls):
         '''
         Solving the problem that defined in the `problem` method.
 
         Args:
-            controls (list): list of numpy.arrays that will be used as control.
+            controls (list): list of fenics.Functions that will be used as control.
             templates (list): list of function spaces of the controls.
 
         Returns:
             AdjFroat: objective float value.
         '''        
-        templates_function = [Function(i) for i in templates]
-        self.controls_fenics = [from_numpy(i, j) for i, j in zip(controls, templates_function)]
+        self.controls_fenics = controls
         self.objective = self.problem(self.controls_fenics)
         return self.objective
 
@@ -65,8 +64,8 @@ class Module(metaclass=ABCMeta):
         Returns:
             list: list of numpy array.
         '''        
-        sensitivities_numpy = self.__compute_sensitivities(self.objective, self.controls_fenics, wrt)
-        return sensitivities_numpy
+        sensitivities = self.__compute_sensitivities(self.objective, self.controls_fenics, wrt)
+        return sensitivities
 
     def backward_constraint(self, target, wrt=None):
         '''
@@ -78,5 +77,5 @@ class Module(metaclass=ABCMeta):
         Returns:
             list: list of numpy array.
         '''
-        sensitivities_numpy = self.__compute_sensitivities(getattr(self, target)(), self.controls_fenics, wrt)
-        return sensitivities_numpy
+        sensitivities = self.__compute_sensitivities(getattr(self, target)(), self.controls_fenics, wrt)
+        return sensitivities

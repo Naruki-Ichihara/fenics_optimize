@@ -2,35 +2,56 @@
 # -*- coding: utf-8 -*-
 ''' Optimizer interfaces for nlopt.
 '''
+from attr import attr
 from dolfin import *
 from dolfin_adjoint import *
 import numpy as np
+from fecr import to_numpy, from_numpy 
 try:
     import nlopt as nl
 except ImportError:
     raise ImportError('Optimizer depends on Nlopt.')
 
-def interface_nlopt(problem, initial, templates, constraints, wrt, setting, params, algorithm='LD_MMA'):
+def interface_nlopt(problem, initials, wrt, setting, params, algorithm='LD_MMA'):
     problem_size = 0
-    for template in templates:
-        problem_size += Function(template).vector().size()
+
+    for initial in initials:
+        problem_size += initial.vector().size()
+
     optimizer = nl.opt(getattr(nl, algorithm), problem_size)
+
+    split_index = []
+    index = 0
+    for initial in initials:
+        index += initial.vector().size()
+        split_index.append(index)
+
     def eval(x, grad):
-        xs = np.split(x, len(templates))
-        cost = problem.forward(xs, templates)
-        grad[:] = np.concatenate(problem.backward())
+        xs = np.split(x, split_index)
+        xs_fenics = [from_numpy(i, j) for i, j in zip(xs, initials)]
+        cost = problem.forward(xs_fenics)
+        grad[:] = np.concatenate([to_numpy(i) for i in problem.backward()])
         return cost
-    if constraints is not None:
+
+    constraints = []
+    for attribute in dir(problem):
+        if attribute.startswith('constraint'):
+            constraints.append(attribute)
+
+    if not constraints:
         for constraint in constraints:
             def const(x, grad):
                 measure = getattr(problem, constraint)()
-                grad[:] = np.concatenate(problem.backward_constraint(constraint, wrt))
+                grad[:] = np.concatenate([to_numpy(i) for i in problem.backward_constraint(constraint, wrt)])
                 return measure
             optimizer.add_inequality_constraint(const, 1e-8)
+
     optimizer.set_min_objective(eval)
     for set in setting:
         getattr(optimizer, set)(setting[set])
     for param in params:
         optimizer.set_param(param, params[param])
-    solution = optimizer.optimize(initial)
-    return solution
+    initial_numpy = np.concatenate([to_numpy(i) for i in initials])
+    solution_numpy = optimizer.optimize(initial_numpy)
+    solution_fenics = [from_numpy(i, j) for i, j in zip(np.split(solution_numpy, split_index), initials)]
+    return tuple(solution_fenics)
