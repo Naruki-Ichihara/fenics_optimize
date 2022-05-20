@@ -1,12 +1,10 @@
-/results/
-/petsc/
-/AMGX/
+/examples/results/
 /mesh/
-/coinhsl/
 .DS_Store/
 *.sif
 *.pvd
 *.vtu
+*.pvtu
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

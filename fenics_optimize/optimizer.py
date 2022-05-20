@@ -30,19 +30,21 @@ def interface_nlopt(problem, initials, wrt, setting, params, algorithm='LD_MMA')
         xs = np.split(x, split_index)
         xs_fenics = [from_numpy(i, j) for i, j in zip(xs, initials)]
         cost = problem.forward(xs_fenics)
-        grad[:] = np.concatenate([to_numpy(i) for i in problem.backward()])
+        grad[:] = np.concatenate(problem.backward())
         return cost
 
+    print('Constraints:\n')
     constraints = []
     for attribute in dir(problem):
         if attribute.startswith('constraint'):
+            print(attribute)
             constraints.append(attribute)
 
-    if not constraints:
+    if constraints:
         for constraint in constraints:
             def const(x, grad):
                 measure = getattr(problem, constraint)()
-                grad[:] = np.concatenate([to_numpy(i) for i in problem.backward_constraint(constraint, wrt)])
+                grad[:] = np.concatenate(problem.backward_constraint(constraint, wrt))
                 return measure
             optimizer.add_inequality_constraint(const, 1e-8)
 

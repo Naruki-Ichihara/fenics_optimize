@@ -15,20 +15,20 @@ class Module(metaclass=ABCMeta):
     '''     
     def __compute_sensitivities(self, objective, controls, wrt):
         if isinstance(wrt, Iterable):
-            sensitivities = []
+            sensitivities_numpy = []
             for i in range(len(controls)):
                 if i not in wrt:
-                    sensitivities.append(controls[i]*0.0)
+                    sensitivities_numpy.append(to_numpy(controls[i])*0.0)
                 else:
                     control = Control(controls[i])
-                    sensitivities.append(compute_gradient(objective, control))
-            return sensitivities
+                    sensitivities_numpy.append(to_numpy(compute_gradient(objective, control)))
+            return sensitivities_numpy
         elif wrt is None:
             controls_fenics = [Control(i) for i in controls]
         elif np.isscalar(wrt):
             controls_fenics = [Control(controls[wrt])]
-        sensitivities = [compute_gradient(objective, i) for i in controls_fenics]
-        return sensitivities
+        sensitivities_numpy = [to_numpy(compute_gradient(objective, i)) for i in controls_fenics]
+        return sensitivities_numpy
 
     @abstractmethod
     def problem(self, controls):
