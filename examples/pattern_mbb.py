@@ -24,7 +24,7 @@ Y_r = FunctionSpace(refined_mesh, 'CG', 1)
 theta = Function(X, 'results/simp/alinge.xml')
 theta_r = Function(X_r)
 LagrangeInterpolator.interpolate(theta_r, theta)
-theta_r = as_vector([-theta_r[1], theta_r[0]])
+#theta_r = as_vector([-theta_r[1], theta_r[0]])
 #vectorField = VectorField()
 #theta.interpolate(vectorField)
 rho = Function(Y, 'results/simp/density.xml')
@@ -115,7 +115,7 @@ solver = CustomSolver()
 t = 0
 T = 3
 
-file = File('results/simp/field.pvd')
+file = File('results/simp/field_trans.pvd')
 while (t < T):
     print('time: {}'.format(t))
     t += dt

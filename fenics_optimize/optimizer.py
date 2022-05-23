@@ -6,7 +6,8 @@ from attr import attr
 from dolfin import *
 from dolfin_adjoint import *
 import numpy as np
-from fecr import to_numpy, from_numpy 
+#from .utils import to_numpy, from_numpy 
+from fecr import from_numpy, to_numpy
 try:
     import nlopt as nl
 except ImportError:
