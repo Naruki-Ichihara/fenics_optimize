@@ -24,16 +24,9 @@ def helmholtzFilter(u, U, R=0.025):
     vh = Function(U)
     a = R**2*inner(grad(v), grad(dv))*dx + dot(v, dv)*dx
     L = inner(u, dv)*dx
-    A, b = assemble_system(a, L)
-    pc = PETScPreconditioner("petsc_amg")
-    PETScOptions.set("mg_levels_ksp_type", "chebyshev")
-    PETScOptions.set("mg_levels_pc_type", "jacobi")
-    PETScOptions.set("mg_levels_esteig_ksp_type", "cg")
-    PETScOptions.set("mg_levels_ksp_chebyshev_esteig_steps", 50)
-    PETSC_solver = PETScKrylovSolver("cg", pc)
-    PETSC_solver.parameters["monitor_convergence"] = False
-    PETSC_solver.set_operator(A)
-    PETSC_solver.solve(vh.vector(), b)
+    solve(a == L, vh,
+            solver_parameters={"linear_solver": "lu"},
+            form_compiler_parameters={"optimize": True}) 
     return vh
 
 def hevisideFilter(u, U, beta=10.0, eta=0.5):
