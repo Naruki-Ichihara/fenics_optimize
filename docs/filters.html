@@ -53,16 +53,9 @@ def helmholtzFilter(u, U, R=0.025):
     vh = Function(U)
     a = R**2*inner(grad(v), grad(dv))*dx + dot(v, dv)*dx
     L = inner(u, dv)*dx
-    A, b = assemble_system(a, L)
-    pc = PETScPreconditioner(&#34;petsc_amg&#34;)
-    PETScOptions.set(&#34;mg_levels_ksp_type&#34;, &#34;chebyshev&#34;)
-    PETScOptions.set(&#34;mg_levels_pc_type&#34;, &#34;jacobi&#34;)
-    PETScOptions.set(&#34;mg_levels_esteig_ksp_type&#34;, &#34;cg&#34;)
-    PETScOptions.set(&#34;mg_levels_ksp_chebyshev_esteig_steps&#34;, 50)
-    PETSC_solver = PETScKrylovSolver(&#34;cg&#34;, pc)
-    PETSC_solver.parameters[&#34;monitor_convergence&#34;] = False
-    PETSC_solver.set_operator(A)
-    PETSC_solver.solve(vh.vector(), b)
+    solve(a == L, vh,
+            solver_parameters={&#34;linear_solver&#34;: &#34;lu&#34;},
+            form_compiler_parameters={&#34;optimize&#34;: True}) 
     return vh
 
 def hevisideFilter(u, U, beta=10.0, eta=0.5):
@@ -199,16 +192,9 @@ def box2circleConstraint(z, e):
     vh = Function(U)
     a = R**2*inner(grad(v), grad(dv))*dx + dot(v, dv)*dx
     L = inner(u, dv)*dx
-    A, b = assemble_system(a, L)
-    pc = PETScPreconditioner(&#34;petsc_amg&#34;)
-    PETScOptions.set(&#34;mg_levels_ksp_type&#34;, &#34;chebyshev&#34;)
-    PETScOptions.set(&#34;mg_levels_pc_type&#34;, &#34;jacobi&#34;)
-    PETScOptions.set(&#34;mg_levels_esteig_ksp_type&#34;, &#34;cg&#34;)
-    PETScOptions.set(&#34;mg_levels_ksp_chebyshev_esteig_steps&#34;, 50)
-    PETSC_solver = PETScKrylovSolver(&#34;cg&#34;, pc)
-    PETSC_solver.parameters[&#34;monitor_convergence&#34;] = False
-    PETSC_solver.set_operator(A)
-    PETSC_solver.solve(vh.vector(), b)
+    solve(a == L, vh,
+            solver_parameters={&#34;linear_solver&#34;: &#34;lu&#34;},
+            form_compiler_parameters={&#34;optimize&#34;: True}) 
     return vh</code></pre>
 </details>
 </dd>
