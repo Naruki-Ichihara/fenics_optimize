@@ -1,3 +1,6 @@
+<div align="center">
+<img src="https://user-images.githubusercontent.com/70839257/222454118-51044536-a213-41f3-9863-8bfbaf033ad6.jpg" alt="logo"></img>
+</div>
 <h1 align=center>optfx</a></h1>
 
 <!-- # Short Description -->
