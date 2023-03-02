@@ -1,7 +1,7 @@
 <div align="center">
-<img src="https://user-images.githubusercontent.com/70839257/222454118-51044536-a213-41f3-9863-8bfbaf033ad6.jpg" alt="logo"></img>
+<img src="https://user-images.githubusercontent.com/70839257/222454118-51044536-a213-41f3-9863-8bfbaf033ad6.jpg" alt="logo" width="50%"></img>
 </div>
-<h1 align=center>optfx</a></h1>
+<h1 align=center>optf(x)</a></h1>
 
 <!-- # Short Description -->
 <!-- # Badges -->
