@@ -2,7 +2,7 @@ version: '3.9'
 services:
   optfx:
     restart: always
-    image: pymor/fenics_py3.11
+    image: ichiharanaruki/optfx:latest
     container_name: 'optfx'
     working_dir: '/root/'
     tty: true
