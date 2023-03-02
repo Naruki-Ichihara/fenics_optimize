@@ -18,7 +18,7 @@ This module enables reusable and straightforward UFL coding for inverse problem 
 
 >This software is the third-party module of fenics project.
 
->This software is based on Lagacy FEniCS (FEniCS2019.1.0). The new vesion, FEniCSx, is not supported.
+>This software is based on Lagacy FEniCS (FEniCS2019.1.0). The new version, FEniCSx, is not supported.
 
 ## Example
 
@@ -94,11 +94,17 @@ solution = opt.optimize(problem, [x0], [0], setting, params)
 
 ## Installation
 ### Docker
+We recomennd to use our docker image. First you should install docker.io or relavant systems. Our docker image was stored in the [dockerhub](https://hub.docker.com/repository/docker/ichiharanaruki/optfx/general).
+
+If you use the docker.io and docker-compose, the following command pull and run the above image.
+```bash
+docker-compose up
+```
 
 ### install on your local host
 First, make sure to install the following dependencies:
 
-* [FEniCS](https://fenicsproject.org/) + [pyadjoint](https://github.com/dolfin-adjoint/pyadjoint)
+* [FEniCS2019.1.0](https://fenicsproject.org/) + [pyadjoint](https://github.com/dolfin-adjoint/pyadjoint)
 * [nlopt](https://github.com/stevengj/nlopt/)
 
 Second, install using pip.
@@ -116,3 +122,14 @@ Documentation: Docs
 
 ## References
 ## Cite
+To cite this repository:
+
+```
+@software{fenics_optimize2023github,
+  author = {Naruki Ichihara},
+  title = {{optfx}: Large scale field optimization platform based on fenics in python},
+  url = {https://github.com/Naruki-Ichihara/fenics_optimize},
+  version = {0.3.0},
+  year = {2023},
+}
+```
