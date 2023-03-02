@@ -1,13 +1,13 @@
 version: '3.9'
 services:
-  v02_opt:
+  optfx:
     restart: always
-    image: ichiharanaruki/fenics_optimize:latest
-    container_name: 'v02_opt'
+    image: pymor/fenics_py3.11
+    container_name: 'optfx'
     working_dir: '/root/'
     tty: true
     volumes:
-    - ../:/workspace
+    - ./:/workspace
     shm_size: 4gb
     ulimits:
       memlock: -1

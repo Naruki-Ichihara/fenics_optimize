@@ -7,8 +7,7 @@ from collections.abc import Iterable
 from fenics import *
 from fenics_adjoint import *
 import numpy as np
-#from .utils import from_numpy, to_numpy
-from fecr import from_numpy, to_numpy
+from .utils import from_numpy, to_numpy
 
 class Module(metaclass=ABCMeta):
     '''

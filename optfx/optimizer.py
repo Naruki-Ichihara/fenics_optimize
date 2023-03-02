@@ -2,18 +2,16 @@
 # -*- coding: utf-8 -*-
 ''' Optimizer interfaces for nlopt.
 '''
-from attr import attr
 from dolfin import *
 from dolfin_adjoint import *
 import numpy as np
-#from .utils import to_numpy, from_numpy 
-from fecr import from_numpy, to_numpy
+from .utils import to_numpy, from_numpy
 try:
     import nlopt as nl
 except ImportError:
     raise ImportError('Optimizer depends on Nlopt.')
 
-def interface_nlopt(problem, initials, wrt, setting, params, algorithm='LD_MMA'):
+def optimize(problem, initials, wrt, setting, params, algorithm='LD_MMA'):
     problem_size = 0
 
     for initial in initials:
@@ -34,11 +32,9 @@ def interface_nlopt(problem, initials, wrt, setting, params, algorithm='LD_MMA')
         grad[:] = np.concatenate(problem.backward())
         return cost
 
-    print('Constraints:\n')
     constraints = []
     for attribute in dir(problem):
         if attribute.startswith('constraint'):
-            print(attribute)
             constraints.append(attribute)
 
     if constraints:
