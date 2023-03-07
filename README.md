@@ -109,7 +109,7 @@ First, make sure to install the following dependencies:
 
 Second, install using pip.
 ```
-pip install git+https://github.com/Naruki-Ichihara/optfx.git@main
+pip install git+https://github.com/Naruki-Ichihara/fenics_optimize.git@main
 ```
 
 ## Contributors
