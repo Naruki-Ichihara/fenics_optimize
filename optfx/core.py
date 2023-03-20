@@ -13,6 +13,8 @@ class Module(metaclass=ABCMeta):
     index = int(0)
     sensitivities_objective = None
     sensitivities_constraints = None
+    objective_log = []
+    constraint_log = []
     '''
     Core module of the fenics-optimize. 
     '''     
@@ -53,6 +55,7 @@ class Module(metaclass=ABCMeta):
         '''        
         self.controls_fenics = controls
         self.objective = self.problem(self.controls_fenics)
+        self.objective_log.append(self.objective)
         self.index += 1
         return self.objective
     
@@ -69,6 +72,7 @@ class Module(metaclass=ABCMeta):
         '''
         self.controls_fenics_cons = controls
         self.measure = getattr(self, target)(self.controls_fenics_cons)
+        self.constraint_log.append(self.measure)
         return self.measure
 
     def backward(self, wrt=None):

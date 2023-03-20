@@ -58,7 +58,7 @@ max_bounds = np.ones(N)
 
 setting = {'set_lower_bounds': min_bounds,
            'set_upper_bounds': max_bounds,
-           'set_maxeval': 50
+           'set_maxeval': 5
           }
 params = {'verbosity': 1}
 
