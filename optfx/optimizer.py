@@ -37,13 +37,14 @@ def optimize(problem, initials, wrt, setting, params, algorithm='LD_MMA'):
         if attribute.startswith('constraint'):
             constraints.append(attribute)
 
-    if constraints:
-        for constraint in constraints:
-            def const(x, grad):
-                measure = getattr(problem, constraint)()
-                grad[:] = np.concatenate(problem.backward_constraint(constraint, wrt))
-                return measure
-            optimizer.add_inequality_constraint(const, 1e-8)
+    for constraint in constraints:
+        def const(x, grad):
+            xs = np.split(x, split_index)
+            xs_fenics = [from_numpy(i, j) for i, j in zip(xs, initials)]
+            measure = problem.forward_cons(constraint, xs_fenics)
+            grad[:] = np.concatenate(problem.backward_constraint(wrt))
+            return measure
+        optimizer.add_inequality_constraint(const, 1e-10)
 
     optimizer.set_min_objective(eval)
     for set in setting:

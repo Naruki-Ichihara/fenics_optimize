@@ -10,6 +10,9 @@ import numpy as np
 from .utils import from_numpy, to_numpy
 
 class Module(metaclass=ABCMeta):
+    index = int(0)
+    sensitivities_objective = None
+    sensitivities_constraints = None
     '''
     Core module of the fenics-optimize. 
     '''     
@@ -22,13 +25,12 @@ class Module(metaclass=ABCMeta):
                 else:
                     control = Control(controls[i])
                     sensitivities_numpy.append(to_numpy(compute_gradient(objective, control)))
-            return sensitivities_numpy
+                    print(sensitivities_numpy)
+                    return sensitivities_numpy
         elif wrt is None:
             controls_fenics = [Control(i) for i in controls]
-        elif np.isscalar(wrt):
-            controls_fenics = [Control(controls[wrt])]
-        sensitivities_numpy = [to_numpy(compute_gradient(objective, i)) for i in controls_fenics]
-        return sensitivities_numpy
+            sensitivities_numpy = [to_numpy(compute_gradient(objective, i)) for i in controls_fenics]
+            return sensitivities_numpy
 
     @abstractmethod
     def problem(self, controls):
@@ -46,14 +48,29 @@ class Module(metaclass=ABCMeta):
 
         Args:
             controls (list): list of fenics.Functions that will be used as control.
-            templates (list): list of function spaces of the controls.
 
         Returns:
             AdjFroat: objective float value.
         '''        
         self.controls_fenics = controls
         self.objective = self.problem(self.controls_fenics)
+        self.index += 1
         return self.objective
+    
+    def forward_cons(self, target, controls):
+        '''
+        Solving the problem that defined in the consytaint_xxx method.
+
+        Args:
+            target (str): Name of the target constraint.
+            controls (list): list of fenics.Functions that will be used as control.
+
+        Returns:
+            AdjFroat: objective float value.
+        '''
+        self.controls_fenics_cons = controls
+        self.measure = getattr(self, target)(self.controls_fenics_cons)
+        return self.measure
 
     def backward(self, wrt=None):
         '''
@@ -65,17 +82,18 @@ class Module(metaclass=ABCMeta):
             list: list of numpy array.
         '''        
         sensitivities = self.__compute_sensitivities(self.objective, self.controls_fenics, wrt)
+        self.sensitivities_objective = sensitivities
         return sensitivities
 
-    def backward_constraint(self, target, wrt=None):
+    def backward_constraint(self, wrt=None):
         '''
         Compute the sensitivities of the constraint value w.r.t. `wrt` indices.
 
         Args:
-            target (str): Name of the target constraint.
             wrt (list, optional): Automatic derivative of objective w.r.t. wrt index. Defaults to None to calculate sensitivities for all controls.
         Returns:
             list: list of numpy array.
         '''
-        sensitivities = self.__compute_sensitivities(getattr(self, target)(), self.controls_fenics, wrt)
+        sensitivities = self.__compute_sensitivities(self.measure, self.controls_fenics_cons, wrt)
+        self.sensitivities_constraints = sensitivities
         return sensitivities

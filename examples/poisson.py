@@ -21,7 +21,7 @@ f = opt.interpolate(opt.Constant(1e-2), X)
 
 class Initial_density(opt.UserExpression):
     def eval(self, value, x):
-        value[0] = m
+        value[0] = 0.4
 
 class Left(opt.SubDomain):
     def inside(self, x, on_boundary):
@@ -39,17 +39,16 @@ class PoissonProblem(opt.Module):
         rho = opt.helmholtzFilter(rho, X, R)
         a = opt.inner(opt.grad(t), k(rho)*opt.grad(dt))*opt.dx
         L = opt.inner(f, dt)*opt.dx
-        Th = opt.Function(U, name='Temperture')
+        Th = opt.Function(U)
         opt.solve(a==L, Th, bc)
         J = opt.assemble(opt.inner(opt.grad(Th), k(rho)*opt.grad(Th))*opt.dx)
-        rho_bulk = opt.project(opt.Constant(1.0), X)
-        rho_0 = opt.assemble(rho_bulk*opt.dx)
-        rho_total = opt.assemble(controls[0]*opt.dx)
-        rel = rho_total/rho_0
-        self.volumeFraction = rel
         return J
-    def constraint_volume(self):
-        return self.volumeFraction - m
+    def constraint_volume(self, controls):
+        rho = controls[0]
+        rho = opt.helmholtzFilter(rho, X, R)
+        rho_target = opt.project(opt.Constant(m), X)
+        cost = opt.assemble((rho - rho_target)*opt.dx)
+        return cost
 
 x0 = opt.Function(X)
 x0.interpolate(Initial_density())
@@ -59,7 +58,7 @@ max_bounds = np.ones(N)
 
 setting = {'set_lower_bounds': min_bounds,
            'set_upper_bounds': max_bounds,
-           'set_maxeval': 1000
+           'set_maxeval': 50
           }
 params = {'verbosity': 1}
 
