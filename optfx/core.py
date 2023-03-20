@@ -25,7 +25,6 @@ class Module(metaclass=ABCMeta):
                 else:
                     control = Control(controls[i])
                     sensitivities_numpy.append(to_numpy(compute_gradient(objective, control)))
-                    print(sensitivities_numpy)
                     return sensitivities_numpy
         elif wrt is None:
             controls_fenics = [Control(i) for i in controls]
