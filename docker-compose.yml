@@ -14,5 +14,3 @@ services:
       stack: 67108864
     environment:
        - DISPLAY=host.docker.internal:0.0
-    environment:
-      TZ: 'Asia/Tokyo'
