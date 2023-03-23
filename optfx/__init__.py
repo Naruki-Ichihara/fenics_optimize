@@ -1,7 +1,7 @@
 #! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-__version__ = "0.4.1.alpha"
+__version__ = "0.4.2.alpha"
 
 from dolfin import *
 from dolfin_adjoint import *
