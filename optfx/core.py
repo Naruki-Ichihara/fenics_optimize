@@ -70,8 +70,7 @@ class Module(metaclass=ABCMeta):
         Returns:
             AdjFroat: objective float value.
         '''
-        self.controls_fenics_cons = controls
-        self.measure = getattr(self, target)(self.controls_fenics_cons)
+        self.measure = getattr(self, target)(self.controls_fenics)
         self.cons_log.append(self.measure)
         return self.measure
 
@@ -97,6 +96,6 @@ class Module(metaclass=ABCMeta):
         Returns:
             list: list of numpy array.
         '''
-        sensitivities = self.__compute_sensitivities(self.measure, self.controls_fenics_cons, wrt)
+        sensitivities = self.__compute_sensitivities(self.measure, self.controls_fenics, wrt)
         self.sensitivities_constraints = sensitivities
         return sensitivities
