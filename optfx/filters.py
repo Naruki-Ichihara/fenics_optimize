@@ -24,7 +24,8 @@ def helmholtzFilter(u, U, R=0.025):
     v = TrialFunction(U)
     dv = TestFunction(U)
     vh = Function(U)
-    a = R**2*inner(grad(v), grad(dv))*dx + dot(v, dv)*dx
+    r = R/(2*np.sqrt(3))
+    a = r**2*inner(grad(v), grad(dv))*dx + dot(v, dv)*dx
     L = inner(u, dv)*dx
     solve(a == L, vh,
             solver_parameters={"linear_solver": "lu"},
