@@ -59,7 +59,7 @@ class Module(metaclass=ABCMeta):
         self.index += 1
         return self.objective
     
-    def forward_cons(self, target, controls):
+    def forward_cons(self, target):
         '''
         Solving the problem that defined in the consytaint_xxx method.
 
