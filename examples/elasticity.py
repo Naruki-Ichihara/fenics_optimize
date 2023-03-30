@@ -19,11 +19,11 @@ file_sig = of.XDMFFile(dir + 'stress.xdmf')
 
 # Hyperparamters
 target = 0.30   # Target rate of the material amount
-p = 5      # Penalty parameter
-eps = 1e-2 # Material lower bound
+p = 3      # Penalty parameter
+eps = 1e-3 # Material lower bound
 R = 0.5    # Helmholtz filter radius
 T = of.Constant((0.0, -1.0)) # Traction on boundary
-beta = 30
+beta = 10
 eta = 0.3
 
 # Material properties (isotropic plane stress)
@@ -85,7 +85,7 @@ class ElasticProblem(of.Module):
         cost = of.assemble(l(us))
         one_field = of.project(of.Constant(1.0), U)
         rho_0 = of.assemble(one_field*of.dx)
-        rho_t = of.assemble(controls[0]*of.dx)
+        rho_t = of.assemble(rho*of.dx)
         self.rel = rho_t/rho_0
 
         sig = of.project(stress(us), of.TensorFunctionSpace(mesh, 'CG', 1))

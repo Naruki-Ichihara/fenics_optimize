@@ -33,14 +33,14 @@ class NLProblem(of.NonlinearProblem):
         for bc in self.bcs:
             bc.apply(A)
 
-def eig_strain(E):
-    major = 0.5*(E[0, 0]+E[1, 1]) + ufl.sqrt((0.5*(E[0, 0]-E[1, 1]))**2+E[0, 1]**2)
-    minor = 0.5*(E[0, 0]+E[1, 1]) - ufl.sqrt((0.5*(E[0, 0]-E[1, 1]))**2+E[0, 1]**2)
-    major_abs = of.conditional(of.gt(abs(major), abs(minor)), major, minor)
-    minor_abs = of.conditional(of.gt(abs(minor), abs(major)), minor, major)
-    value = 0.5*E[0, 1]/(E[0, 0]-E[1, 1])
-    theta_major = 0.5*ufl.atan_2(value, 1)
-    theta_minor = 0.5*ufl.atan_2(value, 1) + np.pi/2
-    theta_abs = of.conditional(of.gt(abs(major), abs(minor)), theta_major, theta_minor)
+def eig_strain(E, U):
+    #major = 0.5*(E[0, 0]+E[1, 1]) + ufl.sqrt((0.5*(E[0, 0]-E[1, 1]))**2+E[0, 1]**2)
+    #minor = 0.5*(E[0, 0]+E[1, 1]) - ufl.sqrt((0.5*(E[0, 0]-E[1, 1]))**2+E[0, 1]**2)
+    value = 2*E[0, 1]/(E[0, 0]-E[1, 1])
+    C = of.project(((E[0, 0]+E[1, 1])/2), U)
+    theta = 0.5*ufl.atan_2(value, 1)
+    theta_90 = of.project(0.5*ufl.atan_2(value, 1) + of.Constant(np.pi/2), U)
+    theta_90_minus = of.project(0.5*ufl.atan_2(value, 1) + of.Constant(np.pi + np.pi/2), U)
+    theta_c = of.conditional(of.ge(0, C), of.conditional(of.ge(E[0, 0], C), theta_90, theta), of.conditional(of.ge(E[0, 0], C), theta, theta_90_minus))
 
-    return theta_major
+    return theta_c, C

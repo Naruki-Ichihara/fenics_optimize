@@ -1,9 +1,13 @@
-/examples/results/
+/examples/
 .DS_Store/
 *.sif
 *.pvd
 *.vtu
 *.pvtu
+*.h5
+*.xdmf
+*.csv
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

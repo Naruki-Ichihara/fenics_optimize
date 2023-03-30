@@ -30,8 +30,6 @@ class Module(metaclass=ABCMeta):
             return sensitivities_numpy
         elif wrt is None:
             controls_fenics = [Control(i) for i in controls]
-        elif np.isscalar(wrt):
-            controls_fenics = [Control(controls[wrt])]
         sensitivities_numpy = [to_numpy(compute_gradient(objective, i)) for i in controls_fenics]
         return sensitivities_numpy
 
