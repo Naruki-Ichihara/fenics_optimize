@@ -89,7 +89,7 @@ setting = {'set_lower_bounds': min_bounds,
 params = {'verbosity': 1}
 
 problem = PoissonProblem()
-solution = opt.optimize(problem, [x0], [0], setting, params)
+solution = opt.optimize(problem, [x0], {'constraint_volume': [0]}, setting, params)
 ```
 
 ## Installation

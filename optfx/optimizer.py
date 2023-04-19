@@ -40,9 +40,10 @@ def optimize(problem, initials, wrt, setting, params, algorithm='LD_MMA'):
         for constraint in constraints:
             def const(x, grad):
                 measure = getattr(problem, constraint)()
-                grad[:] = np.concatenate(problem.backward_constraint(constraint, wrt))
+                grad[:] = np.concatenate(problem.backward_constraint(constraint, wrt[constraint]))
                 return measure
-            optimizer.add_inequality_constraint(const, 1e-8)
+            globals()[constraint] = lambda x, grad: const(x, grad)
+            optimizer.add_inequality_constraint(globals()[constraint], 1e-8)
 
     optimizer.set_min_objective(eval)
     for set in setting:

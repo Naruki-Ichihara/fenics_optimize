@@ -95,7 +95,9 @@ class ElasticProblem(of.Module):
         file_disp.write(us, self.index)
         file_sig.write(sig, self.index)
         return cost
-    def constraint_volume(self):
+    def constraint_volume1(self):
+        return self.rel - target
+    def constraint_volume2(self):
         return self.rel - target
     
 x0 = of.Function(U)
@@ -106,16 +108,13 @@ max_bounds = np.ones(N)
 
 setting = {'set_lower_bounds': min_bounds,
            'set_upper_bounds': max_bounds,
-           'set_maxeval': 100
+           'set_maxeval': 5
           }
 params = {'verbosity': 1}
 
 problem = ElasticProblem()
-solution = of.optimize(problem, [x0], [0], setting, params)
+solution = of.optimize(problem, [x0], {'constraint_volume1': [0], 'constraint_volume2': [0]}, setting, params)
 
 with open(dir + 'log_obj.csv', 'wt', encoding='utf-8') as file:
     for value in problem.log_obj:
-        file.write(str(float(value)) + '\n')
-with open(dir + 'log_cns.csv', 'wt', encoding='utf-8') as file:
-    for value in problem.log_cns:
         file.write(str(float(value)) + '\n')

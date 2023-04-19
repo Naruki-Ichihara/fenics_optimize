@@ -14,7 +14,6 @@ class Module(metaclass=ABCMeta):
     snes_obj = None
     sens_cns = None
     log_obj = [0]
-    log_cns = [0]
     '''
     Core module of the fenics-optimize. 
     '''     
@@ -80,6 +79,4 @@ class Module(metaclass=ABCMeta):
         '''
         sensitivities = self.__compute_sensitivities(getattr(self, target)(), self.controls_fenics, wrt)
         self.sens_cns = sensitivities
-        if self.log_cns[-1] != getattr(self, target)():
-            self.log_cns.append(getattr(self, target)())
         return sensitivities
