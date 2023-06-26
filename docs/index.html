@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>optfx API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="&lt;div align=&#34;center&#34;&gt;
+&lt;img src=&#34;https://user-images.githubusercontent.com/70839257/222454118-51044536-a213-41f3-9863-8bfbaf033ad6.jpg&#34; alt=&#34;logo&#34; …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,6 +23,130 @@
 <h1 class="title">Package <code>optfx</code></h1>
 </header>
 <section id="section-intro">
+<div align="center">
+<img src="https://user-images.githubusercontent.com/70839257/222454118-51044536-a213-41f3-9863-8bfbaf033ad6.jpg" alt="logo" width="50%"></img>
+</div>
+<h1 id="opt-fx">opt <em>f</em>(x)</h1>
+<!-- # Short Description -->
+<!-- # Badges -->
+<p><a href="https://github.com/Naruki-Ichihara/fenics-optimize/issues"><img alt="Github issues" src="https://img.shields.io/github/issues/Naruki-Ichihara/fenics_optimize?style=for-the-badge&amp;logo=appveyor"></a>
+<a href="https://github.com/Naruki-Ichihara/fenics-optimize/network/members"><img alt="Github forks" src="https://img.shields.io/github/forks/Naruki-Ichihara/fenics_optimize?style=for-the-badge&amp;logo=appveyor"></a>
+<a href="https://github.com/Naruki-Ichihara/fenics-optimize/stargazers"><img alt="Github stars" src="https://img.shields.io/github/stars/Naruki-Ichihara/fenics_optimize?style=for-the-badge&amp;logo=appveyor"></a>
+<a href="https://github.com/Naruki-Ichihara/fenics-optimize/"><img alt="Github top language" src="https://img.shields.io/github/languages/top/Naruki-Ichihara/fenics_optimize?style=for-the-badge&amp;logo=appveyor"></a>
+<a href="https://github.com/Naruki-Ichihara/fenics-optimize/"><img alt="Github license" src="https://img.shields.io/github/license/Naruki-Ichihara/fenics_optimize?style=for-the-badge&amp;logo=appveyor"></a></p>
+<h2 id="motivation-and-significance">Motivation and significance</h2>
+<p><strong>optfx</strong> is a module for the large scale field optimization platform based on <a href="https://fenicsproject.org/">FEniCS ecosystem</a>.
+This module enables reusable and straightforward UFL coding for inverse problem of multi-physics.</p>
+<blockquote>
+<p>This software is the third-party module of fenics project.</p>
+<p>This software is based on Lagacy FEniCS (FEniCS2019.1.0). The new version, FEniCSx, is not supported.</p>
+</blockquote>
+<h2 id="example">Example</h2>
+<pre><code class="language-python">import numpy as np
+import optfx as opt
+
+opt.parameters[&quot;form_compiler&quot;][&quot;optimize&quot;] = True
+opt.parameters[&quot;form_compiler&quot;][&quot;cpp_optimize&quot;] = True
+opt.parameters['form_compiler']['quadrature_degree'] = 5
+
+comm = opt.MPI.comm_world
+m = 0.30   # Target rate of the material amount
+p = 5      # Penalty parameter
+eps = 1e-3 # Material lower bound
+R = 0.01   # Helmholtz filter radius
+n = 256    # Resolution
+
+def k(a):
+    return eps + (1 - eps) * a ** p
+
+mesh = opt.UnitSquareMesh(comm, n, n)
+X = opt.FunctionSpace(mesh, 'CG', 1)
+f = opt.interpolate(opt.Constant(1e-2), X)
+
+class Initial_density(opt.UserExpression):
+    def eval(self, value, x):
+        value[0] = m
+
+class Left(opt.SubDomain):
+    def inside(self, x, on_boundary):
+        gamma = 1/250 + 1e-5
+        return x[0] == 0.0 and 0.5 - gamma &lt; x[1] &lt; 0.5 + gamma and on_boundary
+
+U = opt.FunctionSpace(mesh, 'CG', 1)
+t = opt.TrialFunction(U)
+dt = opt.TestFunction(U)
+bc = opt.DirichletBC(U, opt.Constant(0.0), Left())
+
+class PoissonProblem(opt.Module):
+    def problem(self, controls):
+        rho = controls[0]
+        rho = opt.helmholtzFilter(rho, X, R)
+        a = opt.inner(opt.grad(t), k(rho)*opt.grad(dt))*opt.dx
+        L = opt.inner(f, dt)*opt.dx
+        Th = opt.Function(U, name='Temperture')
+        opt.solve(a==L, Th, bc)
+        J = opt.assemble(opt.inner(opt.grad(Th), k(rho)*opt.grad(Th))*opt.dx)
+        rho_bulk = opt.project(opt.Constant(1.0), X)
+        rho_0 = opt.assemble(rho_bulk*opt.dx)
+        rho_total = opt.assemble(controls[0]*opt.dx)
+        rel = rho_total/rho_0
+        self.volumeFraction = rel
+        return J
+    def constraint_volume(self):
+        return self.volumeFraction - m
+
+x0 = opt.Function(X)
+x0.interpolate(Initial_density())
+N = opt.Function(X).vector().size()
+min_bounds = np.zeros(N)
+max_bounds = np.ones(N)
+
+setting = {'set_lower_bounds': min_bounds,
+           'set_upper_bounds': max_bounds,
+           'set_maxeval': 1000
+          }
+params = {'verbosity': 1}
+
+problem = PoissonProblem()
+solution = opt.optimize(problem, [x0], {'constraint_volume': [0]}, setting, params)
+</code></pre>
+<h2 id="installation">Installation</h2>
+<h3 id="docker">Docker</h3>
+<p>We recomennd to use our docker image. First you should install docker.io or relavant systems. Our docker image was stored in the <a href="https://hub.docker.com/repository/docker/ichiharanaruki/optfx/general">dockerhub</a>.</p>
+<p>If you use the docker.io and docker-compose, the following command pull and run the above image.</p>
+<pre><code class="language-bash">docker-compose up
+</code></pre>
+<h3 id="install-on-your-local-host">install on your local host</h3>
+<p>First, make sure to install the following dependencies:</p>
+<ul>
+<li><a href="https://fenicsproject.org/">FEniCS2019.1.0</a> + <a href="https://github.com/dolfin-adjoint/pyadjoint">pyadjoint</a></li>
+<li><a href="https://github.com/stevengj/nlopt/">nlopt</a></li>
+</ul>
+<p>Second, install using pip.</p>
+<pre><code>pip install git+https://github.com/Naruki-Ichihara/fenics_optimize.git@main
+</code></pre>
+<h2 id="contributors">Contributors</h2>
+<ul>
+<li><a href="https://github.com/Naruki-Ichihara">Naruki-Ichihara</a></li>
+</ul>
+<h2 id="api-and-documentation">API and documentation</h2>
+<p>API: <a href="https://naruki-ichihara.github.io/fenics_optimize/">API</a>
+Documentation: Docs</p>
+<h2 id="references">References</h2>
+<h2 id="cite">Cite</h2>
+<p>To cite this repository:</p>
+<pre><code>@software{fenics_optimize2023github,
+  author = {Naruki Ichihara},
+  title = {{optfx}: Large scale field optimization platform based on fenics in python},
+  url = {https://github.com/Naruki-Ichihara/fenics_optimize},
+  version = {0.3.0},
+  year = {2023},
+}
+</code></pre>
+<hr>
+<div align="center">
+<img src="https://user-images.githubusercontent.com/70839257/222695855-e3fbb18a-f857-47da-b900-00b1b60bb7ba.jpg" alt="logo" width="10%"></img>
+</div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -29,14 +154,18 @@
 <pre><code class="python">#! /usr/bin/python3
 # -*- coding: utf-8 -*-
 
-__version__ = &#34;0.4.2.alpha&#34;
+&#34;&#34;&#34;
+.. include:: ../README.md
+&#34;&#34;&#34;
+
+__version__ = &#34;0.5.0.alpha&#34;
 
 from dolfin import *
 from dolfin_adjoint import *
 from .core import Module
 from .utils import to_numpy, from_numpy
-from .filters import helmholtzFilter, hevisideFilter, box2circleConstraint, circle2boxConstraint
-from .optimizer import optimize</code></pre>
+from .filters import helmholtzFilter, hevisideFilter, b2c
+from .optimizer import Optimizer</code></pre>
 </details>
 </section>
 <section>
@@ -44,15 +173,17 @@ from .optimizer import optimize</code></pre>
 <dl>
 <dt><code class="name"><a title="optfx.core" href="core.html">optfx.core</a></code></dt>
 <dd>
-<div class="desc"><p>Abstract class for field optimization problems.</p></div>
+<div class="desc"><p>The code is a Python module that defines an abstract class called Module.
+This class is the core of an optimization problem and defines the basic …</p></div>
 </dd>
 <dt><code class="name"><a title="optfx.filters" href="filters.html">optfx.filters</a></code></dt>
 <dd>
-<div class="desc"><p>Filters in topology optimization.</p></div>
+<div class="desc"><p>Some filters for topology optimization.</p></div>
 </dd>
 <dt><code class="name"><a title="optfx.optimizer" href="optimizer.html">optfx.optimizer</a></code></dt>
 <dd>
-<div class="desc"><p>Optimizer interfaces for nlopt.</p></div>
+<div class="desc"><p>The optimize function computes the size of the optimization problem by summing
+the sizes of the initial conditions, and then creates an instance of …</p></div>
 </dd>
 <dt><code class="name"><a title="optfx.utils" href="utils.html">optfx.utils</a></code></dt>
 <dd>
@@ -70,7 +201,22 @@ from .optimizer import optimize</code></pre>
 <nav id="sidebar">
 <h1>Index</h1>
 <div class="toc">
-<ul></ul>
+<ul>
+<li><a href="#opt-fx">opt f(x)</a><ul>
+<li><a href="#motivation-and-significance">Motivation and significance</a></li>
+<li><a href="#example">Example</a></li>
+<li><a href="#installation">Installation</a><ul>
+<li><a href="#docker">Docker</a></li>
+<li><a href="#install-on-your-local-host">install on your local host</a></li>
+</ul>
+</li>
+<li><a href="#contributors">Contributors</a></li>
+<li><a href="#api-and-documentation">API and documentation</a></li>
+<li><a href="#references">References</a></li>
+<li><a href="#cite">Cite</a></li>
+</ul>
+</li>
+</ul>
 </div>
 <ul id="index">
 <li><h3><a href="#header-submodules">Sub-modules</a></h3>

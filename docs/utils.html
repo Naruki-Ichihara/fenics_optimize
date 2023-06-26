@@ -36,14 +36,18 @@ from dolfin_adjoint import *
 import numpy as np
 
 def to_numpy(fenics_var: Constant | Function) -&gt; np.ndarray:
-    &#34;&#34;&#34;Converting from fenicsx variables to numpy ndarray.
-    Args:
-        fenics_var (fem.Constant | fem.Function): fenicsx variable
+    &#39;&#39;&#39; Converting from fenicsx variables to numpy array.
+
+    Args:  
+        fenics_var (fem.Constant | fem.Function): fenicsx variable to convert into numpy array.
+
     Raises:
         ValueError
+
     Returns:
-        np.ndarray: Return the numpy.ndarray
-    &#34;&#34;&#34;
+        np.ndarray: Return the numpy array
+
+    &#39;&#39;&#39;
     if isinstance(fenics_var, dolfin.Constant):
         return np.asarray(fenics_var.values())
 
@@ -66,11 +70,14 @@ def to_numpy(fenics_var: Constant | Function) -&gt; np.ndarray:
 
 def from_numpy(numpy_array: np.ndarray, func_temp: Function) -&gt; Function:
     &#34;&#34;&#34;Converting from numpy array to fenicsx variables based on the function space.
+
     Args:
         numpy_array (np.ndarray): Array to convert into fenicsx
         func_space (fem.FunctionSpace): Base-function space
+
     Raises:
         ValueError
+        
     Returns:
         fem.Function: Return the fenicsx.fem.Function
     &#34;&#34;&#34;    
@@ -138,11 +145,14 @@ def from_numpy(numpy_array: np.ndarray, func_temp: Function) -&gt; Function:
 </summary>
 <pre><code class="python">def from_numpy(numpy_array: np.ndarray, func_temp: Function) -&gt; Function:
     &#34;&#34;&#34;Converting from numpy array to fenicsx variables based on the function space.
+
     Args:
         numpy_array (np.ndarray): Array to convert into fenicsx
         func_space (fem.FunctionSpace): Base-function space
+
     Raises:
         ValueError
+        
     Returns:
         fem.Function: Return the fenicsx.fem.Function
     &#34;&#34;&#34;    
@@ -182,29 +192,33 @@ def from_numpy(numpy_array: np.ndarray, func_temp: Function) -&gt; Function:
 <span>def <span class="ident">to_numpy</span></span>(<span>fenics_var: fenics_adjoint.types.constant.Constant | fenics_adjoint.types.function.Function) ‑> numpy.ndarray</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Converting from fenicsx variables to numpy ndarray.</p>
-<h2 id="args">Args</h2>
-<p>fenics_var (fem.Constant | fem.Function): fenicsx variable</p>
+<div class="desc"><p>Converting from fenicsx variables to numpy array.</p>
+<p>Args:<br>
+fenics_var (fem.Constant | fem.Function): fenicsx variable to convert into numpy array.</p>
 <h2 id="raises">Raises</h2>
 <p>ValueError</p>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>np.ndarray</code></dt>
-<dd>Return the numpy.ndarray</dd>
+<dd>Return the numpy array</dd>
 </dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def to_numpy(fenics_var: Constant | Function) -&gt; np.ndarray:
-    &#34;&#34;&#34;Converting from fenicsx variables to numpy ndarray.
-    Args:
-        fenics_var (fem.Constant | fem.Function): fenicsx variable
+    &#39;&#39;&#39; Converting from fenicsx variables to numpy array.
+
+    Args:  
+        fenics_var (fem.Constant | fem.Function): fenicsx variable to convert into numpy array.
+
     Raises:
         ValueError
+
     Returns:
-        np.ndarray: Return the numpy.ndarray
-    &#34;&#34;&#34;
+        np.ndarray: Return the numpy array
+
+    &#39;&#39;&#39;
     if isinstance(fenics_var, dolfin.Constant):
         return np.asarray(fenics_var.values())
 

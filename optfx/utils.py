@@ -7,14 +7,18 @@ from dolfin_adjoint import *
 import numpy as np
 
 def to_numpy(fenics_var: Constant | Function) -> np.ndarray:
-    """Converting from fenicsx variables to numpy ndarray.
-    Args:
-        fenics_var (fem.Constant | fem.Function): fenicsx variable
+    ''' Converting from fenicsx variables to numpy array.
+
+    Args:  
+        fenics_var (fem.Constant | fem.Function): fenicsx variable to convert into numpy array.
+
     Raises:
         ValueError
+
     Returns:
-        np.ndarray: Return the numpy.ndarray
-    """
+        np.ndarray: Return the numpy array
+
+    '''
     if isinstance(fenics_var, dolfin.Constant):
         return np.asarray(fenics_var.values())
 
@@ -37,11 +41,14 @@ def to_numpy(fenics_var: Constant | Function) -> np.ndarray:
 
 def from_numpy(numpy_array: np.ndarray, func_temp: Function) -> Function:
     """Converting from numpy array to fenicsx variables based on the function space.
+
     Args:
         numpy_array (np.ndarray): Array to convert into fenicsx
         func_space (fem.FunctionSpace): Base-function space
+
     Raises:
         ValueError
+        
     Returns:
         fem.Function: Return the fenicsx.fem.Function
     """    

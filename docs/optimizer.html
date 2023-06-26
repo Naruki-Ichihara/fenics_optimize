@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>optfx.optimizer API documentation</title>
-<meta name="description" content="Optimizer interfaces for nlopt." />
+<meta name="description" content="The optimize function computes the size of the optimization problem by summing
+the sizes of the initial conditions, and then creates an instance of …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,25 +23,167 @@
 <h1 class="title">Module <code>optfx.optimizer</code></h1>
 </header>
 <section id="section-intro">
-<p>Optimizer interfaces for nlopt.</p>
+<p>The optimize function computes the size of the optimization problem by summing
+the sizes of the initial conditions, and then creates an instance of the nlopt optimizer using
+the specified algorithm. The function then splits the optimization problem into subproblems
+based on the size of the initial conditions,
+and solves each subproblem separately using the minimize method of the nlopt optimizer.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">#! /usr/bin/python3
 # -*- coding: utf-8 -*-
-&#39;&#39;&#39; Optimizer interfaces for nlopt.
+&#39;&#39;&#39;The optimize function computes the size of the optimization problem by summing 
+the sizes of the initial conditions, and then creates an instance of the nlopt optimizer using 
+the specified algorithm. The function then splits the optimization problem into subproblems 
+based on the size of the initial conditions, 
+and solves each subproblem separately using the minimize method of the nlopt optimizer.
 &#39;&#39;&#39;
 from dolfin import *
 from dolfin_adjoint import *
 import numpy as np
-from .utils import to_numpy, from_numpy
+from .utils import from_numpy, to_numpy
 try:
     import nlopt as nl
 except ImportError:
     raise ImportError(&#39;Optimizer depends on Nlopt.&#39;)
 
+class Optimizer(nl.opt):
+    &#39;&#39;&#39;
+    The Optimizer class is a subclass of the nlopt.opt class.
+    It creates an instance of the nlopt optimizer using the specified algorithm.
+    &#39;&#39;&#39;
+    def __init__(self, problem, initials, wrt, algorithm=&#39;LD_MMA&#39;, *args):
+        &#39;&#39;&#39; Creates an instance of the nlopt optimizer using the specified algorithm.
+
+    Available algorithms:
+        - LD_MMA (default) Method of moving asymptotes. 
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#mma-method-of-moving-asymptotes
+        - LD_SLSQP Sequential quadratic programming.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#slsqp-sequential-quadratic-programming
+        - LD_LBFGS Limited-memory BFGS.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#lbfgs-limited-memory-bfgs
+        - LD_TNEWTON Truncated Newton.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#tnewton-truncated-newton
+        - LD_TNEWTON_RESTART Truncated Newton with restarting.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#tnewton-restart-truncated-newton-with-restarting
+        - LD_TNEWTON_PRECOND Preconditioned truncated Newton.  
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#tnewton-precond-preconditioned-truncated-newton
+        - LD_TNEWTON_PRECOND_RESTART Preconditioned truncated Newton with restarting.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#tnewton-precond-restart-preconditioned-truncated-newton-with-restarting
+        - LD_VAR1 Variably dimensioned solver.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#var1-variably-dimensioned-solver
+        - LD_VAR2 Variably dimensioned solver.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#var2-variably-dimensioned-solver
+        - LD_AUGLAG Augmented Lagrangian.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#auglag-augmented-lagrangian
+        - LD_AUGLAG_EQ Augmented Lagrangian with equality constraints.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#auglag-eq-augmented-lagrangian-with-equality-constraints
+
+        Args:
+            algorithm: The name of the nlopt algorithm to use.
+            problem: An instance of the OptimizationProblem class.
+            initials: A list of the initial conditions.
+            wrt: A dict of the indices of the control variables for which sensitivities need to be computed.
+            *args: Additional arguments to be passed to the nlopt optimizer.
+
+        Returns:
+            An instance of the nlopt optimizer.
+            
+        &#39;&#39;&#39;
+        self.initials = initials
+        split_index = []
+        index = 0
+        for initial in self.initials:
+            index += initial.vector().size()
+            split_index.append(index)
+        problemSize = 0
+        for initial in self.initials:
+            problemSize += initial.vector().size()
+        super().__init__(getattr(nl, algorithm), problemSize, *args)
+        self.initial_numpy = np.concatenate([to_numpy(i) for i in initials])
+
+        def eval(x, grad):
+            xs = np.split(x, split_index)
+            xs_fenics = [from_numpy(i, j) for i, j in zip(xs, initials)]
+            cost = problem.forward(xs_fenics)
+            grad[:] = np.concatenate(problem.backward())
+            return cost
+
+        def generate_cost_function(attribute, problem, wrt):
+            def cost(x, grad):
+                measure = getattr(problem, attribute)()
+                grad[:] = np.concatenate(problem.backward_constraint(attribute, wrt[attribute]))
+                return measure
+            return cost
+    
+        for attribute in dir(problem):
+            if attribute.startswith(&#39;constraint&#39;):
+                cost_func = generate_cost_function(attribute, problem, wrt)
+                print(type(cost_func))
+                self.add_inequality_constraint(cost_func, 1e-8)
+        
+        self.set_min_objective(eval)
+        pass
+
+    def run(self):
+        &#39;&#39;&#39; Runs the optimization algorithm and returns the solution as a tuple of fenics functions.
+
+        Returns:
+            A tuple of fenics functions.
+        
+        &#39;&#39;&#39;
+        split_index = []
+        index = 0
+        for initial in self.initials:
+            index += initial.vector().size()
+            split_index.append(index)
+        solution_numpy = self.optimize(self.initial_numpy)
+        solution_fenics = [from_numpy(i, j) for i, j in zip(np.split(solution_numpy, split_index), self.initials)]
+        return tuple(solution_fenics)
+
+
+
+
 def optimize(problem, initials, wrt, setting, params, algorithm=&#39;LD_MMA&#39;):
+    &#39;&#39;&#39;Solves an optimization problem using the specified algorithm.
+    
+    Available algorithms:
+        - LD_MMA (default) Method of moving asymptotes. 
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#mma-method-of-moving-asymptotes
+        - LD_SLSQP Sequential quadratic programming.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#slsqp-sequential-quadratic-programming
+        - LD_LBFGS Limited-memory BFGS.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#lbfgs-limited-memory-bfgs
+        - LD_TNEWTON Truncated Newton.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#tnewton-truncated-newton
+        - LD_TNEWTON_RESTART Truncated Newton with restarting.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#tnewton-restart-truncated-newton-with-restarting
+        - LD_TNEWTON_PRECOND Preconditioned truncated Newton.  
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#tnewton-precond-preconditioned-truncated-newton
+        - LD_TNEWTON_PRECOND_RESTART Preconditioned truncated Newton with restarting.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#tnewton-precond-restart-preconditioned-truncated-newton-with-restarting
+        - LD_VAR1 Variably dimensioned solver.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#var1-variably-dimensioned-solver
+        - LD_VAR2 Variably dimensioned solver.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#var2-variably-dimensioned-solver
+        - LD_AUGLAG Augmented Lagrangian.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#auglag-augmented-lagrangian
+        - LD_AUGLAG_EQ Augmented Lagrangian with equality constraints.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#auglag-eq-augmented-lagrangian-with-equality-constraints
+
+    Args:
+        problem: An instance of the OptimizationProblem class.
+        initials: A list of the initial conditions.
+        wrt: A list of the indices of the control variables for which sensitivities need to be computed.
+        setting: A dictionary of settings for the nlopt optimizer.
+        params: A dictionary of parameters for the nlopt optimizer.
+        algorithm: The name of the nlopt algorithm to use.
+
+    Returns:
+        A list of NumPy arrays containing the optimized control variables.
+    &#39;&#39;&#39;
     problem_size = 0
 
     for initial in initials:
@@ -61,18 +204,18 @@ def optimize(problem, initials, wrt, setting, params, algorithm=&#39;LD_MMA&#39;
         grad[:] = np.concatenate(problem.backward())
         return cost
 
-    constraints = []
+    def generate_cost_function(attribute, problem, wrt):
+        def cost(x, grad):
+            measure = getattr(problem, attribute)()
+            grad[:] = np.concatenate(problem.backward_constraint(attribute, wrt[attribute]))
+            return measure
+        return cost
+    
     for attribute in dir(problem):
         if attribute.startswith(&#39;constraint&#39;):
-            constraints.append(attribute)
-
-    if constraints:
-        for constraint in constraints:
-            def const(x, grad):
-                measure = getattr(problem, constraint)()
-                grad[:] = np.concatenate(problem.backward_constraint(constraint, wrt))
-                return measure
-            optimizer.add_inequality_constraint(const, 1e-8)
+            cost_func = generate_cost_function(attribute, problem, wrt)
+            print(type(cost_func))
+            optimizer.add_inequality_constraint(cost_func, 1e-8)
 
     optimizer.set_min_objective(eval)
     for set in setting:
@@ -96,12 +239,89 @@ def optimize(problem, initials, wrt, setting, params, algorithm=&#39;LD_MMA&#39;
 <span>def <span class="ident">optimize</span></span>(<span>problem, initials, wrt, setting, params, algorithm='LD_MMA')</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Solves an optimization problem using the specified algorithm.</p>
+<p>Available algorithms:
+- LD_MMA (default) Method of moving asymptotes.
+see <a href="https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#mma-method-of-moving-asymptotes">https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#mma-method-of-moving-asymptotes</a>
+- LD_SLSQP Sequential quadratic programming.
+see <a href="https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#slsqp-sequential-quadratic-programming">https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#slsqp-sequential-quadratic-programming</a>
+- LD_LBFGS Limited-memory BFGS.
+see <a href="https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#lbfgs-limited-memory-bfgs">https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#lbfgs-limited-memory-bfgs</a>
+- LD_TNEWTON Truncated Newton.
+see <a href="https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#tnewton-truncated-newton">https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#tnewton-truncated-newton</a>
+- LD_TNEWTON_RESTART Truncated Newton with restarting.
+see <a href="https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#tnewton-restart-truncated-newton-with-restarting">https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#tnewton-restart-truncated-newton-with-restarting</a>
+- LD_TNEWTON_PRECOND Preconditioned truncated Newton.<br>
+see <a href="https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#tnewton-precond-preconditioned-truncated-newton">https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#tnewton-precond-preconditioned-truncated-newton</a>
+- LD_TNEWTON_PRECOND_RESTART Preconditioned truncated Newton with restarting.
+see <a href="https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#tnewton-precond-restart-preconditioned-truncated-newton-with-restarting">https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#tnewton-precond-restart-preconditioned-truncated-newton-with-restarting</a>
+- LD_VAR1 Variably dimensioned solver.
+see <a href="https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#var1-variably-dimensioned-solver">https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#var1-variably-dimensioned-solver</a>
+- LD_VAR2 Variably dimensioned solver.
+see <a href="https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#var2-variably-dimensioned-solver">https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#var2-variably-dimensioned-solver</a>
+- LD_AUGLAG Augmented Lagrangian.
+see <a href="https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#auglag-augmented-lagrangian">https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#auglag-augmented-lagrangian</a>
+- LD_AUGLAG_EQ Augmented Lagrangian with equality constraints.
+see <a href="https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#auglag-eq-augmented-lagrangian-with-equality-constraints">https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#auglag-eq-augmented-lagrangian-with-equality-constraints</a></p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>problem</code></strong></dt>
+<dd>An instance of the OptimizationProblem class.</dd>
+<dt><strong><code>initials</code></strong></dt>
+<dd>A list of the initial conditions.</dd>
+<dt><strong><code>wrt</code></strong></dt>
+<dd>A list of the indices of the control variables for which sensitivities need to be computed.</dd>
+<dt><strong><code>setting</code></strong></dt>
+<dd>A dictionary of settings for the nlopt optimizer.</dd>
+<dt><strong><code>params</code></strong></dt>
+<dd>A dictionary of parameters for the nlopt optimizer.</dd>
+<dt><strong><code>algorithm</code></strong></dt>
+<dd>The name of the nlopt algorithm to use.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>A list of NumPy arrays containing the optimized control variables.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def optimize(problem, initials, wrt, setting, params, algorithm=&#39;LD_MMA&#39;):
+    &#39;&#39;&#39;Solves an optimization problem using the specified algorithm.
+    
+    Available algorithms:
+        - LD_MMA (default) Method of moving asymptotes. 
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#mma-method-of-moving-asymptotes
+        - LD_SLSQP Sequential quadratic programming.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#slsqp-sequential-quadratic-programming
+        - LD_LBFGS Limited-memory BFGS.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#lbfgs-limited-memory-bfgs
+        - LD_TNEWTON Truncated Newton.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#tnewton-truncated-newton
+        - LD_TNEWTON_RESTART Truncated Newton with restarting.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#tnewton-restart-truncated-newton-with-restarting
+        - LD_TNEWTON_PRECOND Preconditioned truncated Newton.  
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#tnewton-precond-preconditioned-truncated-newton
+        - LD_TNEWTON_PRECOND_RESTART Preconditioned truncated Newton with restarting.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#tnewton-precond-restart-preconditioned-truncated-newton-with-restarting
+        - LD_VAR1 Variably dimensioned solver.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#var1-variably-dimensioned-solver
+        - LD_VAR2 Variably dimensioned solver.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#var2-variably-dimensioned-solver
+        - LD_AUGLAG Augmented Lagrangian.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#auglag-augmented-lagrangian
+        - LD_AUGLAG_EQ Augmented Lagrangian with equality constraints.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#auglag-eq-augmented-lagrangian-with-equality-constraints
+
+    Args:
+        problem: An instance of the OptimizationProblem class.
+        initials: A list of the initial conditions.
+        wrt: A list of the indices of the control variables for which sensitivities need to be computed.
+        setting: A dictionary of settings for the nlopt optimizer.
+        params: A dictionary of parameters for the nlopt optimizer.
+        algorithm: The name of the nlopt algorithm to use.
+
+    Returns:
+        A list of NumPy arrays containing the optimized control variables.
+    &#39;&#39;&#39;
     problem_size = 0
 
     for initial in initials:
@@ -122,18 +342,18 @@ def optimize(problem, initials, wrt, setting, params, algorithm=&#39;LD_MMA&#39;
         grad[:] = np.concatenate(problem.backward())
         return cost
 
-    constraints = []
+    def generate_cost_function(attribute, problem, wrt):
+        def cost(x, grad):
+            measure = getattr(problem, attribute)()
+            grad[:] = np.concatenate(problem.backward_constraint(attribute, wrt[attribute]))
+            return measure
+        return cost
+    
     for attribute in dir(problem):
         if attribute.startswith(&#39;constraint&#39;):
-            constraints.append(attribute)
-
-    if constraints:
-        for constraint in constraints:
-            def const(x, grad):
-                measure = getattr(problem, constraint)()
-                grad[:] = np.concatenate(problem.backward_constraint(constraint, wrt))
-                return measure
-            optimizer.add_inequality_constraint(const, 1e-8)
+            cost_func = generate_cost_function(attribute, problem, wrt)
+            print(type(cost_func))
+            optimizer.add_inequality_constraint(cost_func, 1e-8)
 
     optimizer.set_min_objective(eval)
     for set in setting:
@@ -149,6 +369,184 @@ def optimize(problem, initials, wrt, setting, params, algorithm=&#39;LD_MMA&#39;
 </dl>
 </section>
 <section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="optfx.optimizer.Optimizer"><code class="flex name class">
+<span>class <span class="ident">Optimizer</span></span>
+<span>(</span><span>problem, initials, wrt, algorithm='LD_MMA', *args)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>The Optimizer class is a subclass of the nlopt.opt class.
+It creates an instance of the nlopt optimizer using the specified algorithm.</p>
+<p>Creates an instance of the nlopt optimizer using the specified algorithm.</p>
+<p>Available algorithms:
+- LD_MMA (default) Method of moving asymptotes.
+see <a href="https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#mma-method-of-moving-asymptotes">https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#mma-method-of-moving-asymptotes</a>
+- LD_SLSQP Sequential quadratic programming.
+see <a href="https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#slsqp-sequential-quadratic-programming">https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#slsqp-sequential-quadratic-programming</a>
+- LD_LBFGS Limited-memory BFGS.
+see <a href="https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#lbfgs-limited-memory-bfgs">https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#lbfgs-limited-memory-bfgs</a>
+- LD_TNEWTON Truncated Newton.
+see <a href="https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#tnewton-truncated-newton">https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#tnewton-truncated-newton</a>
+- LD_TNEWTON_RESTART Truncated Newton with restarting.
+see <a href="https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#tnewton-restart-truncated-newton-with-restarting">https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#tnewton-restart-truncated-newton-with-restarting</a>
+- LD_TNEWTON_PRECOND Preconditioned truncated Newton.<br>
+see <a href="https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#tnewton-precond-preconditioned-truncated-newton">https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#tnewton-precond-preconditioned-truncated-newton</a>
+- LD_TNEWTON_PRECOND_RESTART Preconditioned truncated Newton with restarting.
+see <a href="https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#tnewton-precond-restart-preconditioned-truncated-newton-with-restarting">https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#tnewton-precond-restart-preconditioned-truncated-newton-with-restarting</a>
+- LD_VAR1 Variably dimensioned solver.
+see <a href="https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#var1-variably-dimensioned-solver">https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#var1-variably-dimensioned-solver</a>
+- LD_VAR2 Variably dimensioned solver.
+see <a href="https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#var2-variably-dimensioned-solver">https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#var2-variably-dimensioned-solver</a>
+- LD_AUGLAG Augmented Lagrangian.
+see <a href="https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#auglag-augmented-lagrangian">https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#auglag-augmented-lagrangian</a>
+- LD_AUGLAG_EQ Augmented Lagrangian with equality constraints.
+see <a href="https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#auglag-eq-augmented-lagrangian-with-equality-constraints">https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#auglag-eq-augmented-lagrangian-with-equality-constraints</a></p>
+<pre><code>Args:
+    algorithm: The name of the nlopt algorithm to use.
+    problem: An instance of the OptimizationProblem class.
+    initials: A list of the initial conditions.
+    wrt: A dict of the indices of the control variables for which sensitivities need to be computed.
+    *args: Additional arguments to be passed to the nlopt optimizer.
+
+Returns:
+    An instance of the nlopt optimizer.
+</code></pre></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Optimizer(nl.opt):
+    &#39;&#39;&#39;
+    The Optimizer class is a subclass of the nlopt.opt class.
+    It creates an instance of the nlopt optimizer using the specified algorithm.
+    &#39;&#39;&#39;
+    def __init__(self, problem, initials, wrt, algorithm=&#39;LD_MMA&#39;, *args):
+        &#39;&#39;&#39; Creates an instance of the nlopt optimizer using the specified algorithm.
+
+    Available algorithms:
+        - LD_MMA (default) Method of moving asymptotes. 
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#mma-method-of-moving-asymptotes
+        - LD_SLSQP Sequential quadratic programming.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#slsqp-sequential-quadratic-programming
+        - LD_LBFGS Limited-memory BFGS.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#lbfgs-limited-memory-bfgs
+        - LD_TNEWTON Truncated Newton.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#tnewton-truncated-newton
+        - LD_TNEWTON_RESTART Truncated Newton with restarting.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#tnewton-restart-truncated-newton-with-restarting
+        - LD_TNEWTON_PRECOND Preconditioned truncated Newton.  
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#tnewton-precond-preconditioned-truncated-newton
+        - LD_TNEWTON_PRECOND_RESTART Preconditioned truncated Newton with restarting.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#tnewton-precond-restart-preconditioned-truncated-newton-with-restarting
+        - LD_VAR1 Variably dimensioned solver.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#var1-variably-dimensioned-solver
+        - LD_VAR2 Variably dimensioned solver.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#var2-variably-dimensioned-solver
+        - LD_AUGLAG Augmented Lagrangian.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#auglag-augmented-lagrangian
+        - LD_AUGLAG_EQ Augmented Lagrangian with equality constraints.
+            see https://nlopt.readthedocs.io/en/latest/NLopt_Algorithms/#auglag-eq-augmented-lagrangian-with-equality-constraints
+
+        Args:
+            algorithm: The name of the nlopt algorithm to use.
+            problem: An instance of the OptimizationProblem class.
+            initials: A list of the initial conditions.
+            wrt: A dict of the indices of the control variables for which sensitivities need to be computed.
+            *args: Additional arguments to be passed to the nlopt optimizer.
+
+        Returns:
+            An instance of the nlopt optimizer.
+            
+        &#39;&#39;&#39;
+        self.initials = initials
+        split_index = []
+        index = 0
+        for initial in self.initials:
+            index += initial.vector().size()
+            split_index.append(index)
+        problemSize = 0
+        for initial in self.initials:
+            problemSize += initial.vector().size()
+        super().__init__(getattr(nl, algorithm), problemSize, *args)
+        self.initial_numpy = np.concatenate([to_numpy(i) for i in initials])
+
+        def eval(x, grad):
+            xs = np.split(x, split_index)
+            xs_fenics = [from_numpy(i, j) for i, j in zip(xs, initials)]
+            cost = problem.forward(xs_fenics)
+            grad[:] = np.concatenate(problem.backward())
+            return cost
+
+        def generate_cost_function(attribute, problem, wrt):
+            def cost(x, grad):
+                measure = getattr(problem, attribute)()
+                grad[:] = np.concatenate(problem.backward_constraint(attribute, wrt[attribute]))
+                return measure
+            return cost
+    
+        for attribute in dir(problem):
+            if attribute.startswith(&#39;constraint&#39;):
+                cost_func = generate_cost_function(attribute, problem, wrt)
+                print(type(cost_func))
+                self.add_inequality_constraint(cost_func, 1e-8)
+        
+        self.set_min_objective(eval)
+        pass
+
+    def run(self):
+        &#39;&#39;&#39; Runs the optimization algorithm and returns the solution as a tuple of fenics functions.
+
+        Returns:
+            A tuple of fenics functions.
+        
+        &#39;&#39;&#39;
+        split_index = []
+        index = 0
+        for initial in self.initials:
+            index += initial.vector().size()
+            split_index.append(index)
+        solution_numpy = self.optimize(self.initial_numpy)
+        solution_fenics = [from_numpy(i, j) for i, j in zip(np.split(solution_numpy, split_index), self.initials)]
+        return tuple(solution_fenics)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>nlopt.opt</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="optfx.optimizer.Optimizer.run"><code class="name flex">
+<span>def <span class="ident">run</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Runs the optimization algorithm and returns the solution as a tuple of fenics functions.</p>
+<h2 id="returns">Returns</h2>
+<p>A tuple of fenics functions.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def run(self):
+    &#39;&#39;&#39; Runs the optimization algorithm and returns the solution as a tuple of fenics functions.
+
+    Returns:
+        A tuple of fenics functions.
+    
+    &#39;&#39;&#39;
+    split_index = []
+    index = 0
+    for initial in self.initials:
+        index += initial.vector().size()
+        split_index.append(index)
+    solution_numpy = self.optimize(self.initial_numpy)
+    solution_fenics = [from_numpy(i, j) for i, j in zip(np.split(solution_numpy, split_index), self.initials)]
+    return tuple(solution_fenics)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
 </section>
 </article>
 <nav id="sidebar">
@@ -165,6 +563,16 @@ def optimize(problem, initials, wrt, setting, params, algorithm=&#39;LD_MMA&#39;
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="optfx.optimizer.optimize" href="#optfx.optimizer.optimize">optimize</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="optfx.optimizer.Optimizer" href="#optfx.optimizer.Optimizer">Optimizer</a></code></h4>
+<ul class="">
+<li><code><a title="optfx.optimizer.Optimizer.run" href="#optfx.optimizer.Optimizer.run">run</a></code></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
