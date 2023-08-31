@@ -13,14 +13,16 @@
 [![Github license](https://img.shields.io/github/license/Naruki-Ichihara/fenics_optimize?style=for-the-badge&logo=appveyor)](https://github.com/Naruki-Ichihara/fenics-optimize/)
 
 ## Motivation and significance
-**optfx** is a module for the large scale field optimization platform based on [FEniCS ecosystem](https://fenicsproject.org/).
+**optfx** is a library for the large scale field optimization platform based on [FEniCS ecosystem](https://fenicsproject.org/).
 This module enables reusable and straightforward UFL coding for inverse problem of multi-physics.
 
 >This software is the third-party module of fenics project.
 
 >This software is based on Lagacy FEniCS (FEniCS2019.1.0). The new version, FEniCSx, is not supported.
 
-## Example
+>This README and documentation is now under construction.
+
+## Getting started
 
 ```python
 import numpy as np

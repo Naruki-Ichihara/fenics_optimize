@@ -11,5 +11,5 @@ from dolfin import *
 from dolfin_adjoint import *
 from .core import Module
 from .utils import to_numpy, from_numpy
-from .filters import helmholtzFilter, hevisideFilter, b2c
-from .optimizer import Optimizer
+from .filters import helmholtzFilter, hevisideFilter, b2c, helmholtzFilter_duplicated
+from .optimizer import Optimizer, optimize_duplicated

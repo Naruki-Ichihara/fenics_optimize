@@ -87,7 +87,6 @@ class Optimizer(nl.opt):
         for attribute in dir(problem):
             if attribute.startswith('constraint'):
                 cost_func = generate_cost_function(attribute, problem, wrt)
-                print(type(cost_func))
                 self.add_inequality_constraint(cost_func, 1e-8)
         
         self.set_min_objective(eval)
@@ -112,7 +111,7 @@ class Optimizer(nl.opt):
 
 
 
-def optimize(problem, initials, wrt, setting, params, algorithm='LD_MMA'):
+def optimize_duplicated(problem, initials, wrt, setting, params, algorithm='LD_MMA'):
     '''Solves an optimization problem using the specified algorithm.
     
     Available algorithms:
