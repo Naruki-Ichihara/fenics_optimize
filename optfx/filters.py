@@ -34,7 +34,7 @@ def helmholtzFilter(u, U, V, R=0.025):
 
     Args:
         u (dolfin_adjoint.Function): Target function
-        U (dolfin_adjoint.FunctionSpace): Functionspace for the helmholtz equation (We highly recommended using CG1 space for solving the Helmholtz equation)
+        U (dolfin_adjoint.FunctionSpace): Functionspace for the helmholtz equation (I highly recommend using CG1 space for solving the Helmholtz equation)
         V (dolfin_adjoint.FunctionSpace): Functionspace of target function
         R (float, optional): Filter radius. Defaults to 0.025.
 
