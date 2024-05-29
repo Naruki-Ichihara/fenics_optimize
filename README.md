@@ -12,6 +12,8 @@
 [![Github top language](https://img.shields.io/github/languages/top/Naruki-Ichihara/fenics_optimize?style=for-the-badge&logo=appveyor)](https://github.com/Naruki-Ichihara/fenics-optimize/)
 [![Github license](https://img.shields.io/github/license/Naruki-Ichihara/fenics_optimize?style=for-the-badge&logo=appveyor)](https://github.com/Naruki-Ichihara/fenics-optimize/)
 
+__Note (updated May 2024): This repository is not currently maintained. An updated version is continued to [pytop](https://github.com/Naruki-Ichihara/pytop).__
+
 ## Motivation and significance
 **optfx** is a library for the large scale field optimization platform based on [FEniCS ecosystem](https://fenicsproject.org/).
 This module enables reusable and straightforward UFL coding for inverse problem of multi-physics.
